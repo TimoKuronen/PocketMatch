@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 
@@ -23,7 +21,7 @@ public class InputTester : MonoBehaviour
 
         if (input.IsTouching)
         {
-           // Debug.Log($"Touching at: {input.TouchPosition}");
+            // Debug.Log($"Touching at: {input.TouchPosition}");
         }
     }
 }

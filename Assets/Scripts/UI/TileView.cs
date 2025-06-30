@@ -3,16 +3,9 @@ using UnityEngine;
 public class TileView : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private ColorPalette colorPalette;
     public TileData Data { get; private set; }
 
-    private static readonly Color[] TileColors = new Color[]
-    {
-        Color.red,
-        Color.blue,
-        Color.green,
-        Color.yellow,
-        new Color(0.5f, 0f, 1f) // Purple
-    };
 
     public void Init(TileData data, Sprite sharedSprite)
     {
@@ -20,12 +13,12 @@ public class TileView : MonoBehaviour
         Data = data;
 
         int colorIndex = (int)data.Type;
-        if (colorIndex < 0 || colorIndex >= TileColors.Length)
+        if (colorIndex < 0 || colorIndex >= colorPalette.TileColors.Length)
         {
             Debug.LogWarning($"Invalid tile type index: {colorIndex}");
             return;
         }
 
-        spriteRenderer.color = TileColors[colorIndex];
+        spriteRenderer.color = colorPalette.TileColors[colorIndex].Color;
     }
 }

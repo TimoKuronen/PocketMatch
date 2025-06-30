@@ -112,6 +112,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spriteRenderer: {fileID: 1685639883683566380}
+  colorPalette: {fileID: 11400000, guid: f0ab2f195bcd1a64188c47769668d90c, type: 2}
 --- !u!58 &549678576806478393
 CircleCollider2D:
   m_ObjectHideFlags: 0

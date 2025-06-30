@@ -442,37 +442,6 @@ public class GridController : MonoBehaviour
         return (TileType)Random.Range(0, System.Enum.GetValues(typeof(TileType)).Length);
     }
 
-    private List<TileData> FloodFill(int startX, int startY, TileType type, bool[,] visited)
-    {
-        List<TileData> result = new List<TileData>();
-        Queue<Vector2Int> queue = new Queue<Vector2Int>();
-        queue.Enqueue(new Vector2Int(startX, startY));
-        visited[startX, startY] = true;
-
-        while (queue.Count > 0)
-        {
-            var current = queue.Dequeue();
-            result.Add(gridData[current.x, current.y]);
-
-            // 4-directional
-            foreach (var dir in new[] {
-            Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right })
-            {
-                int nx = current.x + dir.x;
-                int ny = current.y + dir.y;
-
-                if (nx >= 0 && nx < width && ny >= 0 && ny < height &&
-                    !visited[nx, ny] && gridData[nx, ny]?.Type == type)
-                {
-                    visited[nx, ny] = true;
-                    queue.Enqueue(new Vector2Int(nx, ny));
-                }
-            }
-        }
-
-        return result;
-    }
-
     private string DetermineMatchShape(List<TileData> match)
     {
         // Count unique x and y coordinates

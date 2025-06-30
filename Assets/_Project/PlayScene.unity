@@ -178,6 +178,7 @@ GameObject:
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -303,6 +304,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56666c5a40171f54783dd416a44f42bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_EventMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_MaxRayIntersections: 0
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -565,6 +582,11 @@ MonoBehaviour:
   m_PointerBehavior: 0
   m_CursorLockBehavior: 0
   m_ScrollDeltaPerTick: 6
+--- !u!4 &1727922521 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3351214363345049549, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
+  m_PrefabInstance: {fileID: 3843777068911489489}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2068780328
 GameObject:
   m_ObjectHideFlags: 0
@@ -637,6 +659,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 485272160429731552, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
+      propertyPath: tileParent
+      value: 
+      objectReference: {fileID: 1727922521}
+    - target: {fileID: 485272160429731552, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
+      propertyPath: allowInitialMatches
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 485272160429731552, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
       propertyPath: tileSprites.Array.size
       value: 1

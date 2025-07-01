@@ -47,6 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2fa63eef2b294040ba2c716b81a3672, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tileView: {fileID: -2429920941000883301}
 --- !u!212 &1685639883683566380
 SpriteRenderer:
   m_ObjectHideFlags: 0

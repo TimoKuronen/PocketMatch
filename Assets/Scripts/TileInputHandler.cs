@@ -5,14 +5,10 @@ using UnityEngine.EventSystems;
 
 public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
+    [SerializeField] private TileView tileView;
+
     private Vector2 startPointerPos;
     private bool isDragging;
-    private TileView tileView;
-
-    private void Awake()
-    {
-        tileView = GetComponent<TileView>();
-    }
 
     public void OnPointerDown(PointerEventData eventData)
     {

@@ -17,7 +17,8 @@ MonoBehaviour:
   dontAdjustVolume: 0
   stopPrevious: 0
   soundType: 0
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: d0bb09b151341f34ea0f91719f752a80, type: 3}
   overlayClips: []
   minVolume: 1
   maxVolume: 1

@@ -1,25 +1,34 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Pool;
 
 public class GridController : MonoBehaviour
 {
     public static GridController Instance { get; private set; }
-
     [SerializeField] private int width = 6;
     [SerializeField] private int height = 8;
     [SerializeField] private TileView tilePrefab;
     [SerializeField] private Sprite sharedTileSprite;
-    [SerializeField] private Transform tileParent;
+    [SerializeField] private Transform tileContainer;
     [SerializeField] private float tileSize = 1f;
     [SerializeField] private Vector3 gridOffset;
     [SerializeField] private bool allowInitialMatches = false; // default false
 
+    public AudioSource AudioSource { get; private set; }
+
+    private ObjectPool<TileView> tilePool;
     private TileData[,] gridData;
     private TileView[,] gridViews;
     private bool isProcessingTiles;
+
+    public event Action TileSwapped;
+    public event Action TileSwapError;
+    public event Action TileDrop;
+    public event Action TileDestroyed;
 
     private void Awake()
     {
@@ -30,6 +39,15 @@ public class GridController : MonoBehaviour
         }
 
         Instance = this;
+
+        AudioSource = GetComponent<AudioSource>();
+        tilePool = new ObjectPool<TileView>(
+        createFunc: () => Instantiate(tilePrefab, tileContainer),
+        actionOnGet: (tile) => tile.gameObject.SetActive(true),
+        actionOnRelease: (tile) => tile.gameObject.SetActive(false),
+        actionOnDestroy: (tile) => Destroy(tile.gameObject),
+        collectionCheck: false, maxSize: 100
+        );
     }
 
     private void Start()
@@ -72,7 +90,7 @@ public class GridController : MonoBehaviour
         StartCoroutine(CheckSwapMatch(origin, target, tileA, tileB, viewA, viewB, origPosA, origPosB));
     }
 
-    private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB,  TileView viewA, TileView viewB, Vector3 origPosA, Vector3 origPosB)
+    private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector3 origPosA, Vector3 origPosB)
     {
         isProcessingTiles = true;
 
@@ -88,7 +106,7 @@ public class GridController : MonoBehaviour
             StartCoroutine(MatchCycle());
         }
         else
-        {            
+        {
             StartCoroutine(RevertSwap(viewA, viewB, origPosA, origPosB));
         }
     }
@@ -113,6 +131,8 @@ public class GridController : MonoBehaviour
         // Kill any existing tweens just in case
         tileA.transform.DOKill();
         tileB.transform.DOKill();
+        
+        TileSwapError?.Invoke();
 
         // Animate both tiles back to their original positions
         yield return DOTween.Sequence()
@@ -127,6 +147,8 @@ public class GridController : MonoBehaviour
 
     private IEnumerator MatchCycle()
     {
+        TileSwapped?.Invoke();
+
         yield return new WaitForSeconds(0.1f); // optional initial delay
 
         while (true)
@@ -166,6 +188,7 @@ public class GridController : MonoBehaviour
                     view.transform.DOMove(targetPos, 0.25f).SetEase(Ease.OutCubic);
 
                     yield return new WaitForSeconds(0.02f);
+                    TileDrop?.Invoke();
                 }
             }
         }
@@ -178,9 +201,11 @@ public class GridController : MonoBehaviour
         var type = GetRandomTileType();
         var data = new TileData(type, new Vector2Int(x, y));
 
-        var view = Instantiate(tilePrefab, Vector3.zero, Quaternion.identity, tileParent);
+        var view = tilePool.Get();
+        view.transform.localScale = Vector3.one;
         view.Init(data, sharedTileSprite);
         view.gameObject.name = $"Tile_{x}_{y}";
+        //poDebug.Log($"Creating tile at {x}, {y} with type {type}");
 
         gridData[x, y] = data;
         gridViews[x, y] = view;
@@ -237,6 +262,8 @@ public class GridController : MonoBehaviour
                 view.transform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack);
         }
 
+        TileDestroyed?.Invoke();
+
         yield return new WaitForSeconds(0.25f);
 
         foreach (var tileData in allMatches)
@@ -246,7 +273,7 @@ public class GridController : MonoBehaviour
 
             if (gridViews[pos.x, pos.y] != null)
             {
-                Destroy(gridViews[pos.x, pos.y].gameObject);
+                tilePool.Release(gridViews[pos.x, pos.y]);
                 gridViews[pos.x, pos.y] = null;
             }
         }
@@ -258,8 +285,8 @@ public class GridController : MonoBehaviour
         {
             foreach (var view in gridViews)
             {
-                if (view != null) 
-                    Destroy(view.gameObject);
+                if (view != null)
+                    tilePool.Release(view);
             }
         }
 
@@ -288,11 +315,13 @@ public class GridController : MonoBehaviour
             {
                 for (int y = 0; y < height; y++)
                 {
-                    var type = (TileType)Random.Range(0, System.Enum.GetValues(typeof(TileType)).Length);
+                    var type = (TileType)UnityEngine.Random.Range(0, System.Enum.GetValues(typeof(TileType)).Length);
                     var position = new Vector2Int(x, y);
                     var data = new TileData(type, position);
 
-                    var view = Instantiate(tilePrefab, GridToWorldPos(position), Quaternion.identity, transform);
+                    var view = tilePool.Get();
+                    view.transform.SetParent(transform, false);
+                    view.transform.position = GridToWorldPos(position);
                     view.Init(data, sharedTileSprite);
                     view.gameObject.name = $"Tile_{x}_{y}";
 
@@ -303,7 +332,6 @@ public class GridController : MonoBehaviour
 
             hasMatches = GetAllMatches(gridData).Count > 0;
 
-            // If matches not allowed, repeat if matches found
         } while (!allowMatches && hasMatches);
 
         tileSize = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
@@ -439,7 +467,7 @@ public class GridController : MonoBehaviour
 
     private TileType GetRandomTileType()
     {
-        return (TileType)Random.Range(0, System.Enum.GetValues(typeof(TileType)).Length);
+        return (TileType)UnityEngine.Random.Range(0, System.Enum.GetValues(typeof(TileType)).Length);
     }
 
     private string DetermineMatchShape(List<TileData> match)

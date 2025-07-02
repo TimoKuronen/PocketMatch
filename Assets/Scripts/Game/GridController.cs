@@ -9,6 +9,7 @@ using UnityEngine.Pool;
 public class GridController : MonoBehaviour
 {
     public static GridController Instance { get; private set; }
+
     [SerializeField] private int width = 6;
     [SerializeField] private int height = 8;
     [SerializeField] private TileView tilePrefab;
@@ -16,7 +17,7 @@ public class GridController : MonoBehaviour
     [SerializeField] private Transform tileContainer;
     [SerializeField] private float tileSize = 1f;
     [SerializeField] private Vector3 gridOffset;
-    [SerializeField] private bool allowInitialMatches = false; // default false
+    [SerializeField] private bool allowInitialMatches = false;
 
     public AudioSource AudioSource { get; private set; }
 
@@ -25,6 +26,7 @@ public class GridController : MonoBehaviour
     private TileView[,] gridViews;
     private bool isProcessingTiles;
 
+    public event Action TileMoved;
     public event Action TileSwapped;
     public event Action TileSwapError;
     public event Action TileDrop;
@@ -93,6 +95,8 @@ public class GridController : MonoBehaviour
     private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector3 origPosA, Vector3 origPosB)
     {
         isProcessingTiles = true;
+
+        TileMoved?.Invoke();
 
         yield return new WaitForSeconds(0.2f);
 
@@ -179,7 +183,7 @@ public class GridController : MonoBehaviour
             {
                 if (gridData[x, y] == null)
                 {
-                    var view = CreateTileAt(x, y);
+                    var view = CreateTileAt(x, y, TileSpecialType.None);
 
                     Vector3 spawnPos = GridToWorldPos(new Vector2Int(x, y + 3));
                     Vector3 targetPos = GridToWorldPos(new Vector2Int(x, y));
@@ -196,7 +200,7 @@ public class GridController : MonoBehaviour
         yield return new WaitForSeconds(0.3f);
     }
 
-    private TileView CreateTileAt(int x, int y)
+    private TileView CreateTileAt(int x, int y, TileSpecialType specialTile)
     {
         var type = GetRandomTileType();
         var data = new TileData(type, new Vector2Int(x, y));
@@ -205,7 +209,6 @@ public class GridController : MonoBehaviour
         view.transform.localScale = Vector3.one;
         view.Init(data, sharedTileSprite);
         view.gameObject.name = $"Tile_{x}_{y}";
-        //poDebug.Log($"Creating tile at {x}, {y} with type {type}");
 
         gridData[x, y] = data;
         gridViews[x, y] = view;
@@ -467,18 +470,23 @@ public class GridController : MonoBehaviour
 
     private TileType GetRandomTileType()
     {
-        return (TileType)UnityEngine.Random.Range(0, System.Enum.GetValues(typeof(TileType)).Length);
+        return (TileType)UnityEngine.Random.Range(0, Enum.GetValues(typeof(TileType)).Length);
     }
 
-    private string DetermineMatchShape(List<TileData> match)
+    private MatchShape DetermineMatchShape(List<TileData> match)
     {
-        // Count unique x and y coordinates
         var xs = match.Select(t => t.GridPosition.x).Distinct().Count();
         var ys = match.Select(t => t.GridPosition.y).Distinct().Count();
 
-        if (match.Count >= 5) return "FiveLine";
-        if (xs > 1 && ys > 1 && match.Count >= 5) return "TOrL";
-        if (match.Count == 4) return "FourLine";
-        return "ThreeLine";
+        if (xs > 1 && ys > 1 && match.Count >= 5)
+            return MatchShape.TOrL;
+
+        if (match.Count >= 5)
+            return MatchShape.FiveLine;
+
+        if (match.Count == 4)
+            return MatchShape.FourLine;
+
+        return MatchShape.ThreeLine;
     }
 }

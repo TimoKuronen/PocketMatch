@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 
 public class GridAudioPlayer : MonoBehaviour
 {
+    [SerializeField] private AudioCue tileMoveAudio;
     [SerializeField] private AudioCue tileHitAudio;
     [SerializeField] private AudioCue tileMatchAudio;
     [SerializeField] private AudioCue tileSwitchErrorAudio;
@@ -17,6 +19,12 @@ public class GridAudioPlayer : MonoBehaviour
         GridController.Instance.TileSwapped += PlayMatchAudio;
         GridController.Instance.TileSwapError += PlaySwitchErrorAudio;
         GridController.Instance.TileDestroyed += PlayDestroyAudio;
+        GridController.Instance.TileMoved += PlayTileMoveAudio;
+    }
+
+    private void PlayTileMoveAudio()
+    {
+        soundManager.Play(tileMoveAudio, GridController.Instance.AudioSource);
     }
 
     private void PlayDestroyAudio()

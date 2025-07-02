@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 560f245ab7662be4096bee701ddf5a8e, type: 3}
-  m_Name: Tile_Move
+  m_Name: Tile_Match
   m_EditorClassIdentifier: 
   loop: 0
   randomize: 1
@@ -18,7 +18,7 @@ MonoBehaviour:
   stopPrevious: 0
   soundType: 0
   clips:
-  - {fileID: 8300000, guid: 72227fd7afead7a4396a6b0f9c93d8ba, type: 3}
+  - {fileID: 8300000, guid: cade4f9aaf9dadf47a3565fce5c7b3f7, type: 3}
   overlayClips: []
   minVolume: 1
   maxVolume: 1

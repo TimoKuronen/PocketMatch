@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public enum TileType { Red, Blue, Green, Yellow, Purple }
-public enum TileSpecialType { None, RowClear, ColumnClear, Bomb, ColorClear }
+public enum TileSpecialType { None, RowClearer, ColumnClearer, Bomb, ColorClearer }
 
 public class TileData
 {

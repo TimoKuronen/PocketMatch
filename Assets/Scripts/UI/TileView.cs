@@ -6,7 +6,6 @@ public class TileView : MonoBehaviour
     [SerializeField] private ColorPalette colorPalette;
     public TileData Data { get; private set; }
 
-
     public void Init(TileData data, Sprite sharedSprite)
     {
         spriteRenderer.sprite = sharedSprite;

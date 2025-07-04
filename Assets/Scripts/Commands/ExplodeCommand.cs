@@ -4,12 +4,7 @@ using UnityEngine;
 
 public class ExplodeCommand : ICommand
 {
-    public void Execute()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void Undo()
+    public IEnumerator Execute()
     {
         throw new System.NotImplementedException();
     }

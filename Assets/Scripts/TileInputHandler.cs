@@ -12,18 +12,26 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
+#if UNITY_EDITOR
+        /// Destroying single tiles for debugging purposes
+        if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            GridController.Instance.DestroyTargetTile(tileView.Data.GridPosition);
+            return;
+        }
+#endif
         startPointerPos = eventData.pressPosition;
         isDragging = true;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (!isDragging) 
+        if (!isDragging)
             return;
 
         Vector2 dragDelta = eventData.position - startPointerPos;
 
-        if (dragDelta.magnitude < 50f) 
+        if (dragDelta.magnitude < 35f)
             return;
 
         Vector2Int dir = Vector2Int.zero;

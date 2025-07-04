@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Pool;
 
 public class GridController : MonoBehaviour
@@ -25,6 +26,7 @@ public class GridController : MonoBehaviour
     private TileData[,] gridData;
     private TileView[,] gridViews;
     private bool isProcessingTiles;
+    private CommandInvoker commandInvoker;
 
     public event Action TileMoved;
     public event Action TileSwapped;
@@ -54,6 +56,8 @@ public class GridController : MonoBehaviour
 
     private void Start()
     {
+        commandInvoker = new CommandInvoker(this);
+
         GenerateGrid(allowInitialMatches);
         CenterCameraOnGrid();
     }
@@ -66,7 +70,6 @@ public class GridController : MonoBehaviour
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
     {
         Vector2Int target = origin + dir;
-        Debug.DrawLine(GridToWorldPos(origin), GridToWorldPos(target), Color.cyan, 5f);
 
         if (!IsInsideGrid(target) || isProcessingTiles)
             return;
@@ -77,17 +80,15 @@ public class GridController : MonoBehaviour
         if (tileA == null || tileB == null)
             return;
 
-        // Save views before swap
         var viewA = gridViews[origin.x, origin.y];
         var viewB = gridViews[target.x, target.y];
 
-        // Save their current positions BEFORE swap
         Vector3 origPosA = viewA.transform.position;
         Vector3 origPosB = viewB.transform.position;
 
-        // Animate views
-        viewA.transform.DOMove(origPosB, 0.15f);
-        viewB.transform.DOMove(origPosA, 0.15f);
+        isProcessingTiles = true;
+        commandInvoker.AddCommand(new SwapCommand(viewA, viewB, origPosA, origPosB));
+        commandInvoker.ExecuteAll();
 
         StartCoroutine(CheckSwapMatch(origin, target, tileA, tileB, viewA, viewB, origPosA, origPosB));
     }
@@ -98,12 +99,12 @@ public class GridController : MonoBehaviour
 
         TileMoved?.Invoke();
 
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(0.6f); // 0.2
 
         var tempGridData = gridData.Clone() as TileData[,];
         tempGridData[origin.x, origin.y] = tileB;
         tempGridData[target.x, target.y] = tileA;
-        var matches = GetAllMatches(tempGridData);
+        var matches = GetAllMatchPositions(tempGridData);
         if (matches.Count > 0)
         {
             SwapTilesInData(origin, target, tileA, tileB);
@@ -131,17 +132,17 @@ public class GridController : MonoBehaviour
 
     private IEnumerator RevertSwap(TileView tileA, TileView tileB, Vector3 origPosA, Vector3 origPosB)
     {
-        Debug.Log("Reverting swap...");
+        //Debug.Log("Reverting swap...");
         // Kill any existing tweens just in case
         tileA.transform.DOKill();
         tileB.transform.DOKill();
-        
+
         TileSwapError?.Invoke();
 
         // Animate both tiles back to their original positions
         yield return DOTween.Sequence()
-            .Join(tileA.transform.DOMove(origPosA, 0.25f).SetEase(Ease.OutBack))
-            .Join(tileB.transform.DOMove(origPosB, 0.25f).SetEase(Ease.OutBack))
+            .Join(tileA.transform.DOMove(origPosA, 0.5f).SetEase(Ease.OutBack)) //0.25
+            .Join(tileB.transform.DOMove(origPosB, 0.5f).SetEase(Ease.OutBack))
             .WaitForCompletion();
 
         isProcessingTiles = false;
@@ -153,54 +154,53 @@ public class GridController : MonoBehaviour
     {
         TileSwapped?.Invoke();
 
-        yield return new WaitForSeconds(0.1f); // optional initial delay
+        yield return new WaitForSeconds(0.1f);
 
         while (true)
         {
-            var allMatches = GetAllMatches(gridData);
-            if (allMatches.Count == 0)
-            {
-                Debug.Log("No matches found, breaking cycle.");
-                break;
-            }
+            yield return new WaitUntil(() => commandInvoker.IsEmpty());
+            yield return new WaitUntil(() => !AnyTileTweening());
 
-            Debug.Log($"Found {allMatches.Count} match groups.");
-            var flatMatches = allMatches.SelectMany(group => group).Distinct().ToList();
-            yield return DestroyMatchedTiles(allMatches);
-            yield return DropTiles();
-            yield return RefillBoard();
+            var matchPositions = GetAllMatchPositions(gridData);
+            if (matchPositions.Count == 0)
+                break;
+
+            commandInvoker.AddCommand(new DestroyCommand(matchPositions, gridViews, gridData, tilePool, TileDestroyed));
+            commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
+            commandInvoker.ExecuteAll();
+        }
+
+        commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToWorldPos, TileDrop));
+        commandInvoker.ExecuteAll();
+
+        yield return new WaitUntil(() => commandInvoker.IsEmpty());
+        yield return new WaitUntil(() => !AnyTileTweening());
+
+        var refillMatches = GetAllMatchPositions(gridData);
+        if (refillMatches.Count > 0)
+        {
+            StartCoroutine(MatchCycle());
+            yield break;
         }
 
         isProcessingTiles = false;
-        Debug.Log("Board is stable.");
     }
 
-    private IEnumerator RefillBoard()
+    private bool AnyTileTweening()
     {
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                if (gridData[x, y] == null)
-                {
-                    var view = CreateTileAt(x, y, TileSpecialType.None);
-
-                    Vector3 spawnPos = GridToWorldPos(new Vector2Int(x, y + 3));
-                    Vector3 targetPos = GridToWorldPos(new Vector2Int(x, y));
-
-                    view.transform.position = spawnPos;
-                    view.transform.DOMove(targetPos, 0.25f).SetEase(Ease.OutCubic);
-
-                    yield return new WaitForSeconds(0.02f);
-                    TileDrop?.Invoke();
-                }
+                var view = gridViews[x, y];
+                if (view != null && DOTween.IsTweening(view.transform))
+                    return true;
             }
         }
-
-        yield return new WaitForSeconds(0.3f);
+        return false;
     }
 
-    private TileView CreateTileAt(int x, int y, TileSpecialType specialTile)
+    private TileView CreateTileAt(int x, int y)
     {
         var type = GetRandomTileType();
         var data = new TileData(type, new Vector2Int(x, y));
@@ -214,72 +214,6 @@ public class GridController : MonoBehaviour
         gridViews[x, y] = view;
 
         return view;
-    }
-
-    private IEnumerator DropTiles()
-    {
-        for (int x = 0; x < width; x++)
-        {
-            int emptyY = -1;
-
-            for (int y = 0; y < height; y++)
-            {
-                if (gridData[x, y] == null)
-                {
-                    if (emptyY == -1) emptyY = y;
-                }
-                else if (emptyY != -1)
-                {
-                    // Move data
-                    gridData[x, emptyY] = gridData[x, y];
-                    gridData[x, y] = null;
-
-                    // Move view
-                    gridViews[x, emptyY] = gridViews[x, y];
-                    gridViews[x, y] = null;
-
-                    // Update tile data position
-                    gridData[x, emptyY].GridPosition = new Vector2Int(x, emptyY);
-
-                    // Move visual
-                    var view = gridViews[x, emptyY];
-                    Vector3 targetPos = GridToWorldPos(new Vector2Int(x, emptyY));
-                    view.transform.DOMove(targetPos, 0.2f).SetEase(Ease.OutCubic);
-
-                    emptyY++;
-                }
-            }
-        }
-
-        yield return new WaitForSeconds(0.25f);
-    }
-
-    private IEnumerator DestroyMatchedTiles(List<List<TileData>> matchGroups)
-    {
-        var allMatches = matchGroups.SelectMany(g => g).Distinct().ToList();
-
-        foreach (var tileData in allMatches)
-        {
-            var view = gridViews[tileData.GridPosition.x, tileData.GridPosition.y];
-            if (view != null)
-                view.transform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack);
-        }
-
-        TileDestroyed?.Invoke();
-
-        yield return new WaitForSeconds(0.25f);
-
-        foreach (var tileData in allMatches)
-        {
-            Vector2Int pos = tileData.GridPosition;
-            gridData[pos.x, pos.y] = null;
-
-            if (gridViews[pos.x, pos.y] != null)
-            {
-                tilePool.Release(gridViews[pos.x, pos.y]);
-                gridViews[pos.x, pos.y] = null;
-            }
-        }
     }
 
     private void ClearBoard()
@@ -333,12 +267,11 @@ public class GridController : MonoBehaviour
                 }
             }
 
-            hasMatches = GetAllMatches(gridData).Count > 0;
+            hasMatches = GetAllMatchPositions(gridData).Count > 0;
 
         } while (!allowMatches && hasMatches);
 
         tileSize = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
-        Debug.Log($"Grid generated with size: {width}x{height}, Tile Size: {tileSize}");
     }
 
     private Vector3 GridToWorldPos(Vector2Int gridPosition)
@@ -357,46 +290,37 @@ public class GridController : MonoBehaviour
         Camera.main.orthographicSize = Mathf.Max(gridWidth, gridHeight) - 1;
     }
 
-    private List<List<TileData>> GetAllMatches(TileData[,] gridData)
+    private List<Vector2Int> GetAllMatchPositions(TileData[,] gridData)
     {
-        var matches = new List<List<TileData>>();
-        var matchedPositions = new HashSet<Vector2Int>();
+        var matched = new HashSet<Vector2Int>();
 
         // Horizontal matches
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width - 2;)
             {
-                if (gridData[x, y] == null)
+                var start = gridData[x, y];
+                if (start == null)
                 {
                     x++;
                     continue;
                 }
 
-                var matchType = gridData[x, y].Type;
-                int matchLength = 1;
+                var matchType = start.Type;
+                int matchLen = 1;
 
                 for (int i = x + 1; i < width && gridData[i, y] != null && gridData[i, y].Type == matchType; i++)
-                {
-                    matchLength++;
-                }
+                    matchLen++;
 
-                if (matchLength >= 3)
+                if (matchLen >= 3)
                 {
-                    var group = new List<TileData>();
-                    for (int i = x; i < x + matchLength; i++)
-                    {
-                        var pos = new Vector2Int(i, y);
-                        if (matchedPositions.Add(pos))
-                            group.Add(gridData[i, y]);
-                    }
-                    matches.Add(group);
-                    x += matchLength;
+                    for (int i = x; i < x + matchLen; i++)
+                        matched.Add(new Vector2Int(i, y));
+
+                    x += matchLen;
                 }
                 else
-                {
                     x++;
-                }
             }
         }
 
@@ -405,67 +329,32 @@ public class GridController : MonoBehaviour
         {
             for (int y = 0; y < height - 2;)
             {
-                if (gridData[x, y] == null)
+                var start = gridData[x, y];
+                if (start == null)
                 {
                     y++;
                     continue;
                 }
 
-                var matchType = gridData[x, y].Type;
-                int matchLength = 1;
+                var matchType = start.Type;
+                int matchLen = 1;
 
                 for (int i = y + 1; i < height && gridData[x, i] != null && gridData[x, i].Type == matchType; i++)
-                {
-                    matchLength++;
-                }
+                    matchLen++;
 
-                if (matchLength >= 3)
+                if (matchLen >= 3)
                 {
-                    var group = new List<TileData>();
-                    for (int i = y; i < y + matchLength; i++)
-                    {
-                        var pos = new Vector2Int(x, i);
-                        if (matchedPositions.Add(pos))
-                            group.Add(gridData[x, i]);
-                    }
-                    matches.Add(group);
-                    y += matchLength;
+                    for (int i = y; i < y + matchLen; i++)
+                        matched.Add(new Vector2Int(x, i));
+
+                    y += matchLen;
                 }
                 else
-                {
                     y++;
-                }
             }
         }
 
-        return MergeIntersectingGroups(matches);
-    }
-
-    private List<List<TileData>> MergeIntersectingGroups(List<List<TileData>> groups)
-    {
-        var mergedGroups = new List<List<TileData>>();
-
-        foreach (var group in groups)
-        {
-            bool merged = false;
-
-            foreach (var existingGroup in mergedGroups)
-            {
-                if (group.Any(tile => existingGroup.Contains(tile)))
-                {
-                    existingGroup.AddRange(group.Where(t => !existingGroup.Contains(t)));
-                    merged = true;
-                    break;
-                }
-            }
-
-            if (!merged)
-            {
-                mergedGroups.Add(new List<TileData>(group));
-            }
-        }
-
-        return mergedGroups;
+        return matched.ToList();
     }
 
     private TileType GetRandomTileType()
@@ -488,5 +377,24 @@ public class GridController : MonoBehaviour
             return MatchShape.FourLine;
 
         return MatchShape.ThreeLine;
+    }
+
+    /// <summary>
+    /// Used for debugging to destroy individual tiles without matches
+    /// </summary>
+    /// <param name="origin"></param>
+    public void DestroyTargetTile(Vector2Int origin)
+    {
+        List<Vector2Int> flatMatches = new();
+        var tileA = gridData[origin.x, origin.y];
+        flatMatches.Add(origin);
+
+        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePool, TileDestroyed));
+        commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
+        //commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToWorldPos, TileDrop));
+
+        commandInvoker.ExecuteAll();
+
+        StartCoroutine(MatchCycle());
     }
 }

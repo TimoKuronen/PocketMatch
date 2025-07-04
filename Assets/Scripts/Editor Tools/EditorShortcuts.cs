@@ -32,14 +32,14 @@ public class EditorShortcuts : EditorWindow
 
     private void DisplayButtons()
     {
-        //if (GUILayout.Button("Shuffle"))
-        //{
-        //    GridController.Instance.ShuffleBoard();
-        //}
-        //if (GUILayout.Button("Get matches"))
-        //{
-        //    GridController.Instance.StartMatchCycle();
-        //}
+        if (GUILayout.Button("Shuffle"))
+        {
+            GridController.Instance.ShuffleBoard();
+        }
+        if (GUILayout.Button("Get matches"))
+        {
+            GridController.Instance.StartMatchCycle();
+        }
 
         EditorGUILayout.Space();
         DrawPrefabField("Prefab", PrefabKey);

@@ -4,17 +4,32 @@ using UnityEngine;
 
 public class CommandInvoker
 {
-    private Stack<ICommand> history = new();
+    private readonly Queue<ICommand> commandQueue = new();
+    private MonoBehaviour runner;
 
-    public void ExecuteCommand(ICommand command)
+    public CommandInvoker(MonoBehaviour runner)
     {
-        command.Execute();
-        history.Push(command);
+        this.runner = runner;
     }
 
-    public void UndoLast()
+    public void AddCommand(ICommand command)
     {
-        if (history.Count > 0)
-            history.Pop().Undo();
+        commandQueue.Enqueue(command);
+    }
+
+    public void ExecuteAll()
+    {
+        runner.StartCoroutine(RunQueue());
+    }
+
+    public bool IsEmpty() => commandQueue.Count == 0;
+
+    private IEnumerator RunQueue()
+    {
+        while (commandQueue.Count > 0)
+        {
+            //Debug.Log($"Executing command: {commandQueue.Peek().GetType().Name}");
+            yield return commandQueue.Dequeue().Execute();
+        }
     }
 }

@@ -1,5 +1,6 @@
+using System.Collections;
+
 public interface ICommand
 {
-    void Execute();
-    void Undo();
+    IEnumerator Execute();
 }

@@ -1,30 +1,25 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class SwapCommand : ICommand
 {
-    private GridController controller;
-    private Vector2Int posA, posB;
-    private TileData tileA, tileB;
+    private TileView viewA, viewB;
+    private Vector3 targetPosA, targetPosB;
 
-    public void Execute()
+    public SwapCommand(TileView a, TileView b, Vector3 posA, Vector3 posB)
     {
-        //controller.PerformSwap(posA, posB, tileA, tileB);
+        viewA = a;
+        viewB = b;
+        targetPosA = posA;
+        targetPosB = posB;
     }
 
-    public void Undo()
+    public IEnumerator Execute()
     {
-        //controller.PerformSwap(posB, posA, tileB, tileA);
-    }
-
-    public SwapCommand(GridController controller, Vector2Int posA, Vector2Int posB)
-    {
-        this.controller = controller;
-        this.posA = posA;
-        this.posB = posB;
-
-        //tileA = controller.GetTileData(posA);
-        //tileB = controller.GetTileData(posB);
+        viewA.transform.DOMove(targetPosB, 0.15f);
+        viewB.transform.DOMove(targetPosA, 0.15f);
+        yield return new WaitForSeconds(0.2f);
     }
 }

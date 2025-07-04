@@ -1,16 +1,17 @@
 using DG.Tweening;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class RefillCommand : ICommand
 {
-    private TileData[,] gridData;
-    private TileView[,] gridViews;
-    private int width, height;
-    private Func<int, int, TileView> CreateTileAt;
-    private Func<Vector2Int, Vector3> GridToWorldPos;
-    private Action TileDrop;
+    private readonly TileData[,] gridData;
+    private readonly TileView[,] gridViews;
+    private readonly int width, height;
+    private readonly Func<int, int, TileView> CreateTileAt;
+    private readonly Func<Vector2Int, Vector3> GridToWorldPos;
+    private readonly Action TileDrop;
 
     public RefillCommand(TileData[,] data, TileView[,] views, int w, int h,
         Func<int, int, TileView> createFn,
@@ -28,6 +29,8 @@ public class RefillCommand : ICommand
 
     public IEnumerator Execute()
     {
+        List<Tweener> tweens = new();
+
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -35,17 +38,22 @@ public class RefillCommand : ICommand
                 if (gridData[x, y] == null)
                 {
                     var view = CreateTileAt(x, y);
-                    Vector3 spawnPos = GridToWorldPos(new Vector2Int(x, y + 3));
-                    Vector3 targetPos = GridToWorldPos(new Vector2Int(x, y));
+                    var spawnPos = GridToWorldPos(new Vector2Int(x, y + 3));
+                    var targetPos = GridToWorldPos(new Vector2Int(x, y));
 
                     view.transform.position = spawnPos;
-                    view.transform.DOMove(targetPos, 0.25f).SetEase(Ease.OutCubic);
+                    view.transform.DOKill();
+                    var tween = view.transform.DOMove(targetPos, 0.25f).SetEase(Ease.OutCubic);
+                    tweens.Add(tween);
 
-                    yield return new WaitForSeconds(0.02f);
                     TileDrop?.Invoke();
                 }
             }
         }
-        yield return new WaitForSeconds(0.3f);
+
+        if (tweens.Count > 0)
+            yield return DOTween.Sequence().AppendInterval(0.25f).WaitForCompletion();
+        else
+            yield return null;
     }
 }

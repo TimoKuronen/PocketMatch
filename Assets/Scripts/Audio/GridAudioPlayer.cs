@@ -9,10 +9,12 @@ public class GridAudioPlayer : MonoBehaviour
     [SerializeField] private AudioCue tileSwitchErrorAudio;
     [SerializeField] private AudioCue tileDestroyAudio;
 
+    private AudioSource audioSource;
     private ISoundManager soundManager;
 
     private void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         soundManager = Services.Get<ISoundManager>();
 
         GridController.Instance.TileDrop += PlayHitAudio;
@@ -24,27 +26,27 @@ public class GridAudioPlayer : MonoBehaviour
 
     private void PlayTileMoveAudio()
     {
-        soundManager.Play(tileMoveAudio, GridController.Instance.AudioSource);
+        soundManager.Play(tileMoveAudio, audioSource);
     }
 
     private void PlayDestroyAudio()
     {
-        soundManager.Play(tileDestroyAudio, GridController.Instance.AudioSource);
+        soundManager.Play(tileDestroyAudio, audioSource);
     }
 
     private void PlaySwitchErrorAudio()
     {
-        soundManager.Play(tileSwitchErrorAudio, GridController.Instance.AudioSource);
+        soundManager.Play(tileSwitchErrorAudio, audioSource);
     }
 
     private void PlayMatchAudio()
     {
-        soundManager.Play(tileMatchAudio, GridController.Instance.AudioSource);
+        soundManager.Play(tileMatchAudio, audioSource);
     }
 
     private void PlayHitAudio()
     {
-        soundManager.Play(tileHitAudio, GridController.Instance.AudioSource);
+        soundManager.Play(tileHitAudio, audioSource);
     }
 
     private void OnDestroy()

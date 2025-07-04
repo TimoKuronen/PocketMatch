@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.Pool;
 
 public class GridController : MonoBehaviour
@@ -20,13 +19,12 @@ public class GridController : MonoBehaviour
     [SerializeField] private Vector3 gridOffset;
     [SerializeField] private bool allowInitialMatches = false;
 
-    public AudioSource AudioSource { get; private set; }
-
     private ObjectPool<TileView> tilePool;
     private TileData[,] gridData;
     private TileView[,] gridViews;
-    private bool isProcessingTiles;
     private CommandInvoker commandInvoker;
+    private MatchFinder matchFinder;
+    private bool isProcessingTiles;
 
     public event Action TileMoved;
     public event Action TileSwapped;
@@ -44,7 +42,6 @@ public class GridController : MonoBehaviour
 
         Instance = this;
 
-        AudioSource = GetComponent<AudioSource>();
         tilePool = new ObjectPool<TileView>(
         createFunc: () => Instantiate(tilePrefab, tileContainer),
         actionOnGet: (tile) => tile.gameObject.SetActive(true),
@@ -57,6 +54,7 @@ public class GridController : MonoBehaviour
     private void Start()
     {
         commandInvoker = new CommandInvoker(this);
+        matchFinder = new MatchFinder(width, height);
 
         GenerateGrid(allowInitialMatches);
         CenterCameraOnGrid();
@@ -99,12 +97,12 @@ public class GridController : MonoBehaviour
 
         TileMoved?.Invoke();
 
-        yield return new WaitForSeconds(0.6f); // 0.2
+        yield return new WaitForSeconds(0.2f);
 
         var tempGridData = gridData.Clone() as TileData[,];
         tempGridData[origin.x, origin.y] = tileB;
         tempGridData[target.x, target.y] = tileA;
-        var matches = GetAllMatchPositions(tempGridData);
+        var matches = matchFinder.GetMatches(tempGridData);
         if (matches.Count > 0)
         {
             SwapTilesInData(origin, target, tileA, tileB);
@@ -141,8 +139,8 @@ public class GridController : MonoBehaviour
 
         // Animate both tiles back to their original positions
         yield return DOTween.Sequence()
-            .Join(tileA.transform.DOMove(origPosA, 0.5f).SetEase(Ease.OutBack)) //0.25
-            .Join(tileB.transform.DOMove(origPosB, 0.5f).SetEase(Ease.OutBack))
+            .Join(tileA.transform.DOMove(origPosA, 0.25f).SetEase(Ease.OutBack))
+            .Join(tileB.transform.DOMove(origPosB, 0.25f).SetEase(Ease.OutBack))
             .WaitForCompletion();
 
         isProcessingTiles = false;
@@ -161,7 +159,7 @@ public class GridController : MonoBehaviour
             yield return new WaitUntil(() => commandInvoker.IsEmpty());
             yield return new WaitUntil(() => !AnyTileTweening());
 
-            var matchPositions = GetAllMatchPositions(gridData);
+            var matchPositions = matchFinder.GetMatches(gridData);
             if (matchPositions.Count == 0)
                 break;
 
@@ -176,7 +174,7 @@ public class GridController : MonoBehaviour
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
         yield return new WaitUntil(() => !AnyTileTweening());
 
-        var refillMatches = GetAllMatchPositions(gridData);
+        var refillMatches = matchFinder.GetMatches(gridData);
         if (refillMatches.Count > 0)
         {
             StartCoroutine(MatchCycle());
@@ -267,7 +265,7 @@ public class GridController : MonoBehaviour
                 }
             }
 
-            hasMatches = GetAllMatchPositions(gridData).Count > 0;
+            hasMatches = matchFinder.GetMatches(gridData).Count > 0;
 
         } while (!allowMatches && hasMatches);
 
@@ -290,93 +288,9 @@ public class GridController : MonoBehaviour
         Camera.main.orthographicSize = Mathf.Max(gridWidth, gridHeight) - 1;
     }
 
-    private List<Vector2Int> GetAllMatchPositions(TileData[,] gridData)
-    {
-        var matched = new HashSet<Vector2Int>();
-
-        // Horizontal matches
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width - 2;)
-            {
-                var start = gridData[x, y];
-                if (start == null)
-                {
-                    x++;
-                    continue;
-                }
-
-                var matchType = start.Type;
-                int matchLen = 1;
-
-                for (int i = x + 1; i < width && gridData[i, y] != null && gridData[i, y].Type == matchType; i++)
-                    matchLen++;
-
-                if (matchLen >= 3)
-                {
-                    for (int i = x; i < x + matchLen; i++)
-                        matched.Add(new Vector2Int(i, y));
-
-                    x += matchLen;
-                }
-                else
-                    x++;
-            }
-        }
-
-        // Vertical matches
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height - 2;)
-            {
-                var start = gridData[x, y];
-                if (start == null)
-                {
-                    y++;
-                    continue;
-                }
-
-                var matchType = start.Type;
-                int matchLen = 1;
-
-                for (int i = y + 1; i < height && gridData[x, i] != null && gridData[x, i].Type == matchType; i++)
-                    matchLen++;
-
-                if (matchLen >= 3)
-                {
-                    for (int i = y; i < y + matchLen; i++)
-                        matched.Add(new Vector2Int(x, i));
-
-                    y += matchLen;
-                }
-                else
-                    y++;
-            }
-        }
-
-        return matched.ToList();
-    }
-
     private TileType GetRandomTileType()
     {
         return (TileType)UnityEngine.Random.Range(0, Enum.GetValues(typeof(TileType)).Length);
-    }
-
-    private MatchShape DetermineMatchShape(List<TileData> match)
-    {
-        var xs = match.Select(t => t.GridPosition.x).Distinct().Count();
-        var ys = match.Select(t => t.GridPosition.y).Distinct().Count();
-
-        if (xs > 1 && ys > 1 && match.Count >= 5)
-            return MatchShape.TOrL;
-
-        if (match.Count >= 5)
-            return MatchShape.FiveLine;
-
-        if (match.Count == 4)
-            return MatchShape.FourLine;
-
-        return MatchShape.ThreeLine;
     }
 
     /// <summary>
@@ -391,8 +305,6 @@ public class GridController : MonoBehaviour
 
         commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePool, TileDestroyed));
         commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
-        //commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToWorldPos, TileDrop));
-
         commandInvoker.ExecuteAll();
 
         StartCoroutine(MatchCycle());

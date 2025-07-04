@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
-using static UnityEditor.PlayerSettings;
 
 public class DestroyCommand : ICommand
 {
@@ -21,11 +20,6 @@ public class DestroyCommand : ICommand
         gridData = data;
         this.pool = pool;
         TileDestroyed = onDestroy;
-
-        foreach (var pos in matchPositions)
-        {
-            Debug.Log("DestroyCommand initialized for position: " + pos);
-        }
     }
 
     public IEnumerator Execute()
@@ -41,6 +35,7 @@ public class DestroyCommand : ICommand
         }
 
         TileDestroyed?.Invoke();
+
         yield return new WaitForSeconds(0.5f);
 
         foreach (var pos in matchPositions)
@@ -49,7 +44,6 @@ public class DestroyCommand : ICommand
             {
                 pool.Release(gridViews[pos.x, pos.y]);
                 gridViews[pos.x, pos.y] = null;
-                Debug.Log("destroying tiles at position : " + pos);
             }
 
             gridData[pos.x, pos.y] = null;

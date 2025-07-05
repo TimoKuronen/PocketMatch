@@ -100,6 +100,23 @@ public class GridController : MonoBehaviour
         tempGridData[origin.x, origin.y] = tileB;
         tempGridData[target.x, target.y] = tileA;
 
+        if (tileA.Power != TilePower.None || tileB.Power != TilePower.None)
+        {
+            SwapTilesInData(origin, target, tileA, tileB);
+
+            if (tileA.Power != TilePower.None)
+            {
+                StartCoroutine(TriggerPowerEvent(tileA));
+            }
+
+            if (tileB.Power != TilePower.None)
+            {
+                StartCoroutine(TriggerPowerEvent(tileB));
+            }
+
+            yield break;
+        }
+
         var matches = matchFinder.GetMatchGroups(tempGridData);
         if (matches.Count > 0)
         {
@@ -111,6 +128,14 @@ public class GridController : MonoBehaviour
             StartCoroutine(RevertSwap(viewA, viewB, origPosA, origPosB));
         }
     }
+
+    IEnumerator TriggerPowerEvent(TileData tileData)
+    {
+        yield return new WaitForSeconds(0.1f);
+
+
+    }
+
     private void SwapTilesInData(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB)
     {
         gridData[origin.x, origin.y] = tileB;

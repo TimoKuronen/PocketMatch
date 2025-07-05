@@ -1,0 +1,39 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Pool;
+
+public class GridContext
+{
+    public TileData[,] Data { get; }
+    public TileView[,] Views { get; }
+    public int Width { get; }
+    public int Height { get; }
+    public ObjectPool<TileView> Pool { get; }
+    public CommandInvoker CommandInvoker { get; }
+    public Action OnDestroy { get; }
+
+    public GridContext(
+        TileData[,] data,
+        TileView[,] views,
+        int width,
+        int height,
+        ObjectPool<TileView> pool,
+        CommandInvoker invoker,
+        Action onDestroy)
+    {
+        Data = data;
+        Views = views;
+        Width = width;
+        Height = height;
+        Pool = pool;
+        CommandInvoker = invoker;
+        OnDestroy = onDestroy;
+    }
+
+    public bool IsInside(Vector2Int pos)
+    {
+        return pos.x >= 0 && pos.x < Width && pos.y >= 0 && pos.y < Height;
+    }
+}

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class MatchFinder
@@ -14,100 +13,159 @@ public class MatchFinder
         this.height = height;
     }
 
-    public List<Vector2Int> GetMatches(TileData[,] gridData)
+    public List<List<Vector2Int>> GetMatchGroups(TileData[,] grid)
     {
-        var matched = new HashSet<Vector2Int>();
+        var matches = new List<List<Vector2Int>>();
+        var visited = new HashSet<Vector2Int>();
 
-        // Horizontal matches
+        // Horizontal
         for (int y = 0; y < height; y++)
         {
-            for (int x = 0; x < width - 2;)
+            int x = 0;
+            while (x < width - 2)
             {
-                var start = gridData[x, y];
-                if (start == null)
+                if (grid[x, y] == null)
                 {
                     x++;
                     continue;
                 }
 
-                var matchType = start.Type;
+                TileType type = grid[x, y].Type;
                 int matchLen = 1;
 
-                for (int i = x + 1; i < width && gridData[i, y] != null && gridData[i, y].Type == matchType; i++)
+                for (int i = x + 1; i < width && grid[i, y] != null && grid[i, y].Type == type; i++)
+                {
                     matchLen++;
+                }
 
                 if (matchLen >= 3)
                 {
+                    var group = new List<Vector2Int>();
                     for (int i = x; i < x + matchLen; i++)
-                        matched.Add(new Vector2Int(i, y));
-
+                    {
+                        Vector2Int pos = new(i, y);
+                        if (visited.Add(pos))
+                            group.Add(pos);
+                    }
+                    matches.Add(group);
                     x += matchLen;
                 }
                 else
+                {
                     x++;
+                }
             }
         }
 
-        // Vertical matches
+        // Vertical
         for (int x = 0; x < width; x++)
         {
-            for (int y = 0; y < height - 2;)
+            int y = 0;
+            while (y < height - 2)
             {
-                var start = gridData[x, y];
-                if (start == null)
+                if (grid[x, y] == null)
                 {
                     y++;
                     continue;
                 }
 
-                var matchType = start.Type;
+                TileType type = grid[x, y].Type;
                 int matchLen = 1;
 
-                for (int i = y + 1; i < height && gridData[x, i] != null && gridData[x, i].Type == matchType; i++)
+                for (int i = y + 1; i < height && grid[x, i] != null && grid[x, i].Type == type; i++)
+                {
                     matchLen++;
+                }
 
                 if (matchLen >= 3)
                 {
+                    var group = new List<Vector2Int>();
                     for (int i = y; i < y + matchLen; i++)
-                        matched.Add(new Vector2Int(x, i));
-
+                    {
+                        Vector2Int pos = new(x, i);
+                        if (visited.Add(pos))
+                            group.Add(pos);
+                    }
+                    matches.Add(group);
                     y += matchLen;
                 }
                 else
+                {
                     y++;
+                }
             }
         }
 
-        return matched.ToList();
+        return MergeIntersectingGroups(matches);
+    }
+
+    private List<List<Vector2Int>> MergeIntersectingGroups(List<List<Vector2Int>> groups)
+    {
+        var merged = new List<List<Vector2Int>>();
+
+        foreach (var group in groups)
+        {
+            bool mergedIntoExisting = false;
+            foreach (var existing in merged)
+            {
+                if (group.Any(pos => existing.Contains(pos)) || IsAdjacent(group, existing))
+                {
+                    existing.AddRange(group.Where(p => !existing.Contains(p)));
+                    mergedIntoExisting = true;
+                    break;
+                }
+            }
+            if (!mergedIntoExisting)
+                merged.Add(new List<Vector2Int>(group));
+        }
+
+        return merged;
+    }
+
+    private bool IsAdjacent(List<Vector2Int> group, List<Vector2Int> existing)
+    {
+        foreach (var pos in group)
+        {
+            foreach (var existingPos in existing)
+            {
+                if ((Mathf.Abs(pos.x - existingPos.x) == 1 && pos.y == existingPos.y) ||
+                    (Mathf.Abs(pos.y - existingPos.y) == 1 && pos.x == existingPos.x))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public MatchShape DetermineMatchShape(List<Vector2Int> match, TileData[,] gridData)
     {
-        var types = match.Select(pos => gridData[pos.x, pos.y]?.Type).Distinct().ToList();
-        
-        if (types.Count != 1 || types[0] == null) 
-            return MatchShape.None;
-
-        var xs = match.Select(pos => pos.x).Distinct().Count();
-        var ys = match.Select(pos => pos.y).Distinct().Count();
-
-        /// Update this later
-        /// also needs to have four piece "box" to create a special tile
-        if (xs > 1 && ys > 1 && match.Count >= 5)
-            return MatchShape.TOrL;
         if (match.Count >= 5)
-            return MatchShape.FiveLine;
+        {
+            bool sameY = match.All(p => p.y == match[0].y);
+            bool sameX = match.All(p => p.x == match[0].x);
+
+            if (sameY || sameX)
+                return MatchShape.FiveLine;
+            else
+                return MatchShape.TOrL;
+        }
         if (match.Count == 4)
         {
             bool sameY = match.All(p => p.y == match[0].y);
             bool sameX = match.All(p => p.x == match[0].x);
 
-            if (sameY) return MatchShape.FourHorizontal;
-            if (sameX) return MatchShape.FourVertical;
+            if (sameY) 
+                return MatchShape.FourHorizontal;
+            if (sameX) 
+                return MatchShape.FourVertical;
         }
         if (match.Count == 3)
+        {
             return MatchShape.ThreeLine;
+        }
 
+        Debug.Log("Match shape determination failed: no valid match shape found." + match.Count);
         return MatchShape.None;
     }
 }

@@ -20,4 +20,33 @@ public class TileView : MonoBehaviour
 
         spriteRenderer.color = colorPalette.TileColors[colorIndex].Color;
     }
+
+    public void DebugAsSpecialTile()
+    {
+        Debug.Log($"Tile at {Data.GridPosition} has power: {Data.Power}");
+        if (Data == null)
+        {
+            Debug.LogWarning("TileData is not initialized.");
+            return;
+        }
+        switch (Data.Power)
+        {
+            case TilePower.RowClearer:
+                spriteRenderer.color = Color.yellow;
+                break;
+            case TilePower.ColumnClearer:
+                spriteRenderer.color = Color.cyan;
+                break;
+            case TilePower.Bomb:
+                spriteRenderer.color = Color.red;
+                break;
+            case TilePower.Rainbow:
+                spriteRenderer.color = Color.magenta;
+                break;
+            default:
+                Debug.LogWarning("Tile does not have a special power.");
+                break;
+        }
+
+    }
 }

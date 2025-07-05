@@ -18,7 +18,7 @@ public abstract class Services : MonoBehaviour
 
         var monobehaviorServices = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None).OfType<IService>();
 
-        Debug.Log("init " + monobehaviorServices.Count() + " services from MonoBehaviour");
+        //Debug.Log("init " + monobehaviorServices.Count() + " services from MonoBehaviour");
 
         foreach (var service in monobehaviorServices)
         {
@@ -27,11 +27,11 @@ public abstract class Services : MonoBehaviour
                 continue;
             }
 
-            Debug.Log($"Adding service from MonoBehaviour: {service.GetType().Name}");
+            //Debug.Log($"Adding service from MonoBehaviour: {service.GetType().Name}");
             AddService(service);
         }
 
-        Debug.Log($"Services initialized by {this.GetType().Name}!");
+        //Debug.Log($"Services initialized by {this.GetType().Name}!");
     }
 
     /// <summary>

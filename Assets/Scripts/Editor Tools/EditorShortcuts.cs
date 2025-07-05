@@ -36,10 +36,6 @@ public class EditorShortcuts : EditorWindow
         {
             GridController.Instance.ShuffleBoard();
         }
-        if (GUILayout.Button("Get matches"))
-        {
-            GridController.Instance.StartMatchCycle();
-        }
 
         EditorGUILayout.Space();
         DrawPrefabField("Prefab", PrefabKey);

@@ -59,6 +59,7 @@ public class CreatePowerTileCommand : ICommand
             {
                 gridViews[origin.x, origin.y].Init(newData, GridController.Instance.Sprite);
                 gridViews[origin.x, origin.y].transform.DOPunchScale(Vector3.one * 0.25f, 0.2f);
+                gridViews[origin.x, origin.y].DebugAsSpecialTile();
             }
         }
 

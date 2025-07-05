@@ -62,11 +62,6 @@ public class GridController : MonoBehaviour
         CenterCameraOnGrid();
     }
 
-    public void StartMatchCycle()
-    {
-        StartCoroutine(MatchCycle());
-    }
-
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
     {
         Vector2Int target = origin + dir;
@@ -104,7 +99,8 @@ public class GridController : MonoBehaviour
         var tempGridData = gridData.Clone() as TileData[,];
         tempGridData[origin.x, origin.y] = tileB;
         tempGridData[target.x, target.y] = tileA;
-        var matches = matchFinder.GetMatches(tempGridData);
+
+        var matches = matchFinder.GetMatchGroups(tempGridData);
         if (matches.Count > 0)
         {
             SwapTilesInData(origin, target, tileA, tileB);
@@ -153,7 +149,6 @@ public class GridController : MonoBehaviour
     private IEnumerator MatchCycle()
     {
         TileSwapped?.Invoke();
-
         yield return new WaitForSeconds(0.1f);
 
         while (true)
@@ -161,11 +156,34 @@ public class GridController : MonoBehaviour
             yield return new WaitUntil(() => commandInvoker.IsEmpty());
             yield return new WaitUntil(() => !AnyTileTweening());
 
-            var matchPositions = matchFinder.GetMatches(gridData);
-            if (matchPositions.Count == 0)
+            var matchGroups = matchFinder.GetMatchGroups(gridData);
+            if (matchGroups.Count == 0)
                 break;
 
-            commandInvoker.AddCommand(new DestroyCommand(matchPositions, gridViews, gridData, tilePool, TileDestroyed));
+            // List to keep track of power tile positions
+            var powerTilePositions = new HashSet<Vector2Int>();
+
+            // Create and execute the CreatePowerTileCommand
+            var createPowerTileCommand = new CreatePowerTileCommand(
+                matchGroups,
+                gridData,
+                gridViews,
+                matchFinder.DetermineMatchShape,
+                (origin, type, power) =>
+                {
+                    var newData = new TileData(type, origin, power);
+                    powerTilePositions.Add(origin); // Directly add the position to the HashSet
+                    return newData;
+                }
+            );
+
+            // Execute the power tile command immediately
+            yield return createPowerTileCommand.Execute();
+
+            // Filter out power tile positions from the destruction list
+            var flatMatches = matchGroups.SelectMany(g => g).Distinct().Where(pos => !powerTilePositions.Contains(pos)).ToList();
+
+            commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePool, TileDestroyed));
             commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
             commandInvoker.ExecuteAll();
         }
@@ -176,7 +194,7 @@ public class GridController : MonoBehaviour
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
         yield return new WaitUntil(() => !AnyTileTweening());
 
-        var refillMatches = matchFinder.GetMatches(gridData);
+        var refillMatches = matchFinder.GetMatchGroups(gridData);
         if (refillMatches.Count > 0)
         {
             StartCoroutine(MatchCycle());
@@ -267,7 +285,7 @@ public class GridController : MonoBehaviour
                 }
             }
 
-            hasMatches = matchFinder.GetMatches(gridData).Count > 0;
+            hasMatches = matchFinder.GetMatchGroups(gridData).Count > 0;
 
         } while (!allowMatches && hasMatches);
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class MatchFinder
@@ -83,17 +84,27 @@ public class MatchFinder
     public MatchShape DetermineMatchShape(List<Vector2Int> match, TileData[,] gridData)
     {
         var types = match.Select(pos => gridData[pos.x, pos.y]?.Type).Distinct().ToList();
-        if (types.Count != 1 || types[0] == null) return MatchShape.None;
+        
+        if (types.Count != 1 || types[0] == null) 
+            return MatchShape.None;
 
         var xs = match.Select(pos => pos.x).Distinct().Count();
         var ys = match.Select(pos => pos.y).Distinct().Count();
 
+        /// Update this later
+        /// also needs to have four piece "box" to create a special tile
         if (xs > 1 && ys > 1 && match.Count >= 5)
             return MatchShape.TOrL;
         if (match.Count >= 5)
             return MatchShape.FiveLine;
         if (match.Count == 4)
-            return MatchShape.FourLine;
+        {
+            bool sameY = match.All(p => p.y == match[0].y);
+            bool sameX = match.All(p => p.x == match[0].x);
+
+            if (sameY) return MatchShape.FourHorizontal;
+            if (sameX) return MatchShape.FourVertical;
+        }
         if (match.Count == 3)
             return MatchShape.ThreeLine;
 

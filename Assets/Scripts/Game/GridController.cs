@@ -26,6 +26,8 @@ public class GridController : MonoBehaviour
     private MatchFinder matchFinder;
     private bool isProcessingTiles;
 
+    public Sprite Sprite => sharedTileSprite;
+
     public event Action TileMoved;
     public event Action TileSwapped;
     public event Action TileSwapError;

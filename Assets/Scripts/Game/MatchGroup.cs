@@ -18,7 +18,8 @@ public enum MatchShape
 {
     None,
     ThreeLine,
-    FourLine,
+    FourHorizontal,
+    FourVertical,
     FiveLine,
     TOrL
 }

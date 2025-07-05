@@ -1,17 +1,18 @@
 using UnityEngine;
 
 public enum TileType { Red, Blue, Green, Yellow, Purple }
-public enum TileSpecialType { None, RowClearer, ColumnClearer, Bomb, ColorClearer }
+public enum TilePower { None, RowClearer, ColumnClearer, Bomb, Rainbow }
 
 public class TileData
 {
     public TileType Type { get; set; }
-    public TileSpecialType SpecialType { get; set; }
+    public TilePower Power { get; set; }
     public Vector2Int GridPosition { get; set; }
 
-    public TileData(TileType type, Vector2Int pos)
+    public TileData(TileType type, Vector2Int pos, TilePower power = TilePower.None)
     {
         Type = type;
         GridPosition = pos;
+        Power = power;
     }
 }

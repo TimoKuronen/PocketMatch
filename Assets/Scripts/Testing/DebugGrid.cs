@@ -42,6 +42,7 @@ public class DebugGrid : MonoBehaviour
     void CreateDebugBoard()
     {
         debugTiles = new DebugTile[width, height];
+        gridOffset = new Vector3(-width - 1, tileSize / 4f, 0f);
 
         for (int x = 0; x < width; x++)
         {

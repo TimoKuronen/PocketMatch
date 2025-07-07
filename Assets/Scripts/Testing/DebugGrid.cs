@@ -65,21 +65,21 @@ public class DebugGrid : MonoBehaviour
     {
         if (tileData == null)
         {
-            Debug.LogWarning("TileData is null, returning default value.");
+            Debug.Log("TileData is null, returning default value.");
             return ".";
         }
 
-        if (tileData.Power != TilePower.None)
+        if (tileData.Power == TilePower.None)
         {
-            return "0";
+            return ".";
         }
         else if (tileData.Power == TilePower.RowClearer)
         {
-            return "L";
+            return "<>";
         }
         else if (tileData.Power == TilePower.ColumnClearer)
         {
-            return "C";
+            return "|";
         }
         else if (tileData.Power == TilePower.Bomb)
         {
@@ -89,7 +89,7 @@ public class DebugGrid : MonoBehaviour
         {
             return "R";
         }
-
+        Debug.Log($"Unknown TilePower: {tileData.Power}, returning default value.");
         return ".";
     }
 }

@@ -43,9 +43,9 @@ public class TileView : MonoBehaviour
                 spriteRenderer.color = Color.magenta;
                 break;
             default:
-                Debug.LogWarning("Tile does not have a special power.");
+                //Debug.LogWarning("Tile does not have a special power.");
                 break;
         }
-        Debug.Log($"Tile at {Data.GridPosition} has power: {Data.Power}");
+       // Debug.Log($"Tile at {Data.GridPosition} has power: {Data.Power}");
     }
 }

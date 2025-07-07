@@ -23,9 +23,6 @@ public class GridContext
         CommandInvoker invoker,
         Action onDestroy)
     {
-        if (data == null) throw new ArgumentNullException(nameof(data));
-        if (views == null) throw new ArgumentNullException(nameof(views));
-
         Data = data;
         Views = views;
         Width = width;

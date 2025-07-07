@@ -9,7 +9,7 @@ using UnityEngine.Pool;
 public class GridController : MonoBehaviour
 {
     public static GridController Instance { get; private set; }
-
+    [Header("Grid Settings")]
     [SerializeField] private int width = 6;
     [SerializeField] private int height = 8;
     [SerializeField] private TileView tilePrefab;
@@ -17,7 +17,9 @@ public class GridController : MonoBehaviour
     [SerializeField] private Transform tileContainer;
     [SerializeField] private float tileSize = 1f;
     [SerializeField] private Vector3 gridOffset;
+    [Header("Initial Debugging Settings")]
     [SerializeField] private bool allowInitialMatches = false;
+    [SerializeField] private TilePower initialPower = TilePower.None;
 
     private ObjectPool<TileView> tilePool;
     private TileData[,] gridData;
@@ -53,12 +55,11 @@ public class GridController : MonoBehaviour
         matchFinder = new MatchFinder(width, height);
 
         tilePool = new ObjectPool<TileView>(
-    createFunc: () => Instantiate(tilePrefab, tileContainer),
-    actionOnGet: (tile) => tile.gameObject.SetActive(true),
-    actionOnRelease: (tile) => tile.gameObject.SetActive(false),
-    actionOnDestroy: (tile) => Destroy(tile.gameObject),
-    collectionCheck: false, maxSize: 100
-);
+            createFunc: () => Instantiate(tilePrefab, tileContainer),
+            actionOnGet: (tile) => tile.gameObject.SetActive(true),
+            actionOnRelease: (tile) => tile.gameObject.SetActive(false),
+            actionOnDestroy: (tile) => Destroy(tile.gameObject),
+            collectionCheck: false, maxSize: 100);
 
         GenerateGrid(allowInitialMatches);
         CenterCameraOnGrid();
@@ -72,6 +73,20 @@ public class GridController : MonoBehaviour
             commandInvoker,
             TileDestroyed
         );
+
+        if(initialPower != TilePower.None)
+        {
+            // Apply initial power to a random tile
+            var randomX = UnityEngine.Random.Range(0, width);
+            var randomY = UnityEngine.Random.Range(0, height);
+            var initialTile = gridData[randomX, randomY];
+            if (initialTile != null)
+            {
+                initialTile.Power = initialPower;
+            }
+        }
+
+        BoardUpdated?.Invoke(gridData);
     }
 
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
@@ -156,9 +171,23 @@ public class GridController : MonoBehaviour
     private IEnumerator TriggerPowerEvent(TileData tileData)
     {
         gridContext.TriggerTilePower(tileData.GridPosition);
-        Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");
-        yield return new WaitForSeconds(0.1f);
+        commandInvoker.ExecuteAll();
 
+        Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");
+
+        // Wait until all destroy commands from power are complete
+        yield return new WaitUntil(() => commandInvoker.IsEmpty());
+        yield return new WaitUntil(() => !AnyTileTweening());
+
+        // now that grid is cleared, run Drop and Refill
+        commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
+        commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToWorldPos, TileDrop));
+        commandInvoker.ExecuteAll();
+
+        yield return new WaitUntil(() => commandInvoker.IsEmpty());
+        yield return new WaitUntil(() => !AnyTileTweening());
+
+        // Finally continue match cycle
         StartCoroutine(MatchCycle());
     }
 
@@ -234,9 +263,7 @@ public class GridController : MonoBehaviour
             // Filter out power tile positions from the destruction list
             var flatMatches = matchGroups.SelectMany(g => g).Distinct().Where(pos => !powerTilePositions.Contains(pos)).ToList();
 
-            commandInvoker.AddCommand(
-                new DestroyCommand(flatMatches, gridViews, gridData, tilePool, TileDestroyed, gridContext)
-            );
+            commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePool, TileDestroyed, gridContext));
             commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
             commandInvoker.ExecuteAll();
         }

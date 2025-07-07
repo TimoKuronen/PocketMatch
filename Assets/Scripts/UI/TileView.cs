@@ -23,7 +23,6 @@ public class TileView : MonoBehaviour
 
     public void DebugAsSpecialTile()
     {
-        Debug.Log($"Tile at {Data.GridPosition} has power: {Data.Power}");
         if (Data == null)
         {
             Debug.LogWarning("TileData is not initialized.");
@@ -47,6 +46,6 @@ public class TileView : MonoBehaviour
                 Debug.LogWarning("Tile does not have a special power.");
                 break;
         }
-
+        Debug.Log($"Tile at {Data.GridPosition} has power: {Data.Power}");
     }
 }

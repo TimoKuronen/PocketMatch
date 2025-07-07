@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,10 +6,16 @@ using UnityEngine.EventSystems;
 
 public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
+    [Header("Tile View Reference")]
     [SerializeField] private TileView tileView;
 
     private Vector2 startPointerPos;
     private bool isDragging;
+
+    [Header("Double Tap Settings")]
+    [SerializeField] private float doubleTapTimeThreshold = 0.5f;
+    private int tapCount = 0;
+    private float lastTapTime;
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -22,6 +29,36 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 #endif
         startPointerPos = eventData.pressPosition;
         isDragging = true;
+
+        CheckDoubleTap();
+    }
+
+    private void CheckDoubleTap()
+    {
+        float currentTime = Time.time;
+        if (currentTime - lastTapTime < doubleTapTimeThreshold)
+        {
+            tapCount++;
+            if (tapCount == 2)
+            {
+                HandleDoubleTap();
+                tapCount = 0;
+            }
+        }
+        else
+        {
+            tapCount = 1;
+        }
+        lastTapTime = currentTime;
+    }
+
+    private void HandleDoubleTap()
+    {
+        Debug.Log("Double Tap Detected");
+
+        isDragging = false;
+
+        GridController.Instance.AttemptPowerTrigger(tileView);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -48,6 +85,6 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     public void OnPointerUp(PointerEventData eventData)
     {
         isDragging = false;
-    }
+    }  
 }
 

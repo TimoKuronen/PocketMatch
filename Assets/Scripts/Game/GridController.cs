@@ -24,6 +24,7 @@ public class GridController : MonoBehaviour
     private TileView[,] gridViews;
     private CommandInvoker commandInvoker;
     private MatchFinder matchFinder;
+    private GridContext gridContext;
     private bool isProcessingTiles;
 
     public Sprite Sprite => sharedTileSprite;
@@ -33,6 +34,7 @@ public class GridController : MonoBehaviour
     public event Action TileSwapError;
     public event Action TileDrop;
     public event Action TileDestroyed;
+    public event Action<TileData[,]> BoardUpdated;
 
     private void Awake()
     {
@@ -43,14 +45,6 @@ public class GridController : MonoBehaviour
         }
 
         Instance = this;
-
-        tilePool = new ObjectPool<TileView>(
-        createFunc: () => Instantiate(tilePrefab, tileContainer),
-        actionOnGet: (tile) => tile.gameObject.SetActive(true),
-        actionOnRelease: (tile) => tile.gameObject.SetActive(false),
-        actionOnDestroy: (tile) => Destroy(tile.gameObject),
-        collectionCheck: false, maxSize: 100
-        );
     }
 
     private void Start()
@@ -58,8 +52,26 @@ public class GridController : MonoBehaviour
         commandInvoker = new CommandInvoker(this);
         matchFinder = new MatchFinder(width, height);
 
+        tilePool = new ObjectPool<TileView>(
+    createFunc: () => Instantiate(tilePrefab, tileContainer),
+    actionOnGet: (tile) => tile.gameObject.SetActive(true),
+    actionOnRelease: (tile) => tile.gameObject.SetActive(false),
+    actionOnDestroy: (tile) => Destroy(tile.gameObject),
+    collectionCheck: false, maxSize: 100
+);
+
         GenerateGrid(allowInitialMatches);
         CenterCameraOnGrid();
+
+        gridContext = new GridContext(
+            gridData,
+            gridViews,
+            width,
+            height,
+            tilePool,
+            commandInvoker,
+            TileDestroyed
+        );
     }
 
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
@@ -129,11 +141,25 @@ public class GridController : MonoBehaviour
         }
     }
 
-    IEnumerator TriggerPowerEvent(TileData tileData)
+    public void AttemptPowerTrigger(TileView tileView)
     {
+        if (tileView == null || tileView.Data == null || tileView.Data.Power == TilePower.None)
+        {
+            Debug.LogWarning("Attempted to trigger power on a tile that has power: " + tileView.Data.Power);
+            TileSwapError?.Invoke();
+            return;
+        }
+
+        StartCoroutine(TriggerPowerEvent(tileView.Data));
+    }
+
+    private IEnumerator TriggerPowerEvent(TileData tileData)
+    {
+        gridContext.TriggerTilePower(tileData.GridPosition);
+        Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");
         yield return new WaitForSeconds(0.1f);
 
-
+        StartCoroutine(MatchCycle());
     }
 
     private void SwapTilesInData(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB)
@@ -208,7 +234,9 @@ public class GridController : MonoBehaviour
             // Filter out power tile positions from the destruction list
             var flatMatches = matchGroups.SelectMany(g => g).Distinct().Where(pos => !powerTilePositions.Contains(pos)).ToList();
 
-            commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePool, TileDestroyed));
+            commandInvoker.AddCommand(
+                new DestroyCommand(flatMatches, gridViews, gridData, tilePool, TileDestroyed, gridContext)
+            );
             commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
             commandInvoker.ExecuteAll();
         }
@@ -227,6 +255,8 @@ public class GridController : MonoBehaviour
         }
 
         isProcessingTiles = false;
+
+        BoardUpdated?.Invoke(gridData);
     }
 
     private bool AnyTileTweening()

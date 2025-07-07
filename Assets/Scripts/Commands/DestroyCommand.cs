@@ -12,8 +12,10 @@ public class DestroyCommand : ICommand
     private readonly TileData[,] gridData;
     private readonly ObjectPool<TileView> pool;
     private readonly Action TileDestroyed;
+    private readonly GridContext context;
 
-    public DestroyCommand(List<Vector2Int> positions, TileView[,] views, TileData[,] data, ObjectPool<TileView> pool, Action onDestroy)
+    public DestroyCommand(List<Vector2Int> positions, TileView[,] views, TileData[,] data, 
+        ObjectPool<TileView> pool, Action onDestroy, GridContext context = null)
     {
         matchPositions = positions;
         gridViews = views;
@@ -24,6 +26,8 @@ public class DestroyCommand : ICommand
 
     public IEnumerator Execute()
     {
+        context?.TriggerPowersIn(matchPositions);
+
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];

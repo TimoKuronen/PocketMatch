@@ -10,8 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4709713013954379167}
   - component: {fileID: 5799087336434750397}
-  - component: {fileID: 1685639883683566380}
   - component: {fileID: -2429920941000883301}
+  - component: {fileID: 1685639883683566380}
   - component: {fileID: 549678576806478393}
   m_Layer: 0
   m_Name: TilePrefab
@@ -48,6 +48,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tileView: {fileID: -2429920941000883301}
+  doubleTapTimeThreshold: 0.5
+--- !u!114 &-2429920941000883301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1602998255832392727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb849a6f757a56646ae7cb7eaf7e44ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spriteRenderer: {fileID: 1685639883683566380}
+  colorPalette: {fileID: 11400000, guid: f0ab2f195bcd1a64188c47769668d90c, type: 2}
 --- !u!212 &1685639883683566380
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -100,20 +115,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &-2429920941000883301
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1602998255832392727}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cb849a6f757a56646ae7cb7eaf7e44ec, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spriteRenderer: {fileID: 1685639883683566380}
-  colorPalette: {fileID: 11400000, guid: f0ab2f195bcd1a64188c47769668d90c, type: 2}
 --- !u!58 &549678576806478393
 CircleCollider2D:
   m_ObjectHideFlags: 0

@@ -23,6 +23,9 @@ public class GridContext
         CommandInvoker invoker,
         Action onDestroy)
     {
+        if (data == null) throw new ArgumentNullException(nameof(data));
+        if (views == null) throw new ArgumentNullException(nameof(views));
+
         Data = data;
         Views = views;
         Width = width;
@@ -35,5 +38,24 @@ public class GridContext
     public bool IsInside(Vector2Int pos)
     {
         return pos.x >= 0 && pos.x < Width && pos.y >= 0 && pos.y < Height;
+    }
+
+    public void TriggerPowersIn(IEnumerable<Vector2Int> positions)
+    {
+        foreach (var pos in positions)
+            TriggerTilePower(pos);
+    }
+
+    public void TriggerTilePower(Vector2Int pos)
+    {
+        if (!IsInside(pos)) 
+            return;
+
+        var data = Data[pos.x, pos.y];
+        if (data == null || data.Power == TilePower.None)
+            return;
+
+        var behavior = TilePowerFactory.Get(data.Power);
+        behavior?.Apply(pos, this);
     }
 }

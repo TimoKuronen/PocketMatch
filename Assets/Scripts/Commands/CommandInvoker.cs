@@ -6,6 +6,8 @@ public class CommandInvoker
 {
     private readonly Queue<ICommand> commandQueue = new();
     private MonoBehaviour runner;
+    private Coroutine runningCoroutine;
+    private bool isProcessingQueue;
 
     public CommandInvoker(MonoBehaviour runner)
     {
@@ -19,17 +21,27 @@ public class CommandInvoker
 
     public void ExecuteAll()
     {
-        runner.StartCoroutine(RunQueue());
+        if (!isProcessingQueue)
+        {
+            runningCoroutine = runner.StartCoroutine(RunQueue());
+        }
     }
 
-    public bool IsEmpty() => commandQueue.Count == 0;
+    public bool IsEmpty()
+    {
+        return commandQueue.Count == 0 && !isProcessingQueue;
+    }
 
     private IEnumerator RunQueue()
     {
+        isProcessingQueue = true;
+
         while (commandQueue.Count > 0)
         {
             //Debug.Log($"Executing command: {commandQueue.Peek().GetType().Name}");
             yield return commandQueue.Dequeue().Execute();
         }
+
+        isProcessingQueue = false;
     }
 }

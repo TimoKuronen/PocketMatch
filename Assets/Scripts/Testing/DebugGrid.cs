@@ -35,6 +35,8 @@ public class DebugGrid : MonoBehaviour
                 debugTile.text.text = GetTileLetter(data);
             }
         }
+
+        Debug.Log("Debug board updated with new tile data.");
     }
 
     void CreateDebugBoard()

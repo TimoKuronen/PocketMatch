@@ -173,7 +173,7 @@ public class GridController : MonoBehaviour
         gridContext.TriggerTilePower(tileData.GridPosition);
         commandInvoker.ExecuteAll();
 
-        Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");
+        //Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");
 
         // Wait until all destroy commands from power are complete
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
@@ -282,7 +282,7 @@ public class GridController : MonoBehaviour
         }
 
         isProcessingTiles = false;
-
+        Debug.Log("Match cycle complete, no more matches found.");
         BoardUpdated?.Invoke(gridData);
     }
 

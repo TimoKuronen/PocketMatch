@@ -22,6 +22,8 @@ public class DestroyCommand : ICommand
         gridData = data;
         this.pool = pool;
         TileDestroyed = onDestroy;
+
+    //    Debug.Log($"DestroyCommand: Created with {matchPositions.Count} positions to destroy.");
     }
 
     public IEnumerator Execute()
@@ -49,7 +51,7 @@ public class DestroyCommand : ICommand
                 pool.Release(gridViews[pos.x, pos.y]);
                 gridViews[pos.x, pos.y] = null;
             }
-
+           // Debug.Log($"DestroyCommand: Releasing tile to pool.");
             gridData[pos.x, pos.y] = null;
         }
     }

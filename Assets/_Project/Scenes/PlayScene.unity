@@ -678,7 +678,7 @@ PrefabInstance:
       objectReference: {fileID: 1727922521}
     - target: {fileID: 485272160429731552, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
       propertyPath: initialPower
-      value: 3
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 485272160429731552, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
       propertyPath: allowInitialMatches

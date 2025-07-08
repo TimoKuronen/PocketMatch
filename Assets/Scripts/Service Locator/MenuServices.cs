@@ -2,6 +2,15 @@ public class MenuServices : Services
 {
     protected override void Initialize()
     {
+        var inputManager = new InputService();
+        AddService<IInputService>(inputManager);
+
+        var soundManager = new SoundManager();
+        AddService<ISoundManager>(soundManager);
+
+        var GameSessionService = new GameSessionService();
+        AddService<IGameSessionService>(GameSessionService);
+
         // Initialize all services
         foreach (var service in serviceMap.Values)
         {

@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DebugGrid : MonoBehaviour
@@ -17,8 +15,10 @@ public class DebugGrid : MonoBehaviour
     [SerializeField] private float tileSize = 1f;
     [SerializeField] private Vector3 gridOffset;
 
-    void Start()
+    private IEnumerator Start()
     {
+        yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+
         GridController.Instance.BoardUpdated += OnBoardUpdated;
         CreateDebugBoard();
     }

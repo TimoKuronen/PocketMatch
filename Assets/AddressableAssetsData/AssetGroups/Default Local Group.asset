@@ -18,9 +18,16 @@ MonoBehaviour:
   m_GUID: 3a0db27aa1bedbd4b82a5a3038fa229c
   m_SerializeEntries:
   - m_GUID: a7a61d6ad284ae04b9707812015ae3d7
-    m_Address: Levels/MapData_0001
+    m_Address: Assets/Addressables/Levels/MapData_0001.asset
     m_ReadOnly: 0
-    m_SerializedLabels: []
+    m_SerializedLabels:
+    - Levels
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b75e7d4ca70669b4a9016a4435007151
+    m_Address: Assets/Addressables/Levels/MapData_0002.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Levels
     FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7811e86d7a8c3844b932acf2033f2179, type: 2}

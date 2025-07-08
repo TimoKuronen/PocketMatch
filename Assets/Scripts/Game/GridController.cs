@@ -9,6 +9,7 @@ using UnityEngine.Pool;
 public class GridController : MonoBehaviour
 {
     public static GridController Instance { get; private set; }
+
     [Header("Grid Settings")]
     [SerializeField] private int width = 6;
     [SerializeField] private int height = 8;
@@ -17,6 +18,7 @@ public class GridController : MonoBehaviour
     [SerializeField] private Transform tileContainer;
     [SerializeField] private float tileSize = 1f;
     [SerializeField] private Vector3 gridOffset;
+
     [Header("Initial Debugging Settings")]
     [SerializeField] private bool allowInitialMatches = false;
     [SerializeField] private TilePower initialPower = TilePower.None;
@@ -27,10 +29,12 @@ public class GridController : MonoBehaviour
     private CommandInvoker commandInvoker;
     private MatchFinder matchFinder;
     private GridContext gridContext;
+
     private bool isProcessingTiles;
 
     public Sprite Sprite => sharedTileSprite;
 
+    public event Action ActionTaken;
     public event Action TileMoved;
     public event Action TileSwapped;
     public event Action TileSwapError;
@@ -49,8 +53,10 @@ public class GridController : MonoBehaviour
         Instance = this;
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
+        yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+
         commandInvoker = new CommandInvoker(this);
         matchFinder = new MatchFinder(width, height);
 
@@ -74,7 +80,7 @@ public class GridController : MonoBehaviour
             TileDestroyed
         );
 
-        if(initialPower != TilePower.None)
+        if (initialPower != TilePower.None)
         {
             // Apply initial power to a random tile
             var randomX = UnityEngine.Random.Range(0, width);
@@ -149,6 +155,8 @@ public class GridController : MonoBehaviour
         {
             SwapTilesInData(origin, target, tileA, tileB);
             StartCoroutine(MatchCycle());
+
+            ActionTaken?.Invoke();
         }
         else
         {
@@ -156,6 +164,10 @@ public class GridController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Input based trigger for tile power.
+    /// </summary>
+    /// <param name="tileView"></param>
     public void AttemptPowerTrigger(TileView tileView)
     {
         if (tileView == null || tileView.Data == null || tileView.Data.Power == TilePower.None)
@@ -186,6 +198,8 @@ public class GridController : MonoBehaviour
 
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
         yield return new WaitUntil(() => !AnyTileTweening());
+
+        ActionTaken?.Invoke();
 
         // Finally continue match cycle
         StartCoroutine(MatchCycle());

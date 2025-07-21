@@ -26,45 +26,47 @@ public class DropCommand : ICommand
 
         for (int x = 0; x < width; x++)
         {
-            List<(TileData data, TileView view)> buffer = new();
+            int writeY = 0;
 
-            // Collect all tiles in this column
-            for (int y = 0; y < height; y++)
+            for (int readY = 0; readY < height; readY++)
             {
-                if (gridData[x, y] != null)
+                var data = gridData[x, readY];
+                var view = gridViews[x, readY];
+
+                // Skip empty or blocked
+                if (data == null || data.State != TileState.Normal) 
+                    continue;
+
+                gridData[x, readY] = null;
+                gridViews[x, readY] = null;
+
+                // Find next free, non-blocked slot below
+                while (writeY < readY && (gridData[x, writeY]?.State == TileState.Blocked))
+                    writeY++;
+
+                data.GridPosition = new Vector2Int(x, writeY);
+                view.Data.GridPosition = data.GridPosition;
+
+                gridData[x, writeY] = data;
+                gridViews[x, writeY] = view;
+
+                view.transform.DOKill();
+                tweens.Add(view.transform.DOMove(GridToWorldPos(data.GridPosition), 0.2f).SetEase(Ease.OutCubic));
+
+                writeY++;
+            }
+
+            // Clear leftover
+            for (int y = writeY; y < height; y++)
+            {
+                if (gridData[x, y] != null && gridData[x, y].State == TileState.Normal)
                 {
-                    buffer.Add((gridData[x, y], gridViews[x, y]));
                     gridData[x, y] = null;
                     gridViews[x, y] = null;
                 }
             }
-
-            // Assign all at once: logic update
-            for (int y = 0; y < buffer.Count; y++)
-            {
-                var (data, view) = buffer[y];
-                var newPos = new Vector2Int(x, y);
-
-                data.GridPosition = newPos;
-                view.Data.GridPosition = newPos;
-
-                gridData[x, y] = data;
-                gridViews[x, y] = view;
-
-                view.transform.DOKill();
-                var tween = view.transform.DOMove(GridToWorldPos(newPos), 0.2f).SetEase(Ease.OutCubic);
-                tweens.Add(tween);
-            }
-
-            // Clear the rest
-            for (int y = buffer.Count; y < height; y++)
-            {
-                gridData[x, y] = null;
-                gridViews[x, y] = null;
-            }
         }
 
-        // Wait for all tweens to finish
         if (tweens.Count > 0)
             yield return DOTween.Sequence().AppendInterval(0.2f).WaitForCompletion();
         else

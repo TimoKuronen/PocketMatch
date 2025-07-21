@@ -35,10 +35,17 @@ public class RefillCommand : ICommand
         {
             for (int y = 0; y < height; y++)
             {
-                if (gridData[x, y] == null)
+                var data = gridData[x, y];
+
+                // Only fill slots that are truly empty + normal
+                if (data == null || data.State != TileState.Normal)
+                    continue;
+
+                if (gridViews[x, y] == null)
                 {
                     var view = CreateTileAt(x, y);
-                    var spawnPos = GridToWorldPos(new Vector2Int(x, y + 3));
+
+                    var spawnPos = GridToWorldPos(new Vector2Int(x, height + 3));
                     var targetPos = GridToWorldPos(new Vector2Int(x, y));
 
                     view.transform.position = spawnPos;

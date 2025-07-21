@@ -37,8 +37,10 @@ public class MapEditor : Editor
             return;
         }
 
-        for (int y = 0; y < map.height; y++)
+        for (int visualY = 0; visualY < map.height; visualY++)
         {
+            int y = map.height - 1 - visualY; // Invert Y for correct display
+
             EditorGUILayout.BeginHorizontal();
             for (int x = 0; x < map.width; x++)
             {

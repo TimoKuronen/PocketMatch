@@ -72,7 +72,11 @@ public class DebugGrid : MonoBehaviour
             return ".";
         }
 
-        if (tileData.Power == TilePower.None)
+        if(tileData.State == TileState.Blocked)
+        {
+            return "X"; // Blocked tiles
+        }
+        else if (tileData.Power == TilePower.None)
         {
             return ".";
         }

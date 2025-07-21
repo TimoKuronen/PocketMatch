@@ -13,7 +13,9 @@ public class GridController : MonoBehaviour
     [Header("Grid Settings")]
     [SerializeField] private int width = 6;
     [SerializeField] private int height = 8;
-    [SerializeField] private TileView tilePrefab;
+    [SerializeField] private TileView normalTilePrefab;
+    [SerializeField] private TileView blockedTilePrefab;
+    [SerializeField] private TileView breakableTilePrefab;
     [SerializeField] private Sprite sharedTileSprite;
     [SerializeField] private Transform tileContainer;
     [SerializeField] private float tileSize = 1f;
@@ -23,12 +25,15 @@ public class GridController : MonoBehaviour
     [SerializeField] private bool allowInitialMatches = false;
     [SerializeField] private TilePower initialPower = TilePower.None;
 
-    private ObjectPool<TileView> tilePool;
+    private ObjectPool<TileView> normalTilePool;
+    private ObjectPool<TileView> blockedTilePool;
+    private ObjectPool<TileView> breakableTilePool;
     private TileData[,] gridData;
     private TileView[,] gridViews;
     private CommandInvoker commandInvoker;
     private MatchFinder matchFinder;
     private GridContext gridContext;
+    private MapData mapData;
 
     private bool isProcessingTiles;
 
@@ -59,13 +64,9 @@ public class GridController : MonoBehaviour
 
         commandInvoker = new CommandInvoker(this);
         matchFinder = new MatchFinder(width, height);
+        mapData = Services.Get<IGameSessionService>().CurrentMapData;
 
-        tilePool = new ObjectPool<TileView>(
-            createFunc: () => Instantiate(tilePrefab, tileContainer),
-            actionOnGet: (tile) => tile.gameObject.SetActive(true),
-            actionOnRelease: (tile) => tile.gameObject.SetActive(false),
-            actionOnDestroy: (tile) => Destroy(tile.gameObject),
-            collectionCheck: false, maxSize: 100);
+        CreateTilePools();
 
         GenerateGrid(allowInitialMatches);
         CenterCameraOnGrid();
@@ -92,7 +93,32 @@ public class GridController : MonoBehaviour
             }
         }
 
+        yield return new WaitForSeconds(0.5f);
         BoardUpdated?.Invoke(gridData);
+    }
+
+    private void CreateTilePools()
+    {
+        normalTilePool = new ObjectPool<TileView>(
+            () => Instantiate(normalTilePrefab, tileContainer),
+            t => t.gameObject.SetActive(true),
+            t => t.gameObject.SetActive(false),
+            t => Destroy(t.gameObject),
+            false, 100);
+
+        blockedTilePool = new ObjectPool<TileView>(
+            () => Instantiate(blockedTilePrefab, tileContainer),
+            t => t.gameObject.SetActive(true),
+            t => t.gameObject.SetActive(false),
+            t => Destroy(t.gameObject),
+            false, 50);
+
+        breakableTilePool = new ObjectPool<TileView>(
+            () => Instantiate(breakableTilePrefab, tileContainer),
+            t => t.gameObject.SetActive(true),
+            t => t.gameObject.SetActive(false),
+            t => Destroy(t.gameObject),
+            false, 50);
     }
 
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
@@ -353,39 +379,71 @@ public class GridController : MonoBehaviour
 
     public void GenerateGrid(bool allowMatches)
     {
-        bool hasMatches;
+        ClearBoard();
 
-        do
+        gridData = LevelBuilder.BuildLevelFromMapData(mapData);
+        gridViews = new TileView[gridData.GetLength(0), gridData.GetLength(1)];
+
+        // Generate random tile types for normal tiles
+        for (int x = 0; x < gridData.GetLength(0); x++)
         {
-            ClearBoard();
-
-            gridData = new TileData[width, height];
-            gridViews = new TileView[width, height];
-
-            for (int x = 0; x < width; x++)
+            for (int y = 0; y < gridData.GetLength(1); y++)
             {
-                for (int y = 0; y < height; y++)
+                var data = gridData[x, y];
+
+                if (data == null || data.State != TileState.Normal)
                 {
-                    var type = (TileType)UnityEngine.Random.Range(0, System.Enum.GetValues(typeof(TileType)).Length);
-                    var position = new Vector2Int(x, y);
-                    var data = new TileData(type, position);
-
-                    var view = tilePool.Get();
-                    view.transform.SetParent(transform, false);
-                    view.transform.position = GridToWorldPos(position);
-                    view.Init(data, sharedTileSprite);
-                    view.gameObject.name = $"Tile_{x}_{y}";
-
-                    gridData[x, y] = data;
-                    gridViews[x, y] = view;
+                    Debug.Log($"Tile is null or blocked, skipping randomization.");
+                    continue;
                 }
+
+                data.Type = GetRandomTileType();
             }
+        }
 
-            hasMatches = matchFinder.GetMatchGroups(gridData).Count > 0;
+        if (!allowMatches)
+        {
+            bool hasMatches;
+            int safeguard = 100; // infinite loop guard
 
-        } while (!allowMatches && hasMatches);
+            do
+            {
+                // Randomize only normal slots
+                for (int x = 0; x < gridData.GetLength(0); x++)
+                {
+                    for (int y = 0; y < gridData.GetLength(1); y++)
+                    {
+                        var data = gridData[x, y];
+                        if (data == null || data.State != TileState.Normal) 
+                            continue;
+
+                        data.Type = GetRandomTileType();
+                    }
+                }
+
+                hasMatches = matchFinder.GetMatchGroups(gridData).Count > 0;
+                safeguard--;
+
+                if (safeguard <= 0)
+                {
+                    Debug.Log("Safeguard hit: could not generate grid without matches.");
+                    break;
+                }
+
+            } while (hasMatches);
+        }
 
         tileSize = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
+
+        LevelBuilder.SpawnGridViews(
+        gridData,
+        gridViews,
+        tilePool,
+        tileContainer,
+        sharedTileSprite,
+        tilePrefab,
+        tileSize,
+        gridOffset);
     }
 
     private Vector3 GridToWorldPos(Vector2Int gridPosition)
@@ -406,7 +464,7 @@ public class GridController : MonoBehaviour
 
     private TileType GetRandomTileType()
     {
-        return (TileType)UnityEngine.Random.Range(0, Enum.GetValues(typeof(TileType)).Length);
+        return mapData.AllowedTileColors[UnityEngine.Random.Range(0, mapData.AllowedTileColors.Length)];
     }
 
     /// <summary>

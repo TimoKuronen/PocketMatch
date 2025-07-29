@@ -3,27 +3,25 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Pool;
 
 public class DestroyCommand : ICommand
 {
     private readonly List<Vector2Int> matchPositions;
     private readonly TileView[,] gridViews;
     private readonly TileData[,] gridData;
-    private readonly ObjectPool<TileView> pool;
+    private readonly TilePoolManager pool;
     private readonly Action TileDestroyed;
     private readonly GridContext context;
 
-    public DestroyCommand(List<Vector2Int> positions, TileView[,] views, TileData[,] data, 
-        ObjectPool<TileView> pool, Action onDestroy, GridContext context = null)
+    public DestroyCommand(List<Vector2Int> positions, TileView[,] views, TileData[,] data,
+        TilePoolManager pool, Action onDestroy, GridContext context = null)
     {
         matchPositions = positions;
         gridViews = views;
         gridData = data;
         this.pool = pool;
         TileDestroyed = onDestroy;
-
-    //    Debug.Log($"DestroyCommand: Created with {matchPositions.Count} positions to destroy.");
+        this.context = context;
     }
 
     public IEnumerator Execute()
@@ -46,14 +44,19 @@ public class DestroyCommand : ICommand
 
         foreach (var pos in matchPositions)
         {
-            if (gridViews[pos.x, pos.y] != null)
+            var view = gridViews[pos.x, pos.y];
+            var data = gridData[pos.x, pos.y];
+
+            if (view != null)
             {
-                pool.Release(gridViews[pos.x, pos.y]);
+                pool.Release(view, data.State);
                 gridViews[pos.x, pos.y] = null;
             }
-           // Debug.Log($"DestroyCommand: Releasing tile to pool.");
-            gridData[pos.x, pos.y] = null;
+
+            if (data != null && data.State == TileState.Normal)
+            {
+                data.State = TileState.Empty; // Mark slot as empty for refill
+            }
         }
     }
 }
-

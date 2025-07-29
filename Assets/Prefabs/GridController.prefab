@@ -48,12 +48,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 6
   height: 8
-  tilePrefab: {fileID: -2429920941000883301, guid: 616210b52700c3740935ac62f0a3111c, type: 3}
+  normalTilePrefab: {fileID: 1747666802176816276, guid: a2685d7cab03aea42a28bd0a9a0840af, type: 3}
+  blockedTilePrefab: {fileID: 4545452978988066638, guid: 0642d980d3f1f224abd3fa7d330a4321, type: 3}
+  breakableTilePrefab: {fileID: 8613264246384731429, guid: 4d4668722f5d73940a5ecaf193c02676, type: 3}
   sharedTileSprite: {fileID: 21300014, guid: 1eaee135ce037439d925cee5e41ce026, type: 3}
   tileContainer: {fileID: 3351214363345049549}
   tileSize: 1
   gridOffset: {x: 0, y: 0, z: 0}
   allowInitialMatches: 0
+  initialPower: 0
 --- !u!114 &7581541996355293963
 MonoBehaviour:
   m_ObjectHideFlags: 0

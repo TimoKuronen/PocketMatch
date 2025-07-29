@@ -33,17 +33,21 @@ public class DropCommand : ICommand
                 var data = gridData[x, readY];
                 var view = gridViews[x, readY];
 
-                // Skip empty or blocked
-                if (data == null || data.State != TileState.Normal) 
+                if (data == null || data.State != TileState.Normal)
                     continue;
 
-                gridData[x, readY] = null;
+                data.State = TileState.Normal;
+                gridData[x, readY] = new TileData(TileType.Red, new Vector2Int(x, readY))
+                {
+                    State = TileState.Empty
+                };
                 gridViews[x, readY] = null;
 
-                // Find next free, non-blocked slot below
-                while (writeY < readY && (gridData[x, writeY]?.State == TileState.Blocked))
+                // Skip down to next non-blocked slot
+                while (writeY < readY && gridData[x, writeY].State == TileState.Blocked)
                     writeY++;
 
+                // Move data down
                 data.GridPosition = new Vector2Int(x, writeY);
                 view.Data.GridPosition = data.GridPosition;
 
@@ -56,12 +60,13 @@ public class DropCommand : ICommand
                 writeY++;
             }
 
-            // Clear leftover
+            // Mark leftover slots above as Empty if they should be refillable
             for (int y = writeY; y < height; y++)
             {
-                if (gridData[x, y] != null && gridData[x, y].State == TileState.Normal)
+                var slot = gridData[x, y];
+                if (slot != null && slot.State == TileState.Normal)
                 {
-                    gridData[x, y] = null;
+                    slot.State = TileState.Empty;
                     gridViews[x, y] = null;
                 }
             }

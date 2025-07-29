@@ -24,7 +24,7 @@ public class MatchFinder
             int x = 0;
             while (x < width - 2)
             {
-                if (grid[x, y] == null)
+                if (!IsMatchableTile(grid[x, y]))
                 {
                     x++;
                     continue;
@@ -33,7 +33,7 @@ public class MatchFinder
                 TileType type = grid[x, y].Type;
                 int matchLen = 1;
 
-                for (int i = x + 1; i < width && grid[i, y] != null && grid[i, y].Type == type; i++)
+                for (int i = x + 1; i < width && IsMatchableTile(grid[i, y]) && grid[i, y].Type == type; i++)
                 {
                     matchLen++;
                 }
@@ -63,7 +63,7 @@ public class MatchFinder
             int y = 0;
             while (y < height - 2)
             {
-                if (grid[x, y] == null)
+                if (!IsMatchableTile(grid[x, y]))
                 {
                     y++;
                     continue;
@@ -72,7 +72,7 @@ public class MatchFinder
                 TileType type = grid[x, y].Type;
                 int matchLen = 1;
 
-                for (int i = y + 1; i < height && grid[x, i] != null && grid[x, i].Type == type; i++)
+                for (int i = y + 1; i < height && IsMatchableTile(grid[x, i]) && grid[x, i].Type == type; i++)
                 {
                     matchLen++;
                 }
@@ -167,5 +167,10 @@ public class MatchFinder
 
         Debug.Log("Match shape determination failed: no valid match shape found." + match.Count);
         return MatchShape.None;
+    }
+
+    private bool IsMatchableTile(TileData tileData)
+    {
+        return tileData != null && tileData.State == TileState.Normal;
     }
 }

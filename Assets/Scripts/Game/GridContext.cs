@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Pool;
 
 public class GridContext
 {
@@ -10,7 +8,7 @@ public class GridContext
     public TileView[,] Views { get; }
     public int Width { get; }
     public int Height { get; }
-    public ObjectPool<TileView> Pool { get; }
+    public TilePoolManager Pool { get; }
     public CommandInvoker CommandInvoker { get; }
     public Action OnDestroy { get; }
 
@@ -19,7 +17,7 @@ public class GridContext
         TileView[,] views,
         int width,
         int height,
-        ObjectPool<TileView> pool,
+        TilePoolManager pool,
         CommandInvoker invoker,
         Action onDestroy)
     {

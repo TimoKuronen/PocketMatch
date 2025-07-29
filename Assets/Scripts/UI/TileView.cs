@@ -4,12 +4,16 @@ public class TileView : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ColorPalette colorPalette;
-    public TileData Data { get; private set; }
+    [field: SerializeField] public TileData Data { get; private set; }
 
     public void Init(TileData data, Sprite sharedSprite)
     {
-        spriteRenderer.sprite = sharedSprite;
         Data = data;
+
+        if (data.State != TileState.Normal)
+            return;
+
+        spriteRenderer.sprite = sharedSprite;
 
         int colorIndex = (int)data.Type;
         if (colorIndex < 0 || colorIndex >= colorPalette.TileColors.Length)

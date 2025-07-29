@@ -36,7 +36,7 @@ public class DebugGrid : MonoBehaviour
             }
         }
 
-        Debug.Log("Debug board updated with new tile data.");
+        //Debug.Log("Debug board updated with new tile data.");
     }
 
     void CreateDebugBoard()
@@ -72,12 +72,16 @@ public class DebugGrid : MonoBehaviour
             return ".";
         }
 
-        if(tileData.State == TileState.Blocked)
+        if (tileData.State == TileState.Blocked)
         {
             return "X"; // Blocked tiles
         }
         else if (tileData.Power == TilePower.None)
         {
+            if (tileData.State == TileState.Empty)
+            {
+                return ",";
+            }
             return ".";
         }
         else if (tileData.Power == TilePower.RowClearer)

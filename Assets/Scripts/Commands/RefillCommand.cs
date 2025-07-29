@@ -37,11 +37,10 @@ public class RefillCommand : ICommand
             {
                 var data = gridData[x, y];
 
-                // Only fill slots that are truly empty + normal
-                if (data == null || data.State != TileState.Normal)
-                    continue;
+                if (data == null)
+                    continue; // safe guard
 
-                if (gridViews[x, y] == null)
+                if (data.State == TileState.Empty && gridViews[x, y] == null)
                 {
                     var view = CreateTileAt(x, y);
 

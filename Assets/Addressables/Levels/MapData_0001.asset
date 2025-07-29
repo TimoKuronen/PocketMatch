@@ -23,10 +23,16 @@ MonoBehaviour:
     isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
-    isBlocked: 1
+    isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
-    isBlocked: 1
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
@@ -41,12 +47,6 @@ MonoBehaviour:
     isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
-    isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
     isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
@@ -54,15 +54,6 @@ MonoBehaviour:
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
@@ -77,28 +68,7 @@ MonoBehaviour:
     isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
-    isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
     isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
@@ -149,10 +119,40 @@ MonoBehaviour:
     isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
-    isBlocked: 1
+    isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
-    isBlocked: 1
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0

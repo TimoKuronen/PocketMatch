@@ -19,6 +19,11 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (tileView.Data.State != TileState.Normal)
+        {
+            return;
+        }
+
 #if UNITY_EDITOR
         /// Destroying single tiles for debugging purposes
         if (eventData.button == PointerEventData.InputButton.Right)
@@ -54,7 +59,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     private void HandleDoubleTap()
     {
-        Debug.Log("Double Tap Detected");
+        //Debug.Log("Double Tap Detected");
 
         isDragging = false;
 
@@ -63,6 +68,11 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (tileView.Data.State != TileState.Normal)
+        {
+            return;
+        }
+
         if (!isDragging)
             return;
 

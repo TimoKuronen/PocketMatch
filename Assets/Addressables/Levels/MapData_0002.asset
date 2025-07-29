@@ -12,8 +12,159 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64a9edc25ee1baa46a5e6d75ae8a7cce, type: 3}
   m_Name: MapData_0002
   m_EditorClassIdentifier: 
-  MoveLimit: 25
-  AllowedTileColors: 00000000010000000200000003000000
+  width: 6
+  height: 8
+  tiles:
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  MoveLimit: 30
+  AllowedTileColors: 0000000001000000020000000300000004000000
   victoryConditions:
-    RequiredColorMatchCount: []
-    DestroyableTileCount: 10
+    RequiredColorMatchCount:
+    - TileColor: 0
+      TileCount: 25
+    - TileColor: 1
+      TileCount: 25
+    DestroyableTileCount: 0

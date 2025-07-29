@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Pool;
 
 public class GridController : MonoBehaviour
 {
@@ -25,15 +24,13 @@ public class GridController : MonoBehaviour
     [SerializeField] private bool allowInitialMatches = false;
     [SerializeField] private TilePower initialPower = TilePower.None;
 
-    private ObjectPool<TileView> normalTilePool;
-    private ObjectPool<TileView> blockedTilePool;
-    private ObjectPool<TileView> breakableTilePool;
     private TileData[,] gridData;
     private TileView[,] gridViews;
     private CommandInvoker commandInvoker;
     private MatchFinder matchFinder;
     private GridContext gridContext;
     private MapData mapData;
+    private TilePoolManager tilePoolManager;
 
     private bool isProcessingTiles;
 
@@ -64,9 +61,13 @@ public class GridController : MonoBehaviour
 
         commandInvoker = new CommandInvoker(this);
         matchFinder = new MatchFinder(width, height);
+        tilePoolManager = new TilePoolManager(
+            normalTilePrefab,
+            blockedTilePrefab,
+            breakableTilePrefab,
+            tileContainer
+        );
         mapData = Services.Get<IGameSessionService>().CurrentMapData;
-
-        CreateTilePools();
 
         GenerateGrid(allowInitialMatches);
         CenterCameraOnGrid();
@@ -76,17 +77,17 @@ public class GridController : MonoBehaviour
             gridViews,
             width,
             height,
-            tilePool,
+            tilePoolManager,
             commandInvoker,
             TileDestroyed
         );
 
         if (initialPower != TilePower.None)
         {
-            // Apply initial power to a random tile
             var randomX = UnityEngine.Random.Range(0, width);
             var randomY = UnityEngine.Random.Range(0, height);
             var initialTile = gridData[randomX, randomY];
+
             if (initialTile != null)
             {
                 initialTile.Power = initialPower;
@@ -95,30 +96,6 @@ public class GridController : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
         BoardUpdated?.Invoke(gridData);
-    }
-
-    private void CreateTilePools()
-    {
-        normalTilePool = new ObjectPool<TileView>(
-            () => Instantiate(normalTilePrefab, tileContainer),
-            t => t.gameObject.SetActive(true),
-            t => t.gameObject.SetActive(false),
-            t => Destroy(t.gameObject),
-            false, 100);
-
-        blockedTilePool = new ObjectPool<TileView>(
-            () => Instantiate(blockedTilePrefab, tileContainer),
-            t => t.gameObject.SetActive(true),
-            t => t.gameObject.SetActive(false),
-            t => Destroy(t.gameObject),
-            false, 50);
-
-        breakableTilePool = new ObjectPool<TileView>(
-            () => Instantiate(breakableTilePrefab, tileContainer),
-            t => t.gameObject.SetActive(true),
-            t => t.gameObject.SetActive(false),
-            t => Destroy(t.gameObject),
-            false, 50);
     }
 
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
@@ -131,7 +108,7 @@ public class GridController : MonoBehaviour
         var tileA = gridData[origin.x, origin.y];
         var tileB = gridData[target.x, target.y];
 
-        if (tileA == null || tileB == null)
+        if (tileA == null || tileB == null || tileB.State != TileState.Normal)
             return;
 
         var viewA = gridViews[origin.x, origin.y];
@@ -303,7 +280,7 @@ public class GridController : MonoBehaviour
             // Filter out power tile positions from the destruction list
             var flatMatches = matchGroups.SelectMany(g => g).Distinct().Where(pos => !powerTilePositions.Contains(pos)).ToList();
 
-            commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePool, TileDestroyed, gridContext));
+            commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, gridContext));
             commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
             commandInvoker.ExecuteAll();
         }
@@ -342,15 +319,15 @@ public class GridController : MonoBehaviour
 
     private TileView CreateTileAt(int x, int y)
     {
-        var type = GetRandomTileType();
-        var data = new TileData(type, new Vector2Int(x, y));
+        var data = gridData[x, y];
+        data.State = TileState.Normal;
+        data.Type = GetRandomTileType();
 
-        var view = tilePool.Get();
+        var view = tilePoolManager.Get(TileState.Normal);
         view.transform.localScale = Vector3.one;
         view.Init(data, sharedTileSprite);
-        view.gameObject.name = $"Tile_{x}_{y}";
+        view.gameObject.name = $"Tile_{x}_{y}\"";
 
-        gridData[x, y] = data;
         gridViews[x, y] = view;
 
         return view;
@@ -362,8 +339,8 @@ public class GridController : MonoBehaviour
         {
             foreach (var view in gridViews)
             {
-                if (view != null)
-                    tilePool.Release(view);
+                if (view != null && view.Data != null)
+                    tilePoolManager.Release(view, view.Data.State);
             }
         }
 
@@ -393,7 +370,7 @@ public class GridController : MonoBehaviour
 
                 if (data == null || data.State != TileState.Normal)
                 {
-                    Debug.Log($"Tile is null or blocked, skipping randomization.");
+                    //Debug.Log($"Tile is null or blocked, skipping randomization.");
                     continue;
                 }
 
@@ -433,15 +410,15 @@ public class GridController : MonoBehaviour
             } while (hasMatches);
         }
 
-        tileSize = tilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
+        tileSize = normalTilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
 
         LevelBuilder.SpawnGridViews(
         gridData,
         gridViews,
-        tilePool,
+        tilePoolManager,
         tileContainer,
         sharedTileSprite,
-        tilePrefab,
+        normalTilePrefab,
         tileSize,
         gridOffset);
     }
@@ -477,7 +454,7 @@ public class GridController : MonoBehaviour
         var tileA = gridData[origin.x, origin.y];
         flatMatches.Add(origin);
 
-        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePool, TileDestroyed));
+        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed));
         commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
         commandInvoker.ExecuteAll();
 

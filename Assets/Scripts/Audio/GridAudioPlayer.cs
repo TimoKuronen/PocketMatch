@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class GridAudioPlayer : MonoBehaviour
@@ -8,12 +9,18 @@ public class GridAudioPlayer : MonoBehaviour
     [SerializeField] private AudioCue tileMatchAudio;
     [SerializeField] private AudioCue tileSwitchErrorAudio;
     [SerializeField] private AudioCue tileDestroyAudio;
+    [SerializeField] private AudioCue tileLineDestroyer;
+    [SerializeField] private AudioCue tileBomb;
+    [SerializeField] private AudioCue tileRainbow;
+    [SerializeField] private AudioCue powerTileCreation;
 
     private AudioSource audioSource;
     private ISoundManager soundManager;
 
-    private void Start()
+    private IEnumerator Start()
     {
+        yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+
         audioSource = GetComponent<AudioSource>();
         soundManager = Services.Get<ISoundManager>();
 
@@ -22,7 +29,36 @@ public class GridAudioPlayer : MonoBehaviour
         GridController.Instance.TileSwapError += PlaySwitchErrorAudio;
         GridController.Instance.TileDestroyed += PlayDestroyAudio;
         GridController.Instance.TileMoved += PlayTileMoveAudio;
+        GridController.Instance.PowerTileCreated += PlayPowerTileCreationAudio;
+        GridController.Instance.GridContext.OnSpecialTileTriggered += PlaySpecialTileAudio;
     }
+
+    private void PlaySpecialTileAudio(TileData data)
+    {
+        switch (data.Power)
+        {
+            case TilePower.ColumnClearer:
+                soundManager.Play(tileLineDestroyer, audioSource);
+                break;
+            case TilePower.RowClearer:
+                soundManager.Play(tileLineDestroyer, audioSource);
+                break;
+            case TilePower.Bomb:
+                soundManager.Play(tileBomb, audioSource);
+                break;
+            case TilePower.Rainbow:
+                soundManager.Play(tileRainbow, audioSource);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void PlayPowerTileCreationAudio()
+    {
+        soundManager.Play(powerTileCreation, audioSource);
+    }
+
 
     private void PlayTileMoveAudio()
     {

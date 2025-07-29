@@ -56,7 +56,6 @@ MonoBehaviour:
   tileSize: 1
   gridOffset: {x: 0, y: 0, z: 0}
   allowInitialMatches: 0
-  initialPower: 0
 --- !u!114 &7581541996355293963
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74,6 +73,10 @@ MonoBehaviour:
   tileMatchAudio: {fileID: 11400000, guid: 305fa3a19b9d1064da5b749fe5516be6, type: 2}
   tileSwitchErrorAudio: {fileID: 11400000, guid: 599a1139dbd28ff4bb48239ae42ba1d5, type: 2}
   tileDestroyAudio: {fileID: 11400000, guid: b73837563583c1d4083f1a3090735f69, type: 2}
+  tileLineDestroyer: {fileID: 11400000, guid: 2e0f2fafb620aeb4e999b0959b38997a, type: 2}
+  tileBomb: {fileID: 11400000, guid: 4be2c8f2c8712c84a8dad2a257762e2a, type: 2}
+  tileRainbow: {fileID: 11400000, guid: 69cdca356ad62fa448a6d874a61d7d5f, type: 2}
+  powerTileCreation: {fileID: 11400000, guid: 1dc60bd84f0e7e442baaf1959f9b86ea, type: 2}
 --- !u!82 &-97883846079608384
 AudioSource:
   m_ObjectHideFlags: 0

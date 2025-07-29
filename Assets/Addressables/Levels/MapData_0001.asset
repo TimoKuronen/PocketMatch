@@ -42,7 +42,7 @@ MonoBehaviour:
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
-  - tilePower: 0
+  - tilePower: 3
     isDestroyable: 0
     isBlocked: 0
   - tilePower: 0

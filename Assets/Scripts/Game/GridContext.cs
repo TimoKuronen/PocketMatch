@@ -11,6 +11,7 @@ public class GridContext
     public TilePoolManager Pool { get; }
     public CommandInvoker CommandInvoker { get; }
     public Action OnDestroy { get; }
+    public Action<TileData> OnSpecialTileTriggered;
 
     public GridContext(
         TileData[,] data,
@@ -43,7 +44,8 @@ public class GridContext
         var behavior = TilePowerFactory.Get(tile.Power);
         behavior?.Apply(tile.GridPosition, this);
 
-        // Optional: clear power after use to prevent repeat
+        OnSpecialTileTriggered?.Invoke(tile);
+        // Clear power after use to prevent repeat
         tile.Power = TilePower.None;
     }
 

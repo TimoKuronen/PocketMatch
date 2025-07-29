@@ -22,18 +22,16 @@ public class GridController : MonoBehaviour
 
     [Header("Initial Debugging Settings")]
     [SerializeField] private bool allowInitialMatches = false;
-    [SerializeField] private TilePower initialPower = TilePower.None;
 
     private TileData[,] gridData;
     private TileView[,] gridViews;
     private CommandInvoker commandInvoker;
     private MatchFinder matchFinder;
-    private GridContext gridContext;
     private MapData mapData;
     private TilePoolManager tilePoolManager;
-
     private bool isProcessingTiles;
 
+    public GridContext GridContext { get; private set; }
     public Sprite Sprite => sharedTileSprite;
 
     public event Action ActionTaken;
@@ -43,6 +41,7 @@ public class GridController : MonoBehaviour
     public event Action TileDrop;
     public event Action TileDestroyed;
     public event Action<TileData[,]> BoardUpdated;
+    public event Action PowerTileCreated;
 
     private void Awake()
     {
@@ -72,7 +71,7 @@ public class GridController : MonoBehaviour
         GenerateGrid(allowInitialMatches);
         CenterCameraOnGrid();
 
-        gridContext = new GridContext(
+        GridContext = new GridContext(
             gridData,
             gridViews,
             width,
@@ -82,19 +81,8 @@ public class GridController : MonoBehaviour
             TileDestroyed
         );
 
-        if (initialPower != TilePower.None)
-        {
-            var randomX = UnityEngine.Random.Range(0, width);
-            var randomY = UnityEngine.Random.Range(0, height);
-            var initialTile = gridData[randomX, randomY];
-
-            if (initialTile != null)
-            {
-                initialTile.Power = initialPower;
-            }
-        }
-
         yield return new WaitForSeconds(0.5f);
+
         BoardUpdated?.Invoke(gridData);
     }
 
@@ -185,7 +173,7 @@ public class GridController : MonoBehaviour
 
     private IEnumerator TriggerPowerEvent(TileData tileData)
     {
-        gridContext.TriggerTilePower(tileData.GridPosition);
+        GridContext.TriggerTilePower(tileData.GridPosition);
         commandInvoker.ExecuteAll();
 
         //Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");
@@ -274,13 +262,19 @@ public class GridController : MonoBehaviour
                 }
             );
 
+            if (powerTilePositions.Count > 0)
+            {
+                Debug.Log($"Creating {powerTilePositions.Count} power tiles from matches.");
+                PowerTileCreated?.Invoke();
+            }
+
             // Execute the power tile command immediately
             yield return createPowerTileCommand.Execute();
 
             // Filter out power tile positions from the destruction list
             var flatMatches = matchGroups.SelectMany(g => g).Distinct().Where(pos => !powerTilePositions.Contains(pos)).ToList();
 
-            commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, gridContext));
+            commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext));
             commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
             commandInvoker.ExecuteAll();
         }

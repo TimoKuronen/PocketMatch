@@ -12,6 +12,6 @@ public class LineClearHorizontal : ITilePowerBehavior
                    .ToList();
 
         context.CommandInvoker.AddCommand(
-            new DestroyCommand(row, context.Views, context.Data, context.Pool, context.OnDestroy));
+            new DestroyCommand(row, context.Views, context.Data, context.Pool, context.OnDestroy, context));
     }
 }

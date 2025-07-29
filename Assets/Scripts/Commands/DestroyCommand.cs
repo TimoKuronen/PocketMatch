@@ -26,13 +26,28 @@ public class DestroyCommand : ICommand
 
     public IEnumerator Execute()
     {
-        context?.TriggerPowersIn(matchPositions);
+        // Collect powers to trigger AFTER destroy finishes
+        var powersToTrigger = new List<TileData>();
 
         foreach (var pos in matchPositions)
         {
+            var data = gridData[pos.x, pos.y];
+            if (data != null && data.State != TileState.Blocked && data.Power != TilePower.None)
+            {
+                powersToTrigger.Add(data);
+            }
+        }
+
+        // Animate out any visuals
+        foreach (var pos in matchPositions)
+        {
             var view = gridViews[pos.x, pos.y];
+
             if (view != null)
             {
+                if (view.Data.State == TileState.Blocked)
+                    continue;
+
                 view.transform.DOKill();
                 view.transform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack);
             }
@@ -42,10 +57,14 @@ public class DestroyCommand : ICommand
 
         yield return new WaitForSeconds(0.5f);
 
+        // Release visuals, mark slots as Empty
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];
             var data = gridData[pos.x, pos.y];
+
+            if (data.State == TileState.Blocked)
+                continue;
 
             if (view != null)
             {
@@ -55,7 +74,16 @@ public class DestroyCommand : ICommand
 
             if (data != null && data.State == TileState.Normal)
             {
-                data.State = TileState.Empty; // Mark slot as empty for refill
+                data.State = TileState.Empty; // Mark slot for refill
+            }
+        }
+
+        //  trigger any powers
+        if (context != null && powersToTrigger.Count > 0)
+        {
+            foreach (var tile in powersToTrigger)
+            {
+                context.TriggerPower(tile);
             }
         }
     }

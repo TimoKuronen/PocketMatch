@@ -19,6 +19,6 @@ public class BombTile : ITilePowerBehavior
         }
 
         context.CommandInvoker.AddCommand(
-            new DestroyCommand(area, context.Views, context.Data, context.Pool, context.OnDestroy));
+            new DestroyCommand(area, context.Views, context.Data, context.Pool, context.OnDestroy, context));
     }
 }

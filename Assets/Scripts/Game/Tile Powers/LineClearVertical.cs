@@ -12,6 +12,6 @@ public class LineClearVertical : ITilePowerBehavior
                .ToList();
 
         context.CommandInvoker.AddCommand(
-            new DestroyCommand(column, context.Views, context.Data, context.Pool, context.OnDestroy));
+            new DestroyCommand(column, context.Views, context.Data, context.Pool, context.OnDestroy, context));
     }
 }

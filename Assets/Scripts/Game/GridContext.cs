@@ -35,22 +35,36 @@ public class GridContext
         return pos.x >= 0 && pos.x < Width && pos.y >= 0 && pos.y < Height;
     }
 
+    public void TriggerPower(TileData tile)
+    {
+        if (tile == null || tile.Power == TilePower.None)
+            return;
+
+        var behavior = TilePowerFactory.Get(tile.Power);
+        behavior?.Apply(tile.GridPosition, this);
+
+        // Optional: clear power after use to prevent repeat
+        tile.Power = TilePower.None;
+    }
+
     public void TriggerPowersIn(IEnumerable<Vector2Int> positions)
     {
         foreach (var pos in positions)
-            TriggerTilePower(pos);
+        {
+            if (!IsInside(pos))
+                continue;
+
+            var data = Data[pos.x, pos.y];
+            TriggerPower(data);
+        }
     }
 
     public void TriggerTilePower(Vector2Int pos)
     {
-        if (!IsInside(pos)) 
+        if (!IsInside(pos))
             return;
 
         var data = Data[pos.x, pos.y];
-        if (data == null || data.Power == TilePower.None)
-            return;
-
-        var behavior = TilePowerFactory.Get(data.Power);
-        behavior?.Apply(pos, this);
+        TriggerPower(data);
     }
 }

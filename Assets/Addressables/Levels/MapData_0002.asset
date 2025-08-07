@@ -17,22 +17,10 @@ MonoBehaviour:
   tiles:
   - tilePower: 0
     isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
     isBlocked: 1
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
@@ -47,21 +35,6 @@ MonoBehaviour:
     isBlocked: 1
   - tilePower: 0
     isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
     isBlocked: 1
   - tilePower: 0
     isDestroyable: 0
@@ -69,33 +42,12 @@ MonoBehaviour:
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
-  - tilePower: 0
+  - tilePower: 3
     isDestroyable: 0
     isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 1
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 1
@@ -149,6 +101,48 @@ MonoBehaviour:
     isBlocked: 0
   - tilePower: 0
     isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 1
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 2
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
     isBlocked: 1
   - tilePower: 0
     isDestroyable: 0
@@ -159,6 +153,12 @@ MonoBehaviour:
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
   MoveLimit: 30
   AllowedTileColors: 0000000001000000020000000300000004000000
   victoryConditions:

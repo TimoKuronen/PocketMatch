@@ -40,4 +40,5 @@ public class TileDataEditorView
     public TilePower tilePower;
     public bool isDestroyable;
     public bool isBlocked;
+    public int hitPoints = 1;
 }

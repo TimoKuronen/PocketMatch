@@ -82,7 +82,11 @@ public class DebugGrid : MonoBehaviour
             {
                 return ",";
             }
-            return ".";
+            else if (tileData.State == TileState.Destroyable)
+            {
+                return "D";
+            }
+                return ".";
         }
         else if (tileData.Power == TilePower.RowClearer)
         {

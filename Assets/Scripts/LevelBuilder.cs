@@ -24,7 +24,7 @@ public static class LevelBuilder
                 else if (tile.isDestroyable)
                 {
                     grid[x, y] = new TileData(TileType.Red, new Vector2Int(x, y));
-                    grid[x, y].State = TileState.Breakable;
+                    grid[x, y].State = TileState.Destroyable;
                     continue;
                 }
 
@@ -51,7 +51,7 @@ public static class LevelBuilder
                     continue;
 
                 var view = tilePoolManager.Get(grid[x, y].State);
-                //Debug.Log($"Spawning tile with state {grid[x, y].State}");
+                Debug.Log($"Spawning tile with state {grid[x, y].State}");
                 view.transform.SetParent(parent, false);
                 view.transform.position = new Vector3(x * tileSize, y * tileSize, 0) + offset;
                 view.Init(grid[x, y], sprite);

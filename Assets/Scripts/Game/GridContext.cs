@@ -45,6 +45,7 @@ public class GridContext
         behavior?.Apply(tile.GridPosition, this);
 
         OnSpecialTileTriggered?.Invoke(tile);
+
         // Clear power after use to prevent repeat
         tile.Power = TilePower.None;
     }
@@ -68,5 +69,31 @@ public class GridContext
 
         var data = Data[pos.x, pos.y];
         TriggerPower(data);
+    }
+
+    public void DamageTile(Vector2Int pos, int amount)
+    {
+        if (!IsInside(pos))
+            return;
+
+        var data = Data[pos.x, pos.y];
+        if (data == null)
+            return;
+
+        if (data is IDamageableTile damageable)
+        {
+            damageable.TakeDamage(amount);
+
+            if (damageable.IsDestroyed)
+            {
+                CommandInvoker.AddCommand(
+                    new DestroyCommand(new List<Vector2Int> { pos }, Views, Data, Pool, OnDestroy, this));
+            }
+        }
+        else
+        {
+            CommandInvoker.AddCommand(
+                new DestroyCommand(new List<Vector2Int> { pos }, Views, Data, Pool, OnDestroy, this));
+        }
     }
 }

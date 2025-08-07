@@ -3,7 +3,7 @@ using UnityEngine;
 
 public enum TileType { Red, Blue, Green, Yellow, Purple }
 public enum TilePower { None, RowClearer, ColumnClearer, Bomb, Rainbow }
-public enum TileState { Normal, Blocked, Breakable, Empty }
+public enum TileState { Normal, Blocked, Destroyable, Empty }
 
 [Serializable]
 public class TileData

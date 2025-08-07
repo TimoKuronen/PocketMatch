@@ -37,7 +37,7 @@ public class TilePoolManager
         {
             TileState.Normal => normalPool.Get(),
             TileState.Blocked => blockedPool.Get(),
-            TileState.Breakable => breakablePool.Get(),
+            TileState.Destroyable => breakablePool.Get(),
             _ => throw new System.ArgumentOutOfRangeException(nameof(state))
         };
     }
@@ -48,7 +48,7 @@ public class TilePoolManager
         {
             case TileState.Normal: normalPool.Release(view); break;
             case TileState.Blocked: blockedPool.Release(view); break;
-            case TileState.Breakable: breakablePool.Release(view); break;
+            case TileState.Destroyable: breakablePool.Release(view); break;
             default: throw new System.ArgumentOutOfRangeException(nameof(state));
         }
     }

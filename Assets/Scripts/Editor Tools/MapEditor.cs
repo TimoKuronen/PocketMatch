@@ -55,6 +55,8 @@ public class MapEditor : Editor
                         tile.isBlocked = false;
                         tile.tilePower = TilePower.None;
                         tile.isDestroyable = false;
+                        tile.hitPoints = 1;
+
                         map.SetTile(x, y, tile);
                         EditorUtility.SetDirty(map);
                         Event.current.Use();
@@ -64,6 +66,12 @@ public class MapEditor : Editor
                         tile.tilePower = selectedPower;
                         tile.isDestroyable = toggleDestroyable;
                         tile.isBlocked = toggleBlocked;
+
+                        if (toggleDestroyable)
+                        {
+                            tile.hitPoints = 3; // Default hit points for destroyable tiles for now
+                        }
+
                         map.SetTile(x, y, tile);
                         EditorUtility.SetDirty(map);
                         Event.current.Use();

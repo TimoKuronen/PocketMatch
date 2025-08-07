@@ -32,7 +32,7 @@ public class DestroyCommand : ICommand
         foreach (var pos in matchPositions)
         {
             var data = gridData[pos.x, pos.y];
-            if (data != null && data.State != TileState.Blocked && data.Power != TilePower.None)
+            if (data != null && data.State != TileState.Blocked && data.State != TileState.Destroyable && data.Power != TilePower.None)
             {
                 powersToTrigger.Add(data);
             }
@@ -63,7 +63,7 @@ public class DestroyCommand : ICommand
             var view = gridViews[pos.x, pos.y];
             var data = gridData[pos.x, pos.y];
 
-            if (data.State == TileState.Blocked)
+            if (data.State == TileState.Blocked || data.State == TileState.Destroyable)
                 continue;
 
             if (view != null)

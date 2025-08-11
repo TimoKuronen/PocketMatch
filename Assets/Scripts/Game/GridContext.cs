@@ -71,29 +71,34 @@ public class GridContext
         TriggerPower(data);
     }
 
-    public void DamageTile(Vector2Int pos, int amount)
+    public void DamageTiles(IEnumerable<Vector2Int> positions, int damage)
     {
-        if (!IsInside(pos))
-            return;
+        var toDestroy = new List<Vector2Int>();
 
-        var data = Data[pos.x, pos.y];
-        if (data == null)
-            return;
-
-        if (data is IDamageableTile damageable)
+        foreach (var pos in positions)
         {
-            damageable.TakeDamage(amount);
+            if (!IsInside(pos)) continue;
 
-            if (damageable.IsDestroyed)
+            var data = Data[pos.x, pos.y];
+            if (data == null) continue;
+
+            if (data is IDamageableTile damageable)
             {
-                CommandInvoker.AddCommand(
-                    new DestroyCommand(new List<Vector2Int> { pos }, Views, Data, Pool, OnDestroy, this));
+                damageable.TakeDamage(damage);
+                if (damageable.IsDestroyed)
+                    toDestroy.Add(pos);
+            }
+            else
+            {
+                toDestroy.Add(pos);
             }
         }
-        else
+
+        if (toDestroy.Count > 0)
         {
             CommandInvoker.AddCommand(
-                new DestroyCommand(new List<Vector2Int> { pos }, Views, Data, Pool, OnDestroy, this));
+                new DestroyCommand(toDestroy, Views, Data, Pool, OnDestroy, this)
+            );
         }
     }
 }

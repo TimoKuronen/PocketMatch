@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -11,7 +9,6 @@ public class LineClearHorizontal : ITilePowerBehavior
                    .Select(x => new Vector2Int(x, origin.y))
                    .ToList();
 
-        context.CommandInvoker.AddCommand(
-            new DestroyCommand(row, context.Views, context.Data, context.Pool, context.OnDestroy, context));
+        context.DamageTiles(row, 1);
     }
 }

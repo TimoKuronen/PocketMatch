@@ -69,6 +69,7 @@ public class DebugGrid : MonoBehaviour
         if (tileData == null)
         {
             Debug.Log("TileData is null, returning default value.");
+            //Debug.Log("TileData is null at position " + tileData.GridPosition + " , returning default value.");
             return ".";
         }
 
@@ -86,7 +87,7 @@ public class DebugGrid : MonoBehaviour
             {
                 return "D";
             }
-                return ".";
+            return ".";
         }
         else if (tileData.Power == TilePower.RowClearer)
         {

@@ -45,6 +45,9 @@ public class RainbowTile : ITilePowerBehavior
                 var tile = data[x, y];
                 if (tile != null)
                 {
+                    if(tile.State == TileState.Blocked || tile.State == TileState.Destroyable)
+                        continue;
+
                     if (!counter.ContainsKey(tile.Type))
                         counter[tile.Type] = 0;
                     counter[tile.Type]++;

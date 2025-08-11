@@ -26,38 +26,30 @@ public class DestroyCommand : ICommand
 
     public IEnumerator Execute()
     {
-        // Collect powers to trigger AFTER destroy finishes
         var powersToTrigger = new List<TileData>();
 
         foreach (var pos in matchPositions)
         {
             var data = gridData[pos.x, pos.y];
-            if (data != null && data.State != TileState.Blocked && data.State != TileState.Destroyable && data.Power != TilePower.None)
+            if (data.State != TileState.Blocked && data.State != TileState.Destroyable && data.Power != TilePower.None)
             {
                 powersToTrigger.Add(data);
             }
         }
 
-        // Animate out any visuals
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];
-
-            if (view != null)
+            if (view != null && view.Data.State != TileState.Blocked)
             {
-                if (view.Data.State == TileState.Blocked)
-                    continue;
-
                 view.transform.DOKill();
                 view.transform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack);
             }
         }
 
         TileDestroyed?.Invoke();
-
         yield return new WaitForSeconds(0.5f);
 
-        // Release visuals, mark slots as Empty
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];
@@ -72,19 +64,17 @@ public class DestroyCommand : ICommand
                 gridViews[pos.x, pos.y] = null;
             }
 
-            if (data != null && data.State == TileState.Normal)
+            if (data.State == TileState.Normal)
             {
-                data.State = TileState.Empty; // Mark slot for refill
+                data.State = TileState.Empty;
+                data.Type = TileType.Red;
             }
         }
 
-        //  trigger any powers
         if (context != null && powersToTrigger.Count > 0)
         {
             foreach (var tile in powersToTrigger)
-            {
                 context.TriggerPower(tile);
-            }
         }
     }
 }

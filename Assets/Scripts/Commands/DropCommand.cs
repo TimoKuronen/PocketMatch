@@ -36,45 +36,52 @@ public class DropCommand : ICommand
                 if (data == null || data.State != TileState.Normal)
                     continue;
 
-                data.State = TileState.Normal;
-                gridData[x, readY] = new TileData(TileType.Red, new Vector2Int(x, readY))
+                // move down to the next empty/refillable slot
+                while (writeY < readY && !IsRefillable(gridData[x, writeY]))
                 {
-                    State = TileState.Empty
-                };
-                gridViews[x, readY] = null;
-
-                // Skip down to next non-blocked slot
-                while (writeY < readY && gridData[x, writeY].State == TileState.Blocked)
                     writeY++;
+                }
 
-                // Move data down
-                data.GridPosition = new Vector2Int(x, writeY);
-                view.Data.GridPosition = data.GridPosition;
+                if (writeY < readY)
+                {
+                    data.GridPosition = new Vector2Int(x, writeY);
+                    view.Data.GridPosition = data.GridPosition;
 
-                gridData[x, writeY] = data;
-                gridViews[x, writeY] = view;
+                    gridData[x, writeY] = data;
+                    gridViews[x, writeY] = view;
 
-                view.transform.DOKill();
-                tweens.Add(view.transform.DOMove(GridToWorldPos(data.GridPosition), 0.2f).SetEase(Ease.OutCubic));
+                    gridData[x, readY] = new TileData(TileType.Red, new Vector2Int(x, readY), TilePower.None, TileState.Empty);
+                    gridViews[x, readY] = null;
+
+                    view.transform.DOKill();
+                    tweens.Add(view.transform.DOMove(GridToWorldPos(data.GridPosition), 0.2f).SetEase(Ease.OutCubic));
+                }
 
                 writeY++;
             }
 
-            // Mark leftover slots above as Empty if they should be refillable
+            // Clear leftover
             for (int y = writeY; y < height; y++)
             {
-                var slot = gridData[x, y];
-                if (slot != null && slot.State == TileState.Normal)
+                if (gridData[x, y] is { State: TileState.Normal })
                 {
-                    slot.State = TileState.Empty;
+                    gridData[x, y] = null;
                     gridViews[x, y] = null;
                 }
             }
         }
 
-        if (tweens.Count > 0)
-            yield return DOTween.Sequence().AppendInterval(0.2f).WaitForCompletion();
-        else
-            yield return null;
+        yield return tweens.Count > 0 ? DOTween.Sequence().AppendInterval(0.2f).WaitForCompletion() : null;
+    }
+
+    private bool IsRefillable(TileData data)
+    {
+        if (data == null || data.State == TileState.Empty)
+            return true;
+
+        if (data.State == TileState.Destroyable && data is DestroyableTileData destroyable)
+            return destroyable.IsDestroyed;
+
+        return false;
     }
 }

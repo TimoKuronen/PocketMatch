@@ -37,29 +37,34 @@ public class RefillCommand : ICommand
             {
                 var data = gridData[x, y];
 
-                if (data == null)
-                    continue; // safe guard
+                if (!IsRefillable(data) || gridViews[x, y] != null)
+                    continue;
 
-                if (data.State == TileState.Empty && gridViews[x, y] == null)
-                {
-                    var view = CreateTileAt(x, y);
+                var view = CreateTileAt(x, y);
+                var spawnPos = GridToWorldPos(new Vector2Int(x, height + 3));
+                var targetPos = GridToWorldPos(new Vector2Int(x, y));
 
-                    var spawnPos = GridToWorldPos(new Vector2Int(x, height + 3));
-                    var targetPos = GridToWorldPos(new Vector2Int(x, y));
+                view.transform.position = spawnPos;
+                view.transform.DOKill();
+                tweens.Add(view.transform.DOMove(targetPos, 0.25f).SetEase(Ease.OutCubic));
 
-                    view.transform.position = spawnPos;
-                    view.transform.DOKill();
-                    var tween = view.transform.DOMove(targetPos, 0.25f).SetEase(Ease.OutCubic);
-                    tweens.Add(tween);
-
-                    TileDrop?.Invoke();
-                }
+                TileDrop?.Invoke();
             }
         }
 
-        if (tweens.Count > 0)
-            yield return DOTween.Sequence().AppendInterval(0.25f).WaitForCompletion();
-        else
-            yield return null;
+        yield return tweens.Count > 0
+            ? DOTween.Sequence().AppendInterval(0.25f).WaitForCompletion()
+            : null;
+    }
+
+    private bool IsRefillable(TileData data)
+    {
+        if (data == null || data.State == TileState.Empty)
+            return true;
+
+        if (data.State == TileState.Destroyable && data is DestroyableTileData destroyable)
+            return destroyable.IsDestroyed;
+
+        return false;
     }
 }

@@ -245,15 +245,13 @@ public class GridController : MonoBehaviour
             if (matchGroups.Count == 0)
                 break;
 
+            var destroyedNeighbours = AdjacentDamageProcessor.GetAdjacentDestroyables(matchGroups, gridData);
+
             // List to keep track of power tile positions
             var powerTilePositions = new HashSet<Vector2Int>();
 
             // Create and execute the CreatePowerTileCommand
-            var createPowerTileCommand = new CreatePowerTileCommand(
-                matchGroups,
-                gridData,
-                gridViews,
-                matchFinder.DetermineMatchShape,
+            var createPowerTileCommand = new CreatePowerTileCommand(matchGroups, gridData, gridViews, matchFinder.DetermineMatchShape,
                 (origin, type, power) =>
                 {
                     var newData = new TileData(type, origin, power);
@@ -272,7 +270,13 @@ public class GridController : MonoBehaviour
             yield return createPowerTileCommand.Execute();
 
             // Filter out power tile positions from the destruction list
-            var flatMatches = matchGroups.SelectMany(g => g).Distinct().Where(pos => !powerTilePositions.Contains(pos)).ToList();
+            var flatMatches = matchGroups
+                .SelectMany(g => g) // Flatten all match groups into a single sequence of tile positions
+                .Distinct() // Remove any duplicate tile positions
+                .Where(pos => !powerTilePositions.Contains(pos)) // Exclude positions of power tiles we just created
+                .Concat(destroyedNeighbours) // Add tiles that should be destroyed due to adjacency or other effects
+                .Distinct() // Remove duplicates again (some neighbours may already be in matches)
+                .ToList(); // Materialize into a List<Vector2Int>
 
             commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext));
             commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
@@ -293,7 +297,7 @@ public class GridController : MonoBehaviour
         }
 
         isProcessingTiles = false;
-        Debug.Log("Match cycle complete, no more matches found.");
+        //Debug.Log("Match cycle complete, no more matches found.");
         BoardUpdated?.Invoke(gridData);
     }
 
@@ -385,7 +389,7 @@ public class GridController : MonoBehaviour
                     for (int y = 0; y < gridData.GetLength(1); y++)
                     {
                         var data = gridData[x, y];
-                        if (data == null || data.State != TileState.Normal) 
+                        if (data == null || data.State != TileState.Normal)
                             continue;
 
                         data.Type = GetRandomTileType();

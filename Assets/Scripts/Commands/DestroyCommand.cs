@@ -55,12 +55,15 @@ public class DestroyCommand : ICommand
             var view = gridViews[pos.x, pos.y];
             var data = gridData[pos.x, pos.y];
 
-            if (data.State == TileState.Blocked || data.State == TileState.Destroyable)
+            if (data.State == TileState.Blocked)
+                continue;
+
+            if (data.State == TileState.Destroyable && data is DestroyableTileData destroyable && !destroyable.IsDestroyed)
                 continue;
 
             if (view != null)
             {
-                pool.Release(view, data.State);
+                pool.Release(view, TileState.Normal);
                 gridViews[pos.x, pos.y] = null;
             }
 

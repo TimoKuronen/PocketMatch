@@ -14,7 +14,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1602998255832392727, guid: 616210b52700c3740935ac62f0a3111c, type: 3}
       propertyPath: m_Name
-      value: TilePrefab_Destructible Variant
+      value: TilePrefab_Destroyable Variant
       objectReference: {fileID: 0}
     - target: {fileID: 1685639883683566380, guid: 616210b52700c3740935ac62f0a3111c, type: 3}
       propertyPath: m_Sprite

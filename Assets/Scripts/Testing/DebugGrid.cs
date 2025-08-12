@@ -5,7 +5,8 @@ public class DebugGrid : MonoBehaviour
 {
     [SerializeField] private GameObject debugTilePrefab;
 
-    private DebugTile[,] debugTiles;
+    private DebugTile[,] tileTypeBoard;
+    private DebugTile[,] tileStateBoard;
 
     private TileData[,] gridData;
 
@@ -20,7 +21,7 @@ public class DebugGrid : MonoBehaviour
         yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
         GridController.Instance.BoardUpdated += OnBoardUpdated;
-        CreateDebugBoard();
+        CreateDebugBoards();
     }
 
     private void OnBoardUpdated(TileData[,] board)
@@ -30,18 +31,27 @@ public class DebugGrid : MonoBehaviour
             for (int y = 0; y < height; y++)
             {
                 var data = board[x, y];
-                var debugTile = debugTiles[x, y];
+                var debugTile = tileTypeBoard[x, y];
 
                 debugTile.text.text = GetTileLetter(data);
             }
         }
 
-        //Debug.Log("Debug board updated with new tile data.");
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                var data = board[x, y];
+                var debugTile = tileStateBoard[x, y];
+
+                debugTile.text.text = GetTileLetter(data);
+            }
+        }
     }
 
-    void CreateDebugBoard()
+    void CreateDebugBoards()
     {
-        debugTiles = new DebugTile[width, height];
+        tileTypeBoard = new DebugTile[width, height];
         gridOffset = new Vector3(-width - 1, tileSize / 4f, 0f);
 
         for (int x = 0; x < width; x++)
@@ -54,7 +64,24 @@ public class DebugGrid : MonoBehaviour
                 tileGO.transform.position = GridToWorldPos(position);
 
                 var text = tileGO.GetComponentInChildren<TextMesh>();
-                debugTiles[x, y] = new DebugTile { tileObject = tileGO, text = text };
+                tileTypeBoard[x, y] = new DebugTile { tileObject = tileGO, text = text };
+            }
+        }
+
+        tileStateBoard = new DebugTile[width, height];
+        gridOffset = new Vector3(width + 1, tileSize / 4f, 0f);
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                var position = new Vector2Int(x, y);
+                var tileGO = Instantiate(debugTilePrefab, transform);
+                tileGO.name = $"DebugTile_{x}_{y}";
+                tileGO.transform.position = GridToWorldPos(position);
+
+                var text = tileGO.GetComponentInChildren<TextMesh>();
+                tileStateBoard[x, y] = new DebugTile { tileObject = tileGO, text = text };
             }
         }
     }
@@ -69,43 +96,52 @@ public class DebugGrid : MonoBehaviour
         if (tileData == null)
         {
             Debug.Log("TileData is null, returning default value.");
-            //Debug.Log("TileData is null at position " + tileData.GridPosition + " , returning default value.");
             return ".";
         }
 
-        if (tileData.State == TileState.Blocked)
+        switch (tileData.Power)
         {
-            return "X"; // Blocked tiles
+            case TilePower.RowClearer:
+                return "<>";
+            case TilePower.ColumnClearer:
+                return "|";
+            case TilePower.Bomb:
+                return "B";
+            case TilePower.Rainbow:
+                return "R";
+            case TilePower.None:
+                break;
+            default:
+                Debug.Log($"Unknown TilePower: {tileData.Power}, returning default value.");
+                return ".";
         }
-        else if (tileData.Power == TilePower.None)
+
+        switch (tileData.State)
         {
-            if (tileData.State == TileState.Empty)
-            {
+            case TileState.Blocked:
+                return "X";
+            case TileState.Empty:
                 return ",";
-            }
-            else if (tileData.State == TileState.Destroyable)
-            {
+            case TileState.Destroyable:
                 return "D";
-            }
-            return ".";
         }
-        else if (tileData.Power == TilePower.RowClearer)
+
+        switch (tileData.Type)
         {
-            return "<>";
+            case TileType.Red:
+                return "1";
+            case TileType.Blue:
+                return "2";
+            case TileType.Green:
+                return "3";
+            case TileType.Yellow:
+                return "4";
+            case TileType.Purple:
+                return "5";
+            default:
+                break;
         }
-        else if (tileData.Power == TilePower.ColumnClearer)
-        {
-            return "|";
-        }
-        else if (tileData.Power == TilePower.Bomb)
-        {
-            return "B";
-        }
-        else if (tileData.Power == TilePower.Rainbow)
-        {
-            return "R";
-        }
-        Debug.Log($"Unknown TilePower: {tileData.Power}, returning default value.");
+
         return ".";
     }
 }

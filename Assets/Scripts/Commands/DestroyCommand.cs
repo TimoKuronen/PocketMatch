@@ -10,11 +10,11 @@ public class DestroyCommand : ICommand
     private readonly TileView[,] gridViews;
     private readonly TileData[,] gridData;
     private readonly TilePoolManager pool;
-    private readonly Action TileDestroyed;
+    private readonly Action<TileData> TileDestroyed;
     private readonly GridContext context;
 
     public DestroyCommand(List<Vector2Int> positions, TileView[,] views, TileData[,] data,
-        TilePoolManager pool, Action onDestroy, GridContext context = null)
+        TilePoolManager pool, Action<TileData> onDestroy, GridContext context = null)
     {
         matchPositions = positions;
         gridViews = views;
@@ -47,13 +47,14 @@ public class DestroyCommand : ICommand
             }
         }
 
-        TileDestroyed?.Invoke();
         yield return new WaitForSeconds(0.5f);
 
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];
             var data = gridData[pos.x, pos.y];
+
+            TileDestroyed?.Invoke(data);
 
             if (data.State == TileState.Blocked)
                 continue;

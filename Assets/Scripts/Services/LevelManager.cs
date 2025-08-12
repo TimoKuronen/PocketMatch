@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class LevelManager : ILevelManager
@@ -25,24 +23,44 @@ public class LevelManager : ILevelManager
             Debug.LogError("MapData not assigned.");
             yield break;
         }
-    }
 
-    private IEnumerator SubscribeToEvents()
-    {
-        yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+        MovesRemaining = LocalMapData.MoveLimit;
 
         yield return new WaitUntil(() => GridController.Instance != null);
 
+        SubscribeToEvents();
+    }
+
+    private void SubscribeToEvents()
+    {
         GridController.Instance.ActionTaken += OnActionTaken;
+        GridController.Instance.BoardUpdated += CheckVictoryConditions;
+    }
+
+    private void CheckVictoryConditions(TileData[,] obj)
+    {
+
     }
 
     private void OnActionTaken()
     {
-        LocalMapData.MoveLimit--;
+        MovesRemaining--;
+        Debug.Log($"Moves remaining: {MovesRemaining}");
+    }
+
+    private void CheckVictoryConditions()
+    {
+        if (MovesRemaining <= 0)
+        {
+            Debug.Log("Game Over: No moves remaining.");
+            // Handle game over logic here
+            return;
+        }
     }
 
     public void Dispose()
     {
         GridController.Instance.ActionTaken -= OnActionTaken;
+        GridController.Instance.BoardUpdated -= CheckVictoryConditions;
     }
 }

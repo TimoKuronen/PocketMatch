@@ -22,6 +22,7 @@ public class MapData : ScriptableObject
 [Serializable]
 public class VictoryConditions
 {
+    public int MoveLimit;
     public TileMatch[] RequiredColorMatchCount;
     public int DestroyableTileCount;
 }

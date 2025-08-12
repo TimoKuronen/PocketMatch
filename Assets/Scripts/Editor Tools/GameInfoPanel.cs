@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -13,6 +12,21 @@ public class GameInfoPanel : EditorWindow
         GetWindow<GameInfoPanel>("Game Info Panel");
     }
 
+    private void OnEnable()
+    {
+        if (EditorApplication.isPlaying)
+            Subscribe();
+    }
+
+    private void Subscribe()
+    {
+        if (subscribedToEvents)
+            return;
+
+        GridController.Instance.ActionTaken += OnMovesChanged;
+        subscribedToEvents = true;
+    }
+
     private void OnGUI()
     {
         GUILayout.Label("Game Info", EditorStyles.boldLabel);
@@ -23,19 +37,58 @@ public class GameInfoPanel : EditorWindow
             return;
         }
 
-        Repaint();
-
+        Subscribe();
         DisplayGameInfo();
+    }
+
+    void Update()
+    {
+        if (!EditorApplication.isPlaying)
+            return;
+
+        RefreshTimer();
+    }
+
+    float timer;
+    private void RefreshTimer()
+    {
+        timer += Time.deltaTime;
+        if (timer > 1)
+        {
+            timer = 0;
+            RepaintGUI();
+        }
+    }
+
+    void RepaintGUI()
+    {
+        Repaint();
+    }
+
+    private void OnMovesChanged()
+    {
+        Repaint();
     }
 
     private void DisplayGameInfo()
     {
         GUILayout.Space(10);
-        string autoshootStatus = "";// GridController.Instance.CurrentMatches.Count.ToString();
+
+        string movesLeft = Services.Get<ILevelManager>().MovesRemaining.ToString();
+
         EditorGUILayout.BeginHorizontal();
-        GUILayout.Label("Match count on board: ");
-        EditorGUILayout.TextField(autoshootStatus);
+        GUILayout.Label("Moves left: ");
+        EditorGUILayout.TextField(movesLeft);
         EditorGUILayout.EndHorizontal();
+    }
+
+    private void OnDisable()
+    {
+        if (subscribedToEvents)
+        {
+            GridController.Instance.ActionTaken -= OnMovesChanged;
+            subscribedToEvents = false;
+        }
     }
 }
 #endif

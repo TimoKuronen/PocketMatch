@@ -65,7 +65,7 @@ public class GridAudioPlayer : MonoBehaviour
         soundManager.Play(tileMoveAudio, audioSource);
     }
 
-    private void PlayDestroyAudio()
+    private void PlayDestroyAudio(TileData data)
     {
         soundManager.Play(tileDestroyAudio, audioSource);
     }

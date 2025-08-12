@@ -10,7 +10,7 @@ public class GridContext
     public int Height { get; }
     public TilePoolManager Pool { get; }
     public CommandInvoker CommandInvoker { get; }
-    public Action OnDestroy { get; }
+    public Action<TileData> OnDestroy { get; }
     public Action<TileData> OnSpecialTileTriggered;
 
     public GridContext(
@@ -20,7 +20,7 @@ public class GridContext
         int height,
         TilePoolManager pool,
         CommandInvoker invoker,
-        Action onDestroy)
+        Action<TileData> onDestroy)
     {
         Data = data;
         Views = views;

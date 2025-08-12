@@ -39,7 +39,7 @@ public class GridController : MonoBehaviour
     public event Action TileSwapped;
     public event Action TileSwapError;
     public event Action TileDrop;
-    public event Action TileDestroyed;
+    public event Action<TileData> TileDestroyed;
     public event Action<TileData[,]> BoardUpdated;
     public event Action PowerTileCreated;
 
@@ -168,6 +168,8 @@ public class GridController : MonoBehaviour
             return;
         }
 
+        ActionTaken?.Invoke();
+
         StartCoroutine(TriggerPowerEvent(tileView.Data));
     }
 
@@ -189,8 +191,6 @@ public class GridController : MonoBehaviour
 
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
         yield return new WaitUntil(() => !AnyTileTweening());
-
-        ActionTaken?.Invoke();
 
         // Finally continue match cycle
         StartCoroutine(MatchCycle());

@@ -14,6 +14,12 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     private int tapCount = 0;
     private float lastTapTime;
 
+    void OnEnable()
+    {
+        isDragging = false;
+        tapCount = 0;
+    }
+
     public void OnPointerDown(PointerEventData eventData)
     {
         if (tileView.Data.State != TileState.Normal)

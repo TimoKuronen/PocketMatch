@@ -4,14 +4,24 @@ public class TileView : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ColorPalette colorPalette;
+    [SerializeField] private Color damagedColor;
+
     [field: SerializeField] public TileData Data { get; private set; }
+    private Color originalColor;
 
     public void Init(TileData data, Sprite sharedSprite)
     {
         Data = data;
 
         if (data.State != TileState.Normal)
+        {
+            if (data is DestroyableTileData destroyableData)
+            {
+                originalColor = spriteRenderer.color;
+                destroyableData.OnTakeDamage += UpdateColorOnDamage;
+            }
             return;
+        }
 
         spriteRenderer.sprite = sharedSprite;
 
@@ -23,6 +33,12 @@ public class TileView : MonoBehaviour
         }
 
         spriteRenderer.color = colorPalette.TileColors[colorIndex].Color;
+        originalColor = spriteRenderer.color;
+    }
+
+    private void UpdateColorOnDamage(int healthLeft)
+    {
+        spriteRenderer.color = damagedColor;
     }
 
     public void DebugAsSpecialTile()
@@ -47,9 +63,18 @@ public class TileView : MonoBehaviour
                 spriteRenderer.color = Color.magenta;
                 break;
             default:
-                //Debug.LogWarning("Tile does not have a special power.");
                 break;
         }
-       // Debug.Log($"Tile at {Data.GridPosition} has power: {Data.Power}");
+        // Debug.Log($"Tile at {Data.GridPosition} has power: {Data.Power}");
+    }
+
+    private void OnDisable()
+    {
+        if (Data is DestroyableTileData destroyableData)
+        {
+            destroyableData.OnTakeDamage -= UpdateColorOnDamage;
+        }
+
+        spriteRenderer.color = originalColor;
     }
 }

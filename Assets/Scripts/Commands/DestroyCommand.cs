@@ -64,7 +64,7 @@ public class DestroyCommand : ICommand
 
             if (view != null)
             {
-                pool.Release(view, TileState.Normal);
+                pool.Release(view);
                 gridViews[pos.x, pos.y] = null;
             }
 

@@ -321,7 +321,8 @@ public class GridController : MonoBehaviour
         data.State = TileState.Normal;
         data.Type = GetRandomTileType();
 
-        var view = tilePoolManager.Get(TileState.Normal);
+        var view = tilePoolManager.GetForState(TileState.Normal);
+        view.ViewKind = TileState.Normal;
         view.transform.localScale = Vector3.one;
         view.Init(data, sharedTileSprite);
         view.gameObject.name = $"Tile_{x}_{y}\"";
@@ -338,7 +339,7 @@ public class GridController : MonoBehaviour
             foreach (var view in gridViews)
             {
                 if (view != null && view.Data != null)
-                    tilePoolManager.Release(view, view.Data.State);
+                    tilePoolManager.Release(view);
             }
         }
 

@@ -31,25 +31,29 @@ public class TilePoolManager
             false, 50);
     }
 
-    public TileView Get(TileState state)
+    public TileView GetForState(TileState state)
     {
-        return state switch
+        var effective = state == TileState.Empty ? TileState.Normal : state;
+        TileView view = effective switch
         {
             TileState.Normal => normalPool.Get(),
             TileState.Blocked => blockedPool.Get(),
             TileState.Destroyable => breakablePool.Get(),
-            _ => throw new System.ArgumentOutOfRangeException(nameof(state))
+            _ => normalPool.Get()
         };
+
+        view.ViewKind = effective;
+        return view;
     }
 
-    public void Release(TileView view, TileState state)
+    public void Release(TileView view)
     {
-        switch (state)
+        switch (view.ViewKind)
         {
             case TileState.Normal: normalPool.Release(view); break;
             case TileState.Blocked: blockedPool.Release(view); break;
             case TileState.Destroyable: breakablePool.Release(view); break;
-            default: throw new System.ArgumentOutOfRangeException(nameof(state));
+            default: normalPool.Release(view); break;
         }
     }
 }

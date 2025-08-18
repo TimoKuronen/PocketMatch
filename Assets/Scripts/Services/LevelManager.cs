@@ -45,7 +45,6 @@ public class LevelManager : ILevelManager
     private void OnActionTaken()
     {
         MovesRemaining--;
-        Debug.Log($"Moves remaining: {MovesRemaining}");
     }
 
     private void CheckVictoryConditions()

@@ -5,7 +5,7 @@ public class TileView : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ColorPalette colorPalette;
     [SerializeField] private Color damagedColor;
-
+    public TileState ViewKind { get; set; }
     [field: SerializeField] public TileData Data { get; private set; }
     private Color originalColor;
 

@@ -44,7 +44,7 @@ public class DebugGrid : MonoBehaviour
                 var data = board[x, y];
                 var debugTile = tileStateBoard[x, y];
 
-                debugTile.text.text = GetTileLetter(data);
+                debugTile.text.text = GetTileView(data);
             }
         }
     }
@@ -89,6 +89,29 @@ public class DebugGrid : MonoBehaviour
     private Vector3 GridToWorldPos(Vector2Int gridPosition)
     {
         return new Vector3(gridPosition.x * tileSize, gridPosition.y * tileSize, 0f) + gridOffset;
+    }
+
+    private string GetTileView(TileData tileData)
+    {
+        if (tileData == null)
+        {
+            Debug.Log("TileData is null, returning default value.");
+            return "?";
+        }
+
+        switch (tileData.State)
+        {
+            case TileState.Blocked:
+                return "X";
+            case TileState.Empty:
+                return ",";
+            case TileState.Destroyable:
+                return "D";
+            case TileState.Normal:
+                return ".";
+        }
+
+        return "?";
     }
 
     private string GetTileLetter(TileData tileData)

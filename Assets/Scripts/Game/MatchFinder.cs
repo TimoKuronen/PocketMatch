@@ -15,7 +15,7 @@ public class MatchFinder
 
     public List<List<Vector2Int>> GetMatchGroups(TileData[,] grid)
     {
-        var matches = new List<List<Vector2Int>>();
+        var matches = new List<MatchGroup>();
         var visited = new HashSet<Vector2Int>();
 
         // Horizontal
@@ -40,14 +40,15 @@ public class MatchFinder
 
                 if (matchLen >= 3)
                 {
-                    var group = new List<Vector2Int>();
+                    var group = new MatchGroup(type);
                     for (int i = x; i < x + matchLen; i++)
                     {
                         Vector2Int pos = new(i, y);
                         if (visited.Add(pos))
-                            group.Add(pos);
+                            group.Positions.Add(pos);
                     }
-                    matches.Add(group);
+                    if (group.Positions.Count > 0)
+                        matches.Add(group);
                     x += matchLen;
                 }
                 else
@@ -79,14 +80,15 @@ public class MatchFinder
 
                 if (matchLen >= 3)
                 {
-                    var group = new List<Vector2Int>();
+                    var group = new MatchGroup(type);
                     for (int i = y; i < y + matchLen; i++)
                     {
                         Vector2Int pos = new(x, i);
                         if (visited.Add(pos))
-                            group.Add(pos);
+                            group.Positions.Add(pos);
                     }
-                    matches.Add(group);
+                    if (group.Positions.Count > 0)
+                        matches.Add(group);
                     y += matchLen;
                 }
                 else
@@ -99,27 +101,29 @@ public class MatchFinder
         return MergeIntersectingGroups(matches);
     }
 
-    private List<List<Vector2Int>> MergeIntersectingGroups(List<List<Vector2Int>> groups)
+    private List<List<Vector2Int>> MergeIntersectingGroups(List<MatchGroup> groups)
     {
-        var merged = new List<List<Vector2Int>>();
+        var merged = new List<MatchGroup>();
 
         foreach (var group in groups)
         {
             bool mergedIntoExisting = false;
             foreach (var existing in merged)
             {
-                if (group.Any(pos => existing.Contains(pos)) || IsAdjacent(group, existing))
+                if (group.Type == existing.Type &&
+                    (group.Positions.Any(pos => existing.Positions.Contains(pos)) ||
+                     IsAdjacent(group.Positions, existing.Positions)))
                 {
-                    existing.AddRange(group.Where(p => !existing.Contains(p)));
+                    existing.Positions.AddRange(group.Positions.Where(p => !existing.Positions.Contains(p)));
                     mergedIntoExisting = true;
                     break;
                 }
             }
             if (!mergedIntoExisting)
-                merged.Add(new List<Vector2Int>(group));
+                merged.Add(new MatchGroup(group.Type) { Positions = new List<Vector2Int>(group.Positions) });
         }
 
-        return merged;
+        return merged.Select(g => g.Positions).ToList();
     }
 
     private bool IsAdjacent(List<Vector2Int> group, List<Vector2Int> existing)
@@ -155,9 +159,9 @@ public class MatchFinder
             bool sameY = match.All(p => p.y == match[0].y);
             bool sameX = match.All(p => p.x == match[0].x);
 
-            if (sameY) 
-                return MatchShape.FourHorizontal;
             if (sameX) 
+                return MatchShape.FourHorizontal;
+            if (sameY) 
                 return MatchShape.FourVertical;
         }
         if (match.Count == 3)

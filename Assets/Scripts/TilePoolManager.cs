@@ -13,21 +13,30 @@ public class TilePoolManager
             () => GameObject.Instantiate(normalPrefab, parent),
             t => t.gameObject.SetActive(true),
             t => t.gameObject.SetActive(false),
-            t => GameObject.Destroy(t.gameObject),
+            t => {
+                if (t != null && t.gameObject != null)
+                    GameObject.Destroy(t.gameObject);
+            },
             false, 100);
 
         blockedPool = new ObjectPool<TileView>(
             () => GameObject.Instantiate(blockedPrefab, parent),
             t => t.gameObject.SetActive(true),
             t => t.gameObject.SetActive(false),
-            t => GameObject.Destroy(t.gameObject),
+            t => {
+                if (t != null && t.gameObject != null)
+                    GameObject.Destroy(t.gameObject);
+            },
             false, 50);
 
         breakablePool = new ObjectPool<TileView>(
             () => GameObject.Instantiate(breakablePrefab, parent),
             t => t.gameObject.SetActive(true),
             t => t.gameObject.SetActive(false),
-            t => GameObject.Destroy(t.gameObject),
+            t => { 
+                if (t != null && t.gameObject != null) 
+                    GameObject.Destroy(t.gameObject); 
+            },
             false, 50);
     }
 

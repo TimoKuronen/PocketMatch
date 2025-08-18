@@ -51,7 +51,7 @@ public static class LevelBuilder
                     continue;
 
                 var view = tilePoolManager.GetForState(grid[x, y].State);
-                Debug.Log($"Spawning tile with state {grid[x, y].State}");
+
                 view.transform.SetParent(parent, false);
                 view.transform.position = new Vector3(x * tileSize, y * tileSize, 0) + offset;
                 view.Init(grid[x, y], sprite);

@@ -62,6 +62,21 @@ public class LevelManager : ILevelManager
 
     private void CheckVictoryConditions(TileData[,] obj)
     {
+        if (!AreVictoryConditionsMet())
+        {
+            if (MovesRemaining <= 0)
+            {
+                ToggleLoseEvent();
+            }
+        }
+        else
+        {
+            ToggleWinEvent();
+        }
+    }
+
+    private bool AreVictoryConditionsMet()
+    {
         // Check if all required colors have been matched
         if (victoryConditions.RequiredColorMatchCount != null && victoryConditions.RequiredColorMatchCount.Length > 0)
         {
@@ -69,8 +84,8 @@ public class LevelManager : ILevelManager
             {
                 if (match.TileCount > 0)
                 {
-                    Debug.Log($"Victory condition not met for color: {match.TileColor}");
-                    return; // Not all required colors matched
+                    Debug.Log($"Victory conditions to destroy colors, still required : {match.TileCount} ");
+                    return false; // Not all required colors matched
                 }
                 else Debug.Log($"Victory condition met for color: {match.TileColor}");
             }
@@ -78,26 +93,25 @@ public class LevelManager : ILevelManager
         // Check if all the required destroyable tiles have been cleared
         if (victoryConditions.DestroyableTileCount > 0)
         {
-            Debug.Log("Victory condition not met: Destroyable tiles remaining.");
-            return; // Not all destroyable tiles cleared
+            Debug.Log("Victory condition not met: Destroyable tiles remaining " + victoryConditions.DestroyableTileCount);
+            return false; // Not all destroyable tiles cleared
         }
         else Debug.Log("All destroyable tiles cleared.");
 
-        // All checked conditions are met, toggle victory
+        return true;
     }
 
     private void OnActionTaken()
     {
         MovesRemaining--;
-
     }
 
-    void ToggleWinEvent()
+    private void ToggleWinEvent()
     {
 
     }
 
-    void ToggleLoseEvent()
+    private void ToggleLoseEvent()
     {
 
     }
@@ -106,5 +120,6 @@ public class LevelManager : ILevelManager
     {
         GridController.Instance.ActionTaken -= OnActionTaken;
         GridController.Instance.BoardUpdated -= CheckVictoryConditions;
+        GridController.Instance.TileDestroyed -= OnTileDestroyed;
     }
 }

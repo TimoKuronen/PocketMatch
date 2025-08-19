@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -6,6 +7,8 @@ public class LevelManager : ILevelManager
     public MapData LocalMapData { get; private set; }
 
     public int MovesRemaining { get; private set; }
+
+    private VictoryConditions victoryConditions;
 
     public void Initialize()
     {
@@ -25,6 +28,7 @@ public class LevelManager : ILevelManager
         }
 
         MovesRemaining = LocalMapData.MoveLimit;
+        victoryConditions = LocalMapData.VictoryConditions;
 
         yield return new WaitUntil(() => GridController.Instance != null);
 
@@ -35,26 +39,67 @@ public class LevelManager : ILevelManager
     {
         GridController.Instance.ActionTaken += OnActionTaken;
         GridController.Instance.BoardUpdated += CheckVictoryConditions;
+        GridController.Instance.TileDestroyed += OnTileDestroyed;
+    }
+
+    private void OnTileDestroyed(TileData data)
+    {
+        if (data.State == TileState.Destroyable)
+        {
+            victoryConditions.DestroyableTileCount--;
+        }
+        else if (victoryConditions.RequiredColorMatchCount != null && victoryConditions.RequiredColorMatchCount.Length > 0)
+        {
+            foreach (var match in victoryConditions.RequiredColorMatchCount)
+            {
+                if (data.Type == match.TileColor)
+                {
+                    match.TileCount--;
+                }
+            }
+        }
     }
 
     private void CheckVictoryConditions(TileData[,] obj)
     {
+        // Check if all required colors have been matched
+        if (victoryConditions.RequiredColorMatchCount != null && victoryConditions.RequiredColorMatchCount.Length > 0)
+        {
+            foreach (var match in victoryConditions.RequiredColorMatchCount)
+            {
+                if (match.TileCount > 0)
+                {
+                    Debug.Log($"Victory condition not met for color: {match.TileColor}");
+                    return; // Not all required colors matched
+                }
+                else Debug.Log($"Victory condition met for color: {match.TileColor}");
+            }
+        }
+        // Check if all the required destroyable tiles have been cleared
+        if (victoryConditions.DestroyableTileCount > 0)
+        {
+            Debug.Log("Victory condition not met: Destroyable tiles remaining.");
+            return; // Not all destroyable tiles cleared
+        }
+        else Debug.Log("All destroyable tiles cleared.");
 
+        // All checked conditions are met, toggle victory
     }
 
     private void OnActionTaken()
     {
         MovesRemaining--;
+
     }
 
-    private void CheckVictoryConditions()
+    void ToggleWinEvent()
     {
-        if (MovesRemaining <= 0)
-        {
-            Debug.Log("Game Over: No moves remaining.");
-            // Handle game over logic here
-            return;
-        }
+
+    }
+
+    void ToggleLoseEvent()
+    {
+
     }
 
     public void Dispose()

@@ -7,6 +7,8 @@ public class MatchFinder
     private readonly int width;
     private readonly int height;
 
+    public int AvailableMatchesCount { get; private set; }
+
     public MatchFinder(int width, int height)
     {
         this.width = width;
@@ -122,6 +124,8 @@ public class MatchFinder
             if (!mergedIntoExisting)
                 merged.Add(new MatchGroup(group.Type) { Positions = new List<Vector2Int>(group.Positions) });
         }
+
+        AvailableMatchesCount = merged.Count;
 
         return merged.Select(g => g.Positions).ToList();
     }

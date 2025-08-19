@@ -16,7 +16,7 @@ public class MapData : ScriptableObject
     public int MoveLimit;
     public TileType[] AllowedTileColors;
     
-    public VictoryConditions victoryConditions;
+    public VictoryConditions VictoryConditions;
 }
 
 [Serializable]

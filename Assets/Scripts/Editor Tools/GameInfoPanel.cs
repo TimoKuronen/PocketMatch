@@ -80,6 +80,13 @@ public class GameInfoPanel : EditorWindow
         GUILayout.Label("Moves left: ");
         EditorGUILayout.TextField(movesLeft);
         EditorGUILayout.EndHorizontal();
+
+        string matchesLeft = GridController.Instance.MatchFinder.AvailableMatchesCount.ToString();
+
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("Matches left: ");
+        EditorGUILayout.TextField(matchesLeft);
+        EditorGUILayout.EndHorizontal();
     }
 
     private void OnDisable()

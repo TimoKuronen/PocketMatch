@@ -26,11 +26,10 @@ public class GridController : MonoBehaviour
     private TileData[,] gridData;
     private TileView[,] gridViews;
     private CommandInvoker commandInvoker;
-    private MatchFinder matchFinder;
     private MapData mapData;
     private TilePoolManager tilePoolManager;
     private bool isProcessingTiles;
-
+    public MatchFinder MatchFinder { get; private set; }
     public GridContext GridContext { get; private set; }
     public Sprite Sprite => sharedTileSprite;
 
@@ -59,7 +58,7 @@ public class GridController : MonoBehaviour
         yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
         commandInvoker = new CommandInvoker(this);
-        matchFinder = new MatchFinder(width, height);
+        MatchFinder = new MatchFinder(width, height);
         tilePoolManager = new TilePoolManager(
             normalTilePrefab,
             blockedTilePrefab,
@@ -141,7 +140,7 @@ public class GridController : MonoBehaviour
             yield break;
         }
 
-        var matches = matchFinder.GetMatchGroups(tempGridData);
+        var matches = MatchFinder.GetMatchGroups(tempGridData);
         if (matches.Count > 0)
         {
             SwapTilesInData(origin, target, tileA, tileB);
@@ -241,7 +240,7 @@ public class GridController : MonoBehaviour
             yield return new WaitUntil(() => commandInvoker.IsEmpty());
             yield return new WaitUntil(() => !AnyTileTweening());
 
-            var matchGroups = matchFinder.GetMatchGroups(gridData);
+            var matchGroups = MatchFinder.GetMatchGroups(gridData);
             if (matchGroups.Count == 0)
                 break;
 
@@ -251,7 +250,7 @@ public class GridController : MonoBehaviour
             var powerTilePositions = new HashSet<Vector2Int>();
 
             // Create and execute the CreatePowerTileCommand
-            var createPowerTileCommand = new CreatePowerTileCommand(matchGroups, gridData, gridViews, matchFinder.DetermineMatchShape,
+            var createPowerTileCommand = new CreatePowerTileCommand(matchGroups, gridData, gridViews, MatchFinder.DetermineMatchShape,
                 (origin, type, power) =>
                 {
                     var newData = new TileData(type, origin, power);
@@ -289,7 +288,7 @@ public class GridController : MonoBehaviour
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
         yield return new WaitUntil(() => !AnyTileTweening());
 
-        var refillMatches = matchFinder.GetMatchGroups(gridData);
+        var refillMatches = MatchFinder.GetMatchGroups(gridData);
         if (refillMatches.Count > 0)
         {
             StartCoroutine(MatchCycle());
@@ -397,7 +396,7 @@ public class GridController : MonoBehaviour
                     }
                 }
 
-                hasMatches = matchFinder.GetMatchGroups(gridData).Count > 0;
+                hasMatches = MatchFinder.GetMatchGroups(gridData).Count > 0;
                 safeguard--;
 
                 if (safeguard <= 0)

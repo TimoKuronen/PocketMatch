@@ -9,7 +9,7 @@ public class DropCommand : ICommand
     private readonly TileData[,] gridData;
     private readonly TileView[,] gridViews;
     private readonly int width, height;
-    private readonly System.Func<Vector2Int, Vector3> GridToWorldPos;
+    private readonly Func<Vector2Int, Vector3> GridToWorldPos;
 
     public DropCommand(TileData[,] data, TileView[,] views, int w, int h, System.Func<Vector2Int, Vector3> toWorld)
     {
@@ -24,48 +24,58 @@ public class DropCommand : ICommand
     {
         var tweens = new List<Tweener>();
         bool moved;
-        int safety = width * height * 8; // generous guard
+        int safety = width * height * 8;
 
         do
         {
             moved = false;
 
-            // bottom-up so a tile can fall multiple rows across passes
+            // --- PHASE 1: vertical drops ---
             for (int y = 1; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    if (!IsNormalTile(x, y))
+                    if (!IsNormalTile(x, y)) 
                         continue;
 
-                    // 1) straight down
                     if (IsCellEmpty(x, y - 1))
                     {
                         MoveTile(x, y, x, y - 1, tweens);
                         moved = true;
-                        continue;
                     }
+                }
+            }
 
-                    // 2) diagonal flow when directly below is blocked/filled
-                    // Slide LEFT: target empty AND the cell "above the target" is NOT refillable
-                    // (so that column cannot fill vertically)
-                    if (IsInside(x - 1, y - 1) &&
-                        IsCellEmpty(x - 1, y - 1) &&
-                        !IsRefillableCell(x - 1, y))
-                    {
-                        MoveTile(x, y, x - 1, y - 1, tweens);
-                        moved = true;
+            // --- PHASE 2: diagonal flow ---
+            for (int y = 1; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (!IsNormalTile(x, y)) 
                         continue;
-                    }
 
-                    // Slide RIGHT
-                    if (IsInside(x + 1, y - 1) &&
-                        IsCellEmpty(x + 1, y - 1) &&
-                        !IsRefillableCell(x + 1, y))
+                    // only try diagonal if below is NOT empty
+                    if (!IsCellEmpty(x, y - 1))
                     {
-                        MoveTile(x, y, x + 1, y - 1, tweens);
-                        moved = true;
-                        continue;
+                        // slide left
+                        if (IsInside(x - 1, y - 1) &&
+                            IsCellEmpty(x - 1, y - 1) &&
+                            !IsRefillableCell(x - 1, y))
+                        {
+                            MoveTile(x, y, x - 1, y - 1, tweens);
+                            moved = true;
+                            continue;
+                        }
+
+                        // slide right
+                        if (IsInside(x + 1, y - 1) &&
+                            IsCellEmpty(x + 1, y - 1) &&
+                            !IsRefillableCell(x + 1, y))
+                        {
+                            MoveTile(x, y, x + 1, y - 1, tweens);
+                            moved = true;
+                            continue;
+                        }
                     }
                 }
             }
@@ -77,13 +87,13 @@ public class DropCommand : ICommand
             yield return DOTween.Sequence().AppendInterval(0.2f).WaitForCompletion();
     }
 
-    // --- helpers ---
-
     private bool IsInside(int x, int y) => x >= 0 && x < width && y >= 0 && y < height;
 
     private bool IsNormalTile(int x, int y)
     {
-        if (!IsInside(x, y)) return false;
+        if (!IsInside(x, y)) 
+            return false;
+        
         var d = gridData[x, y];
         return d != null && d.State == TileState.Normal && gridViews[x, y] != null;
     }
@@ -118,7 +128,8 @@ public class DropCommand : ICommand
     /// </summary>
     private bool IsRefillableCell(int x, int y)
     {
-        if (!IsInside(x, y)) return false;
+        if (!IsInside(x, y)) 
+            return false;
 
         var data = gridData[x, y];
         var view = gridViews[x, y];

@@ -30,7 +30,7 @@ public class GameSessionService : IGameSessionService
         switch (length)
         {
             case 0:
-                address = defaultAddress + "0001.asset";
+                address = defaultAddress + "0002.asset";
                 break;
             case 1:
                 address = defaultAddress + "000" + levelIntegerString + ".asset";

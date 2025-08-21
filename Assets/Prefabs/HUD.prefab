@@ -98,8 +98,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e559eaa3efc11b4396e69e7fb02baa2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tileIconCollection: {fileID: 0}
-  victoryConditionPrefab: {fileID: 0}
+  tileIconCollection: {fileID: 11400000, guid: 00b79947c1d705f498693ff9014cba8f, type: 2}
+  victoryConditionPrefab: {fileID: 3587731619109642694, guid: d39810434cef50347af1423b7abdc69f, type: 3}
 --- !u!114 &4882873419350632156
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -12,4 +12,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1421be08b1feacb45a337236292905e1, type: 3}
   m_Name: TileIconCollection
   m_EditorClassIdentifier: 
-  TileIcons: []
+  TileIcons:
+  - TileType: 0
+    TilePower: 0
+    TileState: 0
+    Icon: {fileID: 0}
+  - TileType: 1
+    TilePower: 0
+    TileState: 0
+    Icon: {fileID: 0}
+  - TileType: 2
+    TilePower: 0
+    TileState: 0
+    Icon: {fileID: 0}
+  - TileType: 3
+    TilePower: 0
+    TileState: 0
+    Icon: {fileID: 0}
+  - TileType: 4
+    TilePower: 0
+    TileState: 0
+    Icon: {fileID: 0}
+  - TileType: 0
+    TilePower: 0
+    TileState: 2
+    Icon: {fileID: 0}

@@ -300,7 +300,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   conditionText: {fileID: 3001890422882063718}
-  conditionIcon: {fileID: 0}
+  conditionIcon: {fileID: 3531073372866184576}
 --- !u!1 &9016516293194916407
 GameObject:
   m_ObjectHideFlags: 0

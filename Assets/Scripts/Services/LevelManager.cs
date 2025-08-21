@@ -4,11 +4,10 @@ using UnityEngine;
 
 public class LevelManager : ILevelManager
 {
-    public MapData LocalMapData { get; private set; }
-
     public int MovesRemaining { get; private set; }
-
-    private VictoryConditions victoryConditions;
+    public MapData LocalMapData { get; private set; }
+    public VictoryConditions VictoryConditions { get; private set; }
+    public Action<LevelManager> VictoryConditionsUpdated { get; set; }
 
     public void Initialize()
     {
@@ -28,7 +27,7 @@ public class LevelManager : ILevelManager
         }
 
         MovesRemaining = LocalMapData.MoveLimit;
-        victoryConditions = LocalMapData.VictoryConditions;
+        VictoryConditions = LocalMapData.VictoryConditions;
 
         yield return new WaitUntil(() => GridController.Instance != null);
 
@@ -46,11 +45,11 @@ public class LevelManager : ILevelManager
     {
         if (data.State == TileState.Destroyable)
         {
-            victoryConditions.DestroyableTileCount--;
+            VictoryConditions.DestroyableTileCount--;
         }
-        else if (victoryConditions.RequiredColorMatchCount != null && victoryConditions.RequiredColorMatchCount.Length > 0)
+        else if (VictoryConditions.RequiredColorMatchCount != null && VictoryConditions.RequiredColorMatchCount.Length > 0)
         {
-            foreach (var match in victoryConditions.RequiredColorMatchCount)
+            foreach (var match in VictoryConditions.RequiredColorMatchCount)
             {
                 if (data.Type == match.TileColor)
                 {
@@ -58,6 +57,8 @@ public class LevelManager : ILevelManager
                 }
             }
         }
+
+        VictoryConditionsUpdated?.Invoke(this);
     }
 
     private void CheckVictoryConditions(TileData[,] obj)
@@ -78,9 +79,9 @@ public class LevelManager : ILevelManager
     private bool AreVictoryConditionsMet()
     {
         // Check if all required colors have been matched
-        if (victoryConditions.RequiredColorMatchCount != null && victoryConditions.RequiredColorMatchCount.Length > 0)
+        if (VictoryConditions.RequiredColorMatchCount != null && VictoryConditions.RequiredColorMatchCount.Length > 0)
         {
-            foreach (var match in victoryConditions.RequiredColorMatchCount)
+            foreach (var match in VictoryConditions.RequiredColorMatchCount)
             {
                 if (match.TileCount > 0)
                 {
@@ -91,9 +92,9 @@ public class LevelManager : ILevelManager
             }
         }
         // Check if all the required destroyable tiles have been cleared
-        if (victoryConditions.DestroyableTileCount > 0)
+        if (VictoryConditions.DestroyableTileCount > 0)
         {
-            Debug.Log("Victory condition not met: Destroyable tiles remaining " + victoryConditions.DestroyableTileCount);
+            Debug.Log("Victory condition not met: Destroyable tiles remaining " + VictoryConditions.DestroyableTileCount);
             return false; // Not all destroyable tiles cleared
         }
         else Debug.Log("All destroyable tiles cleared.");
@@ -104,6 +105,7 @@ public class LevelManager : ILevelManager
     private void OnActionTaken()
     {
         MovesRemaining--;
+        VictoryConditionsUpdated?.Invoke(this);
     }
 
     private void ToggleWinEvent()

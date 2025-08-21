@@ -8,6 +8,7 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private TileIconCollection tileIconCollection;
     [SerializeField] private VictoryConditionUI victoryConditionPrefab;
+    [SerializeField] private Transform victoryConditionsContainer;
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
@@ -27,13 +28,13 @@ public class UIManager : MonoBehaviour
     {
         foreach (var item in mapData.VictoryConditions.RequiredColorMatchCount)
         {
-            var victoryCondition = Instantiate(victoryConditionPrefab, transform);
+            var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer);
             //victoryCondition.GetComponent<VictoryConditionUI>().Init();
             victoryConditions.Add(victoryCondition);
         }
         for (int i = 0; i < mapData.VictoryConditions.DestroyableTileCount; i++)
         {
-            var victoryCondition = Instantiate(victoryConditionPrefab, transform);
+            var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer);
             //victoryCondition.GetComponent<VictoryConditionUI>().Init();
             victoryConditions.Add(victoryCondition);
         }

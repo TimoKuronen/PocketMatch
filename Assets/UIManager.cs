@@ -9,6 +9,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TileIconCollection tileIconCollection;
     [SerializeField] private VictoryConditionUI victoryConditionPrefab;
     [SerializeField] private Transform victoryConditionsContainer;
+    [SerializeField] private ColorPalette colorPalette;
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
@@ -29,20 +30,34 @@ public class UIManager : MonoBehaviour
         foreach (var item in mapData.VictoryConditions.RequiredColorMatchCount)
         {
             var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer);
-            //victoryCondition.GetComponent<VictoryConditionUI>().Init();
+
+            victoryCondition.GetComponent<VictoryConditionUI>().Init(
+                item.TileCount.ToString(),
+                tileIconCollection.GetIcon(item.TileColor, TilePower.None, TileState.Normal),
+                colorPalette);
+
             victoryConditions.Add(victoryCondition);
         }
-        for (int i = 0; i < mapData.VictoryConditions.DestroyableTileCount; i++)
+
+        if (mapData.VictoryConditions.DestroyableTileCount > 0)
         {
             var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer);
-            //victoryCondition.GetComponent<VictoryConditionUI>().Init();
+
+            victoryCondition.GetComponent<VictoryConditionUI>().Init(
+                mapData.VictoryConditions.DestroyableTileCount.ToString(),
+                tileIconCollection.GetIcon(TileType.Red, TilePower.None, TileState.Destroyable),
+                colorPalette);
+
             victoryConditions.Add(victoryCondition);
         }
     }
 
     private void OnVictoryConditionsUpdated(LevelManager levelManager)
     {
-        
+        foreach (var item in victoryConditions)
+        {
+
+        }
     }
 
     private void OnDestroy()

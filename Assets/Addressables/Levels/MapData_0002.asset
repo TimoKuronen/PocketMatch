@@ -214,4 +214,6 @@ MonoBehaviour:
     RequiredColorMatchCount:
     - TileColor: 0
       TileCount: 10
+    - TileColor: 2
+      TileCount: 10
     DestroyableTileCount: 4

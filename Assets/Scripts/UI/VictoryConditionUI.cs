@@ -2,17 +2,32 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+public enum ConditionType
+{
+    ColorMatch,
+    DestroyableTiles
+}
+
 public class VictoryConditionUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI conditionText;
-    [SerializeField] private SpriteRenderer conditionIcon;
+    [SerializeField] private Image conditionIcon;
 
-    public void Init(string text, Sprite icon, ColorPalette colorPalette)
+    public ConditionType ConditionType { get; private set; }
+
+    public void Init(string text, Sprite icon, TileType tileType, ColorPalette colorPalette, ConditionType conditionType)
     {
         conditionIcon.sprite = icon;
         conditionText.text = text;
-        //conditionIcon.color = 
-        //conditionIcon.sprite.c spriteRenderer.color = colorPalette.TileColors[colorIndex].Color;
+        ConditionType = conditionType;
+
+        if(conditionType == ConditionType.DestroyableTiles)
+        {
+            conditionIcon.color = Color.white;
+            return;
+        }
+        int colorIndex =  (int)tileType;
+        conditionIcon.color = colorPalette.TileColors[colorIndex].Color;
     }
 
     public void UpdateUI(string conditionText)

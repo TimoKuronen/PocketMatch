@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -14,7 +13,7 @@ public class UIManager : MonoBehaviour
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
 
-    IEnumerator Start()
+    private IEnumerator Start()
     {
         yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
@@ -31,22 +30,26 @@ public class UIManager : MonoBehaviour
         {
             var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer);
 
-            victoryCondition.GetComponent<VictoryConditionUI>().Init(
+            victoryCondition.Init(
                 item.TileCount.ToString(),
                 tileIconCollection.GetIcon(item.TileColor, TilePower.None, TileState.Normal),
-                colorPalette);
+                item.TileColor,
+                colorPalette,
+                 ConditionType.ColorMatch);
 
             victoryConditions.Add(victoryCondition);
         }
 
         if (mapData.VictoryConditions.DestroyableTileCount > 0)
         {
-            var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer);
+            var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer) as VictoryConditionUI;
 
-            victoryCondition.GetComponent<VictoryConditionUI>().Init(
+            victoryCondition.Init(
                 mapData.VictoryConditions.DestroyableTileCount.ToString(),
                 tileIconCollection.GetIcon(TileType.Red, TilePower.None, TileState.Destroyable),
-                colorPalette);
+                TileType.Red,
+                colorPalette,
+                ConditionType.DestroyableTiles);
 
             victoryConditions.Add(victoryCondition);
         }
@@ -56,7 +59,17 @@ public class UIManager : MonoBehaviour
     {
         foreach (var item in victoryConditions)
         {
-
+            if (item.ConditionType == ConditionType.ColorMatch)
+            {
+                foreach (var condition in levelManager.VictoryConditions.RequiredColorMatchCount)
+                {
+                    item.UpdateUI(condition.TileCount.ToString());
+                }
+            }
+            else if (item.ConditionType == ConditionType.DestroyableTiles)
+            {
+                item.UpdateUI(levelManager.VictoryConditions.DestroyableTileCount.ToString());
+            }
         }
     }
 

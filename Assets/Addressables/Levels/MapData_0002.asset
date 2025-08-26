@@ -163,7 +163,7 @@ MonoBehaviour:
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
-  - tilePower: 0
+  - tilePower: 4
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
@@ -212,8 +212,8 @@ MonoBehaviour:
   VictoryConditions:
     MoveLimit: 15
     RequiredColorMatchCount:
-    - TileColor: 0
+    - TileColor: 3
       TileCount: 10
-    - TileColor: 2
+    - TileColor: 4
       TileCount: 10
     DestroyableTileCount: 4

@@ -10,12 +10,12 @@ public class TileIconCollection : ScriptableObject
     {
         foreach (var icon in TileIcons)
         {
-             if (icon.TileType == type && icon.TilePower == power && icon.TileState == state)
+            if (icon.TileType == type && icon.TilePower == power && icon.TileState == state)
             {
                 return icon.Icon;
             }
-        }  
-        
+        }
+
         Debug.LogWarning($"No icon found for Type: {type}, Power: {power}, State: {state}");
         return null;
     }

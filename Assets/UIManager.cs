@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class UIManager : MonoBehaviour
@@ -9,6 +10,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private VictoryConditionUI victoryConditionPrefab;
     [SerializeField] private Transform victoryConditionsContainer;
     [SerializeField] private ColorPalette colorPalette;
+    [SerializeField] private TextMeshProUGUI movesText;
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
@@ -26,6 +28,8 @@ public class UIManager : MonoBehaviour
 
     private void LoadVictoryConditions()
     {
+        movesText.text = "Moves: " + mapData.VictoryConditions.MoveLimit.ToString();
+
         foreach (var item in mapData.VictoryConditions.RequiredColorMatchCount)
         {
             var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer);
@@ -57,6 +61,8 @@ public class UIManager : MonoBehaviour
 
     private void OnVictoryConditionsUpdated(LevelManager levelManager)
     {
+        movesText.text = "Moves: " + mapData.VictoryConditions.MoveLimit.ToString();
+
         foreach (var item in victoryConditions)
         {
             if (item.ConditionType == ConditionType.ColorMatch)

@@ -119,7 +119,7 @@ public class SaveManager : ISaveService
 
     public void Dispose()
     {
-        throw new NotImplementedException();
+        
     }
 
     private const int CurrentVersion = 1;

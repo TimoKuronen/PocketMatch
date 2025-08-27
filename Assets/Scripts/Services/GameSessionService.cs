@@ -10,8 +10,12 @@ public class GameSessionService : IGameSessionService
     public MapData CurrentMapData { get; private set; }
     public bool IsLevelDataLoaded { get; private set; }
 
+    private ISaveService saveService;
+
     public void Initialize()
     {
+        saveService = Services.Get<ISaveService>();
+
         SetLevelAddress();
 
         Addressables.LoadAssetAsync<MapData>(address).Completed += OnMapDataLoaded;
@@ -19,7 +23,7 @@ public class GameSessionService : IGameSessionService
 
     private void SetLevelAddress()
     {
-        string levelIntegerString = Services.Get<ISaveService>().PlayerData.nextLevelIndex.ToString();
+        string levelIntegerString = saveService.PlayerData.nextLevelIndex.ToString();
         int length = levelIntegerString.Length;
 
         if (levelIntegerString == "0")
@@ -56,6 +60,21 @@ public class GameSessionService : IGameSessionService
         {
             Debug.LogError("Failed to load MapData from address.");
         }
+    }
+
+    void OnApplicationPause(bool pause)
+    {
+        if (pause)
+        {
+            saveService.Save();
+            saveService.SaveSettings();
+        }
+    }
+
+    void OnApplicationQuit()
+    {
+        saveService.Save();
+        saveService.SaveSettings();
     }
 
     public void Dispose()

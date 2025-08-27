@@ -9,9 +9,12 @@ public class LevelManager : ILevelManager
     public VictoryConditions VictoryConditions { get; private set; }
     public Action<LevelManager> VictoryConditionsUpdated { get; set; }
 
+    private ISaveService saveService;
+
     public void Initialize()
     {
         CoroutineMonoBehavior.Instance.StartCoroutine(SetLevelData());
+        saveService = Services.Get<ISaveService>();
     }
 
     private IEnumerator SetLevelData()
@@ -56,6 +59,9 @@ public class LevelManager : ILevelManager
                 if (data.Type == match.TileColor)
                 {
                     match.TileCount--;
+
+                    if (match.TileCount < 0) 
+                        match.TileCount = 0;
                 }
             }
         }
@@ -88,7 +94,7 @@ public class LevelManager : ILevelManager
                 if (match.TileCount > 0)
                 {
                     Debug.Log($"Victory conditions to destroy colors, still required : {match.TileCount} ");
-                    return false; // Not all required colors matched
+                    return false;
                 }
                 else Debug.Log($"Victory condition met for color: {match.TileColor}");
             }
@@ -97,7 +103,7 @@ public class LevelManager : ILevelManager
         if (VictoryConditions.DestroyableTileCount > 0)
         {
             Debug.Log("Victory condition not met: Destroyable tiles remaining " + VictoryConditions.DestroyableTileCount);
-            return false; // Not all destroyable tiles cleared
+            return false; 
         }
         else Debug.Log("All destroyable tiles cleared.");
 
@@ -112,7 +118,8 @@ public class LevelManager : ILevelManager
 
     private void ToggleWinEvent()
     {
-
+        saveService.PlayerData.nextLevelIndex++;
+        saveService.Save();
     }
 
     private void ToggleLoseEvent()

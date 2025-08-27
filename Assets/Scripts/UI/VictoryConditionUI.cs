@@ -21,12 +21,12 @@ public class VictoryConditionUI : MonoBehaviour
         conditionText.text = text;
         ConditionType = conditionType;
 
-        if(conditionType == ConditionType.DestroyableTiles)
+        if (conditionType == ConditionType.DestroyableTiles)
         {
             conditionIcon.color = Color.white;
             return;
         }
-        int colorIndex =  (int)tileType;
+        int colorIndex = (int)tileType;
         conditionIcon.color = colorPalette.TileColors[colorIndex].Color;
     }
 

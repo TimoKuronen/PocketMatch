@@ -210,7 +210,7 @@ MonoBehaviour:
   MoveLimit: 30
   AllowedTileColors: 0000000001000000020000000300000004000000
   VictoryConditions:
-    MoveLimit: 15
+    MoveLimit: 20
     RequiredColorMatchCount:
     - TileColor: 3
       TileCount: 10

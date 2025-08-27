@@ -61,7 +61,7 @@ public class UIManager : MonoBehaviour
 
     private void OnVictoryConditionsUpdated(LevelManager levelManager)
     {
-        movesText.text = "Moves: " + mapData.VictoryConditions.MoveLimit.ToString();
+        movesText.text = "Moves: " + levelManager.MovesRemaining.ToString();
 
         foreach (var item in victoryConditions)
         {

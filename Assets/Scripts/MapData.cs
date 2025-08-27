@@ -8,14 +8,11 @@ public class MapData : ScriptableObject
     public int width = 6;
     public int height = 8;
     public TileDataEditorView[] tiles;
-
     public TileDataEditorView GetTile(int x, int y) => tiles[y * width + x];
     public void SetTile(int x, int y, TileDataEditorView data) => tiles[y * width + x] = data;
+    public TileType[] AllowedTileColors;
 
     [Header("Victory Related Data")]
-    public int MoveLimit;
-    public TileType[] AllowedTileColors;
-    
     public VictoryConditions VictoryConditions;
 }
 

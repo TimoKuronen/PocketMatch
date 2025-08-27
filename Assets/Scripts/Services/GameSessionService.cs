@@ -19,7 +19,7 @@ public class GameSessionService : IGameSessionService
 
     private void SetLevelAddress()
     {
-        string levelIntegerString = SaveManager.Read(data => data.NextLevelIndex.ToString(), "0");
+        string levelIntegerString = Services.Get<ISaveService>().PlayerData.nextLevelIndex.ToString();
         int length = levelIntegerString.Length;
 
         if (levelIntegerString == "0")

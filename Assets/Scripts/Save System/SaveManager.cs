@@ -1,167 +1,105 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
+using System.Security.Cryptography;
 using UnityEngine;
 
-public static class SaveManager
+public class SaveManager : ISaveService
 {
-    private static readonly string saveFile = Path.Combine(Application.persistentDataPath, "save.dat");
-    private static readonly string settingsFile = Path.Combine(Application.persistentDataPath, "settings.dat");
-    private static readonly string encryptionKey = "kg8hv4j08jiikloijvbjmnhuj8945dxz"; // must be 32 bytes for AES-256
-    
-    public static void Save(SaveData data)
+    private readonly string saveFile = Path.Combine(Application.persistentDataPath, "save.dat");
+    private readonly string settingsFile = Path.Combine(Application.persistentDataPath, "settings.dat");
+    private readonly string encryptionKey = "kg8hv4j08jiikloijvbjmnhuj8945dxz";
+
+    public PlayerData PlayerData { get; private set; }
+    public SettingsData Settings { get; private set; }
+
+    public void Initialize()
     {
-        try
+        Load();
+    }
+
+    public void Load()
+    {
+        PlayerData = LoadFile<PlayerData>(saveFile) ?? new PlayerData();
+        Settings = LoadFile<SettingsData>(settingsFile) ?? new SettingsData();
+
+        if (PlayerData.meta.saveVersion < CurrentVersion)
         {
-            string json = JsonUtility.ToJson(data);
-            string encrypted = Encrypt(json, encryptionKey);
-            File.WriteAllText(saveFile, encrypted);
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Save failed: " + e);
+            PlayerData = DataMigrator.Migrate(PlayerData, PlayerData.meta.saveVersion, CurrentVersion);
         }
     }
 
-    public static SaveData Load()
+    public void Save()
+    {
+        PlayerData.meta.lastSaveTime = DateTime.UtcNow.ToString("o");
+        WriteFile(saveFile, PlayerData);
+    }
+
+    public void SaveSettings()
+    {
+        WriteFile(settingsFile, Settings);
+    }
+
+    public void ResetToDefaults()
+    {
+        PlayerData = new PlayerData();
+        Settings = new SettingsData();
+        Save();
+        SaveSettings();
+    }
+
+    private T LoadFile<T>(string path) where T : class
     {
         try
         {
-            if (!File.Exists(saveFile))
-            {
-                //Debug.Log("new savefile created");
-                return new SaveData();
-            }
+            if (!File.Exists(path)) return null;
 
-            string encrypted = File.ReadAllText(saveFile);
+            string encrypted = File.ReadAllText(path);
             string json = Decrypt(encrypted, encryptionKey);
-            return JsonUtility.FromJson<SaveData>(json);
+            return JsonUtility.FromJson<T>(json);
         }
         catch (Exception e)
         {
-            Debug.LogError("Load failed: " + e);
-            return new SaveData();
+            Debug.LogError($"Failed to load file {path}: {e}");
+            return null;
         }
     }
 
-    public static void UpdateSave(Action<SaveData> modifyCallback)
-    {
-        SaveData current = Load();
-        modifyCallback?.Invoke(current);
-        Save(current);
-    }
-
-    public static T Read<T>(Func<SaveData, T> selector)
-    {
-        SaveData data = Load();
-        return selector(data);
-    }
-
-    public static T Read<T>(Func<SaveData, T> selector, T defaultValue)
+    private void WriteFile<T>(string path, T data)
     {
         try
         {
-            return selector(Load());
-        }
-        catch
-        {
-            return defaultValue;
-        }
-    }
-
-    public static void SaveSettings(SettingsData data)
-    {
-        try
-        {
-            string json = JsonUtility.ToJson(data);
+            string json = JsonUtility.ToJson(data, true);
             string encrypted = Encrypt(json, encryptionKey);
-            File.WriteAllText(settingsFile, encrypted);
+            File.WriteAllText(path, encrypted);
         }
         catch (Exception e)
         {
-            Debug.LogError("Settings save failed: " + e);
+            Debug.LogError($"Failed to save file {path}: {e}");
         }
     }
 
-    public static SettingsData LoadSettings()
-    {
-        try
-        {
-            if (!File.Exists(settingsFile))
-                return new SettingsData();
-
-            string encrypted = File.ReadAllText(settingsFile);
-            string json = Decrypt(encrypted, encryptionKey);
-            return JsonUtility.FromJson<SettingsData>(json);
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Settings load failed: " + e);
-            return new SettingsData();
-        }
-    }
-
-    public static T ReadSettings<T>(Func<SettingsData, T> selector)
-    {
-        SettingsData data = LoadSettings();
-        return selector(data);
-    }
-
-    public static T ReadSettings<T>(Func<SettingsData, T> selector, T defaultValue)
-    {
-        try
-        {
-            return selector(LoadSettings());
-        }
-        catch
-        {
-            return defaultValue;
-        }
-    }
-
-    public static void DeleteSave()
-    {
-        if (File.Exists(saveFile))
-        {
-            Debug.Log("Deleting save file: " + saveFile);
-            File.Delete(saveFile);
-        }
-        else
-            Debug.Log("No save file to delete.");
-    }
-
-    public static void DeleteSettings()
-    {
-        if (File.Exists(settingsFile))
-        {
-            Debug.Log("Deleting settings file: " + settingsFile);
-            File.Delete(settingsFile);
-        }
-        else
-            Debug.Log("No settings file to delete.");
-    }
-
-    private static string Encrypt(string plainText, string key)
+    private string Encrypt(string plainText, string key)
     {
         byte[] keyBytes = Encoding.UTF8.GetBytes(key);
-        byte[] iv = new byte[16]; // AES needs 16-byte IV
+        byte[] iv = new byte[16];
+
         using var aes = Aes.Create();
         aes.Key = keyBytes;
         aes.IV = iv;
 
-        using var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+        using var encryptor = aes.CreateEncryptor();
         using var ms = new MemoryStream();
         using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
         using (var sw = new StreamWriter(cs))
         {
             sw.Write(plainText);
         }
+
         return Convert.ToBase64String(ms.ToArray());
     }
 
-    private static string Decrypt(string cipherText, string key)
+    private string Decrypt(string cipherText, string key)
     {
         byte[] keyBytes = Encoding.UTF8.GetBytes(key);
         byte[] iv = new byte[16];
@@ -171,12 +109,20 @@ public static class SaveManager
         aes.Key = keyBytes;
         aes.IV = iv;
 
-        using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+        using var decryptor = aes.CreateDecryptor();
         using var ms = new MemoryStream(buffer);
         using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
         using var sr = new StreamReader(cs);
+
         return sr.ReadToEnd();
     }
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
+    }
+
+    private const int CurrentVersion = 1;
 }
 
 [Serializable]

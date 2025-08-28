@@ -16,7 +16,7 @@ public class GameSessionService : IGameSessionService
     public void Initialize()
     {
         saveService = Services.Get<ISaveService>();
-
+        Debug.Log("GameSessionService initialized " + saveService);
         SetLevelAddress();
 
         Addressables.LoadAssetAsync<MapData>(address).Completed += OnMapDataLoaded;

@@ -27,6 +27,8 @@ public class SaveManager : ISaveService
         {
             PlayerData = DataMigrator.Migrate(PlayerData, PlayerData.meta.saveVersion, CurrentVersion);
         }
+
+        Debug.Log($"SaveManager initialized. Save file: {PlayerData}");
     }
 
     public void Save()
@@ -119,7 +121,7 @@ public class SaveManager : ISaveService
 
     public void Dispose()
     {
-        
+        Debug.Log("Disposing SaveManager and saving data.");
     }
 
     private const int CurrentVersion = 1;

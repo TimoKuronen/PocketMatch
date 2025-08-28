@@ -8,7 +8,7 @@ public abstract class Services : MonoBehaviour
     private static Services instance;
 
     protected Dictionary<Type, IService> serviceMap = new Dictionary<Type, IService>();
-    private static Dictionary<Type, IService> globalServices = new Dictionary<Type, IService>();
+    protected Dictionary<Type, IService> globalServices = new Dictionary<Type, IService>();
     private List<IUpdateableService> updateableServices = new List<IUpdateableService>();
 
     private void Awake()
@@ -58,7 +58,7 @@ public abstract class Services : MonoBehaviour
                 serviceMap[key] = service;
         }
 
-        Debug.Log($"Adding service from MonoBehaviour: {service.GetType().Name}");
+        //Debug.Log($"Adding service from MonoBehaviour: {service.GetType().Name}");
 
         if (service is IUpdateableService updateableService)
             updateableServices.Add(updateableService);
@@ -71,10 +71,18 @@ public abstract class Services : MonoBehaviour
         if (instance.serviceMap.TryGetValue(key, out IService sceneService))
             return (T)sceneService;
 
-        if (globalServices.TryGetValue(key, out IService globalService))
+        if (instance.globalServices.TryGetValue(key, out IService globalService))
             return (T)globalService;
 
         Debug.LogError($"Service not found: {key.Name}");
+        foreach (var service in instance.serviceMap.Values)
+        {
+            Debug.Log($"Registered scene service: {service.GetType().Name}");
+        }
+        foreach (var service in instance.globalServices.Values)
+        {
+            Debug.Log($"Registered global service: {service.GetType().Name}");
+        }
         return default;
     }
 
@@ -98,6 +106,8 @@ public abstract class Services : MonoBehaviour
 
     private void CallToDispose()
     {
+        Debug.Log("Disposing Services...");
+
         // Dispose services in serviceMap
         foreach (KeyValuePair<Type, IService> service in serviceMap)
         {

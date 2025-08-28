@@ -1,3 +1,4 @@
+using UnityEngine;
 using static SceneLoader;
 
 public class LoaderServices : Services
@@ -10,8 +11,15 @@ public class LoaderServices : Services
         var saveManager = new SaveManager();
         AddService<ISaveService>(saveManager, isGlobal: true);
 
+        foreach (var service in globalServices.Values)
+        {
+            Debug.Log("Initializing global service: " + service.GetType().Name);
+            service.Initialize();
+        }
+
         foreach (var service in serviceMap.Values)
         {
+            Debug.Log("Initializing service: " + service.GetType().Name);
             service.Initialize();
         }
 

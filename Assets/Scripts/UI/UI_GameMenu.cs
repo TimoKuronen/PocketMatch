@@ -8,6 +8,7 @@ public class UIManager : UIMenu
 {
     [SerializeField] GameObject winPanel;
     [SerializeField] GameObject losePanel;
+
     [SerializeField] private TileIconCollection tileIconCollection;
     [SerializeField] private VictoryConditionUI victoryConditionPrefab;
     [SerializeField] private Transform victoryConditionsContainer;

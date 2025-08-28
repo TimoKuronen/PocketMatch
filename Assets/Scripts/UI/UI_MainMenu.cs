@@ -1,8 +1,7 @@
-using System;
 using TMPro;
 using UnityEngine;
 
-public class MenuUI : MonoBehaviour
+public class UI_MainMenu : UIMenu
 {
     [SerializeField] GameObject levelPanel;
     [SerializeField] GameObject settingsPanel;
@@ -13,7 +12,7 @@ public class MenuUI : MonoBehaviour
     private ISaveService saveService;
     private int levelInde;
 
-    void Start()
+    private void Start()
     {
         levelPanel.SetActive(true);
         settingsPanel.SetActive(false);
@@ -26,15 +25,16 @@ public class MenuUI : MonoBehaviour
 
     private void LoadInitialValues()
     {
-        coinCountText.text = "x " + saveService.PlayerData.nextLevelIndex.ToString();
+        coinCountText.text = "x " + saveService.PlayerData.coins.ToString();
         levelText.text = "Level " + (levelInde + 1).ToString();
     }
 
-    void OnPlayButtonPressed()
+    public void PlayButtonPressed()
     {
 
     }
-    void OnSettingsButtonPressed()
+
+     public void SettingsButtonPressed()
     {
 
     }

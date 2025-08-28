@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 560f245ab7662be4096bee701ddf5a8e, type: 3}
+  m_Name: UI_MenuOpen
+  m_EditorClassIdentifier: 
+  loop: 0
+  randomize: 1
+  dontAdjustVolume: 0
+  stopPrevious: 0
+  soundType: 0
+  clips:
+  - {fileID: 8300000, guid: 294441b16b820fb45b4499c57f1841e8, type: 3}
+  overlayClips: []
+  minVolume: 1
+  maxVolume: 1
+  minPitch: 0.95
+  maxPitch: 1.05
+  forcedPitch: 1
+  ovrMinVolume: 1
+  ovrMaxVolume: 1
+  volumeMultiplier: 1
+  fadeInDuration: 0
+  fadeOutDuration: 0
+  delay: 0
+  playDuration: 1

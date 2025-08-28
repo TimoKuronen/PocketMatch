@@ -3,6 +3,7 @@ public class PlayerData
 {
     public MetaData meta = new MetaData();
     public int nextLevelIndex = 0;
+    public int coins = 0;
 }
 
 [System.Serializable]

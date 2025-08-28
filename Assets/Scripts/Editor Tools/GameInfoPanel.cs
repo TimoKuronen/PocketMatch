@@ -14,6 +14,9 @@ public class GameInfoPanel : EditorWindow
 
     private void OnEnable()
     {
+        if (GridController.Instance == null)
+            return;
+
         if (EditorApplication.isPlaying)
             Subscribe();
     }
@@ -29,6 +32,9 @@ public class GameInfoPanel : EditorWindow
 
     private void OnGUI()
     {
+        if (GridController.Instance == null)
+            return;
+
         GUILayout.Label("Game Info", EditorStyles.boldLabel);
 
         if (!EditorApplication.isPlaying)

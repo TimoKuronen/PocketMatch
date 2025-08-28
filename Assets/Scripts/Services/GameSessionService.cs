@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.SceneManagement;
 
 public class GameSessionService : IGameSessionService
 {
@@ -19,6 +20,11 @@ public class GameSessionService : IGameSessionService
         SetLevelAddress();
 
         Addressables.LoadAssetAsync<MapData>(address).Completed += OnMapDataLoaded;
+    }
+
+    public bool IsMenuScene() 
+    { 
+        return SceneManager.GetActiveScene().name == "MainMenu";
     }
 
     private void SetLevelAddress()
@@ -62,7 +68,7 @@ public class GameSessionService : IGameSessionService
         }
     }
 
-    void OnApplicationPause(bool pause)
+    private void OnApplicationPause(bool pause)
     {
         if (pause)
         {
@@ -71,7 +77,7 @@ public class GameSessionService : IGameSessionService
         }
     }
 
-    void OnApplicationQuit()
+    private void OnApplicationQuit()
     {
         saveService.Save();
         saveService.SaveSettings();

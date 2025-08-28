@@ -21,6 +21,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Levels
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5127395a779d6144ea84eb27b63433fa
+    m_Address: Assets/Addressables/Levels/MapData_0002.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Levels
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 51fd47fdf96eb5649beee4cbb26709c5
     m_Address: Assets/Addressables/Levels/MapData_0001.asset
     m_ReadOnly: 0

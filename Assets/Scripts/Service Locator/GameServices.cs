@@ -2,9 +2,6 @@ public class GameServices : Services
 {
     protected override void Initialize()
     {
-        var saveManager = new SaveManager();
-        AddService<ISaveService>(saveManager);
-
         var inputManager = new InputService();
         AddService<IInputService>(inputManager);
 

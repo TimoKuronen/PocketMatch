@@ -8,6 +8,7 @@ public abstract class Services : MonoBehaviour
     private static Services instance;
 
     protected Dictionary<Type, IService> serviceMap = new Dictionary<Type, IService>();
+    private static Dictionary<Type, IService> globalServices = new Dictionary<Type, IService>();
     private List<IUpdateableService> updateableServices = new List<IUpdateableService>();
 
     private void Awake()
@@ -18,8 +19,6 @@ public abstract class Services : MonoBehaviour
 
         var monobehaviorServices = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None).OfType<IService>();
 
-        //Debug.Log("init " + monobehaviorServices.Count() + " services from MonoBehaviour");
-
         foreach (var service in monobehaviorServices)
         {
             if (serviceMap.ContainsKey(service.GetType()))
@@ -27,11 +26,8 @@ public abstract class Services : MonoBehaviour
                 continue;
             }
 
-            //Debug.Log($"Adding service from MonoBehaviour: {service.GetType().Name}");
             AddService(service);
         }
-
-        //Debug.Log($"Services initialized by {this.GetType().Name}!");
     }
 
     /// <summary>
@@ -43,28 +39,42 @@ public abstract class Services : MonoBehaviour
     /// <summary>
     /// Registers a service, making it available through the Get method.
     /// </summary>
-    public void AddService<T>(T service) where T : IService
+    public void AddService<T>(T service, bool isGlobal = false) where T : IService
     {
-        serviceMap.Add(typeof(T), service);
-        //Debug.Log($"Added service: {service.GetType().Name}");
+        var key = typeof(T);
+
+        if (isGlobal)
+        {
+            if (globalServices.ContainsKey(key))
+                Debug.LogWarning($"{key} already registered as global.");
+            else
+                globalServices[key] = service;
+        }
+        else
+        {
+            if (serviceMap.ContainsKey(key))
+                Debug.LogWarning($"{key} already registered in this scene.");
+            else
+                serviceMap[key] = service;
+        }
+
+        Debug.Log($"Adding service from MonoBehaviour: {service.GetType().Name}");
 
         if (service is IUpdateableService updateableService)
-        {
             updateableServices.Add(updateableService);
-        }
     }
 
     public static T Get<T>() where T : IService
     {
-        Type type = typeof(T);
+        var key = typeof(T);
 
-        if (instance.serviceMap.TryGetValue(type, out IService service))
-        {
-            return (T)service;
-        }
+        if (instance.serviceMap.TryGetValue(key, out IService sceneService))
+            return (T)sceneService;
 
-        Debug.LogError($"Service not found: {type.Name}");
+        if (globalServices.TryGetValue(key, out IService globalService))
+            return (T)globalService;
 
+        Debug.LogError($"Service not found: {key.Name}");
         return default;
     }
 

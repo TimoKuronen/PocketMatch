@@ -14,7 +14,7 @@ public class GameInfoPanel : EditorWindow
 
     private void OnEnable()
     {
-        if (GridController.Instance == null)
+        if (!Services.Get<ISceneLoader>().IsGameScene())
             return;
 
         if (EditorApplication.isPlaying)
@@ -32,7 +32,7 @@ public class GameInfoPanel : EditorWindow
 
     private void OnGUI()
     {
-        if (GridController.Instance == null)
+        if (!Services.Get<ISceneLoader>().IsGameScene())
             return;
 
         GUILayout.Label("Game Info", EditorStyles.boldLabel);

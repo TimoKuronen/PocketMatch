@@ -16,6 +16,8 @@ public class RainbowTile : ITilePowerBehavior
     {
         TileType targetType = overrideType ?? GetMostCommonType(context.Data, context.Width, context.Height);
 
+        Debug.Log($"RainbowTile activated, targeting {targetType}");
+
         var toDestroy = new List<Vector2Int>();
 
         for (int x = 0; x < context.Width; x++)

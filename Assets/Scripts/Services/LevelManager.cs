@@ -8,6 +8,8 @@ public class LevelManager : ILevelManager
     public MapData LocalMapData { get; private set; }
     public VictoryConditions VictoryConditions { get; private set; }
     public Action<LevelManager> VictoryConditionsUpdated { get; set; }
+    public Action LevelWon { get; set; }
+    public Action LevelLost { get; set; }
 
     private ISaveService saveService;
 
@@ -120,11 +122,13 @@ public class LevelManager : ILevelManager
     {
         saveService.PlayerData.nextLevelIndex++;
         saveService.Save();
+
+        LevelWon?.Invoke();
     }
 
     private void ToggleLoseEvent()
     {
-
+        LevelLost?.Invoke();
     }
 
     public void Dispose()

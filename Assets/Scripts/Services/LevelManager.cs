@@ -120,6 +120,13 @@ public class LevelManager : ILevelManager
 
     private void ToggleWinEvent()
     {
+        if(Services.Get<IGameSessionService>().LevelCapReached)
+        {
+            Debug.Log("Level cap reached, not incrementing level index.");
+            LevelWon?.Invoke();
+            return;
+        }
+
         saveService.PlayerData.nextLevelIndex++;
         saveService.Save();
 

@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-/*
+
 public class LoadingProgressBar : MonoBehaviour
 {
     [SerializeField] private Image progressBar;
@@ -42,4 +42,3 @@ public class LoadingProgressBar : MonoBehaviour
         }
     }
 }
-*/

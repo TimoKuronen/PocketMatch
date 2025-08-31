@@ -31,11 +31,12 @@ public class UI_MainMenu : UIMenu
 
     public void PlayButtonPressed()
     {
-
+        Debug.Log("Play Button pressed, loading level " + levelInde);
+        StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
     }
 
-     public void SettingsButtonPressed()
+    public void SettingsButtonPressed()
     {
-
+        Debug.Log("Settings Button pressed, not yet implemented");
     }
 }

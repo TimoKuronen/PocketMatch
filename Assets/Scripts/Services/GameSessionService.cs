@@ -1,90 +1,51 @@
+using Cysharp.Threading.Tasks;
+using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.SceneManagement;
 
 public class GameSessionService : IGameSessionService
 {
     private const string defaultAddress = "Assets/Addressables/Levels/MapData_";
+    private ISaveService saveService;
 
-    private string address = "MapDataAddress";
     public MapData CurrentMapData { get; private set; }
     public bool IsLevelDataLoaded { get; private set; }
 
-    private ISaveService saveService;
-
-    public void Initialize()
+    public async void Initialize()
     {
         saveService = Services.Get<ISaveService>();
-        Debug.Log("GameSessionService initialized " + saveService);
-        SetLevelAddress();
-
-        Addressables.LoadAssetAsync<MapData>(address).Completed += OnMapDataLoaded;
+        await LoadCurrentLevelDataAsync();
+        Debug.Log("GameSessionService initialized: " + saveService);
     }
 
-    public bool IsMenuScene() 
-    { 
-        return SceneManager.GetActiveScene().name == "MainMenu";
-    }
-
-    private void SetLevelAddress()
+    public async UniTask LoadCurrentLevelDataAsync()
     {
-        string levelIntegerString = saveService.PlayerData.nextLevelIndex.ToString();
-        int length = levelIntegerString.Length;
+        //if (!Loader.IsGameScene())
+        //{
+        //    Debug.Log("Not a game scene, skipping MapData load.");
+        //    return;
+        //}
 
-        if (levelIntegerString == "0")
-            length = 0;
+        int levelIndex = saveService.PlayerData.nextLevelIndex + 1;
+        string levelStr = levelIndex.ToString().PadLeft(4, '0');
+        string address = defaultAddress + levelStr + ".asset";
 
-        Debug.Log("Setting level address for level: " + levelIntegerString + " (length: " + length + ")");
-
-        switch (length)
+        try
         {
-            case 0:
-                address = defaultAddress + "0002.asset";
-                break;
-            case 1:
-                address = defaultAddress + "000" + levelIntegerString + ".asset";
-                break;
-            case 2:
-                address = defaultAddress + "00" + levelIntegerString + ".asset";
-                break;
-            case 3:
-                address = defaultAddress + "0" + levelIntegerString + ".asset";
-                break;
-        }
-    }
-
-    private void OnMapDataLoaded(AsyncOperationHandle<MapData> handle)
-    {
-        if (handle.Status == AsyncOperationStatus.Succeeded)
-        {
-            CurrentMapData = handle.Result;
-            Debug.Log("MapData loaded: " + CurrentMapData.name);
+            var handle = Addressables.LoadAssetAsync<MapData>(address);
+            CurrentMapData = await handle.Task;
             IsLevelDataLoaded = true;
+            Debug.Log("MapData loaded: " + CurrentMapData.name);
         }
-        else
+        catch (Exception e)
         {
-            Debug.LogError("Failed to load MapData from address.");
+            Debug.LogError("Failed to load MapData: " + e);
+            IsLevelDataLoaded = false;
         }
     }
-
-    private void OnApplicationPause(bool pause)
+    public void Dispose() 
     {
-        if (pause)
-        {
-            saveService.Save();
-            saveService.SaveSettings();
-        }
+        Loader.Reset();
     }
 
-    private void OnApplicationQuit()
-    {
-        saveService.Save();
-        saveService.SaveSettings();
-    }
-
-    public void Dispose()
-    {
-        Addressables.LoadAssetAsync<MapData>(address).Completed -= OnMapDataLoaded;
-    }
 }

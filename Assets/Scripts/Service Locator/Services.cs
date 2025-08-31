@@ -8,7 +8,8 @@ public abstract class Services : MonoBehaviour
     private static Services instance;
 
     protected Dictionary<Type, IService> serviceMap = new Dictionary<Type, IService>();
-    protected Dictionary<Type, IService> globalServices = new Dictionary<Type, IService>();
+    // TODO : Should we make this non-static and have a separate persistent Services object in each scene?
+    protected static Dictionary<Type, IService> globalServices = new Dictionary<Type, IService>(); 
     private List<IUpdateableService> updateableServices = new List<IUpdateableService>();
 
     private void Awake()
@@ -71,7 +72,7 @@ public abstract class Services : MonoBehaviour
         if (instance.serviceMap.TryGetValue(key, out IService sceneService))
             return (T)sceneService;
 
-        if (instance.globalServices.TryGetValue(key, out IService globalService))
+        if (globalServices.TryGetValue(key, out IService globalService))
             return (T)globalService;
 
         Debug.LogError($"Service not found: {key.Name}");
@@ -79,7 +80,7 @@ public abstract class Services : MonoBehaviour
         {
             Debug.Log($"Registered scene service: {service.GetType().Name}");
         }
-        foreach (var service in instance.globalServices.Values)
+        foreach (var service in globalServices.Values)
         {
             Debug.Log($"Registered global service: {service.GetType().Name}");
         }
@@ -106,7 +107,7 @@ public abstract class Services : MonoBehaviour
 
     private void CallToDispose()
     {
-        Debug.Log("Disposing Services...");
+        //Debug.Log("Disposing Services...");
 
         // Dispose services in serviceMap
         foreach (KeyValuePair<Type, IService> service in serviceMap)

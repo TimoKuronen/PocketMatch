@@ -15,6 +15,7 @@ public class SaveManager : ISaveService
 
     public void Initialize()
     {
+        Debug.Log("Initializing SaveManager");  
         Load();
     }
 

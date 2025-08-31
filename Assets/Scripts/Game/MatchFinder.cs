@@ -127,6 +127,8 @@ public class MatchFinder
 
         AvailableMatchesCount = merged.Count;
 
+        Debug.Log("Total merged match groups: " + merged.Count);
+
         return merged.Select(g => g.Positions).ToList();
     }
 

@@ -14,27 +14,21 @@ public class GameInfoPanel : EditorWindow
 
     private void OnEnable()
     {
-        if (!Services.Get<ISceneLoader>().IsGameScene())
-            return;
-
         if (EditorApplication.isPlaying)
             Subscribe();
     }
 
     private void Subscribe()
     {
-        if (subscribedToEvents)
+        if (subscribedToEvents || !Loader.IsGameScene())
             return;
 
-        GridController.Instance.ActionTaken += OnMovesChanged;
+        GridController.Instance.ActionTaken += OnBoardChanged;
         subscribedToEvents = true;
     }
 
     private void OnGUI()
     {
-        if (!Services.Get<ISceneLoader>().IsGameScene())
-            return;
-
         GUILayout.Label("Game Info", EditorStyles.boldLabel);
 
         if (!EditorApplication.isPlaying)
@@ -44,6 +38,11 @@ public class GameInfoPanel : EditorWindow
         }
 
         Subscribe();
+
+        if (!Loader.IsGameScene())
+        {
+            return;
+        }
         DisplayGameInfo();
     }
 
@@ -71,7 +70,7 @@ public class GameInfoPanel : EditorWindow
         Repaint();
     }
 
-    private void OnMovesChanged()
+    private void OnBoardChanged()
     {
         Repaint();
     }
@@ -87,6 +86,11 @@ public class GameInfoPanel : EditorWindow
         EditorGUILayout.TextField(movesLeft);
         EditorGUILayout.EndHorizontal();
 
+        if (GridController.Instance.MatchFinder == null)
+        {
+            return;
+        }
+
         string matchesLeft = GridController.Instance.MatchFinder.AvailableMatchesCount.ToString();
 
         EditorGUILayout.BeginHorizontal();
@@ -99,7 +103,7 @@ public class GameInfoPanel : EditorWindow
     {
         if (subscribedToEvents)
         {
-            GridController.Instance.ActionTaken -= OnMovesChanged;
+            GridController.Instance.ActionTaken -= OnBoardChanged;
             subscribedToEvents = false;
         }
     }

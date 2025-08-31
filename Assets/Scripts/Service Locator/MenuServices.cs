@@ -8,8 +8,8 @@ public class MenuServices : Services
         var soundManager = new SoundManager();
         AddService<ISoundManager>(soundManager);
 
-        var GameSessionService = new GameSessionService();
-        AddService<IGameSessionService>(GameSessionService);
+        var saveService = new SaveManager();
+        AddService<ISaveService>(saveService);
 
         foreach (var service in serviceMap.Values)
         {

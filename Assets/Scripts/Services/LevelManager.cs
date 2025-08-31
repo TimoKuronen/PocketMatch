@@ -62,7 +62,7 @@ public class LevelManager : ILevelManager
                 {
                     match.TileCount--;
 
-                    if (match.TileCount < 0) 
+                    if (match.TileCount < 0)
                         match.TileCount = 0;
                 }
             }
@@ -95,7 +95,7 @@ public class LevelManager : ILevelManager
             {
                 if (match.TileCount > 0)
                 {
-                    Debug.Log($"Victory conditions to destroy colors, still required : {match.TileCount} ");
+                    //Debug.Log($"Victory conditions to destroy colors, still required : {match.TileCount} ");
                     return false;
                 }
                 else Debug.Log($"Victory condition met for color: {match.TileColor}");
@@ -104,8 +104,8 @@ public class LevelManager : ILevelManager
         // Check if all the required destroyable tiles have been cleared
         if (VictoryConditions.DestroyableTileCount > 0)
         {
-            Debug.Log("Victory condition not met: Destroyable tiles remaining " + VictoryConditions.DestroyableTileCount);
-            return false; 
+            //Debug.Log("Victory condition not met: Destroyable tiles remaining " + VictoryConditions.DestroyableTileCount);
+            return false;
         }
         else Debug.Log("All destroyable tiles cleared.");
 
@@ -136,5 +136,23 @@ public class LevelManager : ILevelManager
         GridController.Instance.ActionTaken -= OnActionTaken;
         GridController.Instance.BoardUpdated -= CheckVictoryConditions;
         GridController.Instance.TileDestroyed -= OnTileDestroyed;
+    }
+
+    public void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            ToggleWinEvent();
+        }
+
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            ToggleLoseEvent();
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            Loader.Reset();
+        }
     }
 }

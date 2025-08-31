@@ -14,12 +14,14 @@ public class VictoryConditionUI : MonoBehaviour
     [SerializeField] private Image conditionIcon;
 
     public ConditionType ConditionType { get; private set; }
+    public TileType TileType { get; private set; }
 
     public void Init(string text, Sprite icon, TileType tileType, ColorPalette colorPalette, ConditionType conditionType)
     {
         conditionIcon.sprite = icon;
         conditionText.text = text;
         ConditionType = conditionType;
+        TileType = tileType;
 
         if (conditionType == ConditionType.DestroyableTiles)
         {

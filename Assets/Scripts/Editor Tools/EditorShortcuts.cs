@@ -36,7 +36,10 @@ public class EditorShortcuts : EditorWindow
         {
             GridController.Instance.ShuffleBoard();
         }
-
+        if (GUILayout.Button("Reset Save"))
+        {
+            Services.Get<ISaveService>().ResetToDefaults();
+        }
         EditorGUILayout.Space();
         DrawPrefabField("Prefab", PrefabKey);
     }

@@ -207,9 +207,10 @@ MonoBehaviour:
     isDestroyable: 0
     isBlocked: 1
     hitPoints: 1
-  MoveLimit: 30
   AllowedTileColors: 0000000001000000020000000300000004000000
   VictoryConditions:
     MoveLimit: 15
-    RequiredColorMatchCount: []
+    RequiredColorMatchCount:
+    - TileColor: 0
+      TileCount: 60
     DestroyableTileCount: 0

@@ -1,6 +1,6 @@
 using System;
 
-public interface ILevelManager : IService
+public interface ILevelManager : IUpdateableService
 {
     int MovesRemaining { get; }
     Action<LevelManager> VictoryConditionsUpdated { get; set; }

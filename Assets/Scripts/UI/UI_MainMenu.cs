@@ -10,7 +10,7 @@ public class UI_MainMenu : UIMenu
     [SerializeField] TextMeshProUGUI levelText;
 
     private ISaveService saveService;
-    private int levelInde;
+    private int levelIndex;
 
     private void Start()
     {
@@ -18,7 +18,7 @@ public class UI_MainMenu : UIMenu
         settingsPanel.SetActive(false);
 
         saveService = Services.Get<ISaveService>();
-        levelInde = saveService.PlayerData.nextLevelIndex;
+        levelIndex = saveService.PlayerData.nextLevelIndex;
 
         LoadInitialValues();
     }
@@ -26,12 +26,12 @@ public class UI_MainMenu : UIMenu
     private void LoadInitialValues()
     {
         coinCountText.text = "x " + saveService.PlayerData.coins.ToString();
-        levelText.text = "Level " + (levelInde + 1).ToString();
+        levelText.text = "Level " + (levelIndex + 1).ToString();
     }
 
     public void PlayButtonPressed()
     {
-        Debug.Log("Play Button pressed, loading level " + levelInde);
+        Debug.Log("Play Button pressed, loading level " + (levelIndex + 1));
         StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
     }
 

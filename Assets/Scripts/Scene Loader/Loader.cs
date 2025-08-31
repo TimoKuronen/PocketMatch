@@ -20,16 +20,6 @@ public static class Loader
 
     private static float delayBeforeLoading = 0f;
 
-    public static bool IsGameScene()
-    {
-        return GetCurrentScene() != Scene.Empty && GetCurrentScene() > Scene.Loader;
-    }
-
-    public static bool IsMenuScene()
-    {
-        return GetCurrentScene() == Scene.MainMenu;
-    }
-
     public static IEnumerator CallDelayedLoad(Scene scene, float delay = 0f)
     {
         OnSceneLoadStarted?.Invoke();
@@ -38,8 +28,7 @@ public static class Loader
 
         targetScene = scene;
         Debug.Log("Loading scene: " + scene);
-        //SceneManager.LoadScene(Scene.Loader.ToString());
-        CoroutineMonoBehavior.Instance.StartCoroutine(LoadSceneAsync(scene, 0));
+        SceneManager.LoadScene(Scene.Loader.ToString());
     }
 
     /// <summary>
@@ -92,6 +81,7 @@ public static class Loader
             yield return null;
         }
 
+        Reset();
         Debug.Log("Current Scene: " + SceneManager.GetActiveScene().name);
     }
 
@@ -108,5 +98,10 @@ public static class Loader
         loadingAsyncOperation = null;
         targetScene = Scene.MainMenu;
         delayBeforeLoading = 0f;
+    }
+
+    public static bool IsGameScene()
+    {
+        return GetCurrentScene() != Scene.Empty && GetCurrentScene() > Scene.Loader;
     }
 }

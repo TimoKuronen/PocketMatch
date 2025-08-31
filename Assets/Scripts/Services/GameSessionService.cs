@@ -43,9 +43,5 @@ public class GameSessionService : IGameSessionService
             IsLevelDataLoaded = false;
         }
     }
-    public void Dispose() 
-    {
-        Loader.Reset();
-    }
-
+    public void Dispose() { }
 }

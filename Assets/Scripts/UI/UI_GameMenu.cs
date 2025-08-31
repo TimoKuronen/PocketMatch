@@ -76,7 +76,10 @@ public class UIManager : UIMenu
             {
                 foreach (var condition in levelManager.VictoryConditions.RequiredColorMatchCount)
                 {
-                    item.UpdateUI(condition.TileCount.ToString());
+                    if (item.TileType == condition.TileColor)
+                    {
+                        item.UpdateUI(condition.TileCount.ToString());
+                    }
                 }
             }
             else if (item.ConditionType == ConditionType.DestroyableTiles)
@@ -86,19 +89,31 @@ public class UIManager : UIMenu
         }
     }
 
+    /// <summary>
+    /// Called via UI Button
+    /// </summary>
     public void MenuButtonPressed()
     {
-
+        Debug.Log("Menu button pressed");
+        StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.MainMenu));
     }
 
+    /// <summary>
+    /// Called via UI Button
+    /// </summary>
     public void RestartButtonPressed()
     {
-
+        Debug.Log("Restart button pressed");
+        Loader.Restart();
     }
 
+    /// <summary>
+    /// Called via UI Button
+    /// </summary>
     public void NextLevelButtonPressed()
     {
-
+        Debug.Log("Next level button pressed");
+        StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
     }
 
     private void OnLevelWon()

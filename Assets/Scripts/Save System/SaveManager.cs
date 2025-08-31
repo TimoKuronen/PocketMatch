@@ -122,7 +122,7 @@ public class SaveManager : ISaveService
 
     public void Dispose()
     {
-        Debug.Log("Disposing SaveManager and saving data.");
+        //Debug.Log("Disposing SaveManager and saving data.");
     }
 
     private const int CurrentVersion = 1;

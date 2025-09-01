@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class ScoreManager : IScoreManager
 {
-    [field: SerializeField] public EventScoring EventScoring { get; private set; }
-
+    private EventScoring eventScoring;
     private int collectedScore;
 
     public void Initialize()
     {
         CoroutineMonoBehavior.Instance.StartCoroutine(SubscribeToEvents());
+
+        eventScoring = new EventScoring();
     }
 
     private IEnumerator SubscribeToEvents()
@@ -25,23 +26,24 @@ public class ScoreManager : IScoreManager
         switch (tilePowerType.Power)
         {
             case TilePower.Bomb:
-                collectedScore += EventScoring.pointsForBomb;
+                collectedScore += eventScoring.pointsForBomb;
                 break;
             case TilePower.RowClearer:
-                collectedScore += EventScoring.pointsForLineDestroyer;
+                collectedScore += eventScoring.pointsForLineDestroyer;
                 break;
             case TilePower.ColumnClearer:
-                collectedScore += EventScoring.pointsForLineDestroyer;
+                collectedScore += eventScoring.pointsForLineDestroyer;
                 break;
             case TilePower.Rainbow:
-                collectedScore += EventScoring.pointsForRainbow;
+                collectedScore += eventScoring.pointsForRainbow;
                 break;
         }
     }
 
     public int GetTotalScore() 
     {
-        collectedScore += Services.Get<ILevelManager>().MovesRemaining * EventScoring.pointsPerUnusedMovement;
+        collectedScore += Services.Get<ILevelManager>().MovesRemaining * eventScoring.pointsPerUnusedMovement;
+
         return collectedScore; 
     }
 
@@ -51,7 +53,6 @@ public class ScoreManager : IScoreManager
     }
 }
 
-[Serializable]
 public class EventScoring
 {
     public int pointsForLineDestroyer = 1;

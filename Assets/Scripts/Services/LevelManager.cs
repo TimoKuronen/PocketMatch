@@ -46,6 +46,7 @@ public class LevelManager : ILevelManager
         GridController.Instance.ActionTaken += OnActionTaken;
         GridController.Instance.BoardUpdated += CheckVictoryConditions;
         GridController.Instance.TileDestroyed += OnTileDestroyed;
+        GridController.Instance.GridContext.OnDestroy += OnTileDestroyed;
     }
 
     private void OnTileDestroyed(TileData data)
@@ -120,7 +121,7 @@ public class LevelManager : ILevelManager
 
     private void ToggleWinEvent()
     {
-        if(Services.Get<IGameSessionService>().LevelCapReached)
+        if (Services.Get<IGameSessionService>().LevelCapReached)
         {
             Debug.Log("Level cap reached, not incrementing level index.");
             LevelWon?.Invoke();
@@ -144,6 +145,17 @@ public class LevelManager : ILevelManager
         GridController.Instance.ActionTaken -= OnActionTaken;
         GridController.Instance.BoardUpdated -= CheckVictoryConditions;
         GridController.Instance.TileDestroyed -= OnTileDestroyed;
+        GridController.Instance.GridContext.OnDestroy -= OnTileDestroyed;
+    }
+
+    private void RecordLevelDataForAnalytics()
+    {
+        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelCompleted, new System.Collections.Generic.Dictionary<string, object>
+        {
+            { "level_name", LocalMapData.name },
+            { "moves_spent", LocalMapData.VictoryConditions.MoveLimit - MovesRemaining },
+            { "total_score", Services.Get<IScoreManager>().GetTotalScore() }
+        });
     }
 
     public void Update()
@@ -160,6 +172,7 @@ public class LevelManager : ILevelManager
 
         if (Input.GetKeyDown(KeyCode.R))
         {
+            Debug.Log("Resetting savedata");
             Loader.Reset();
         }
     }

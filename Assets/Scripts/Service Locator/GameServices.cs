@@ -17,6 +17,9 @@ public class GameServices : Services
         var levelManager = new LevelManager();
         AddService<ILevelManager>(levelManager);
 
+        var scoreManager = new ScoreManager();
+        AddService<IScoreManager>(scoreManager);
+
         foreach (var service in serviceMap.Values)
         {
             service.Initialize();

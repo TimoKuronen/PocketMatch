@@ -6,14 +6,15 @@ using UnityEngine;
 
 public class UIManager : UIMenu
 {
-    [SerializeField] GameObject winPanel;
-    [SerializeField] GameObject losePanel;
+    [SerializeField] private GameObject winPanel;
+    [SerializeField] private GameObject losePanel;
 
     [SerializeField] private TileIconCollection tileIconCollection;
     [SerializeField] private VictoryConditionUI victoryConditionPrefab;
     [SerializeField] private Transform victoryConditionsContainer;
     [SerializeField] private ColorPalette colorPalette;
     [SerializeField] private TextMeshProUGUI movesText;
+    [SerializeField] private TextMeshProUGUI coinCountText;
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
@@ -125,6 +126,7 @@ public class UIManager : UIMenu
             item.gameObject.SetActive(false);
         }
 
+        coinCountText.text = "x " + Services.Get<IScoreManager>().GetTotalScore().ToString();
         movesText.gameObject.SetActive(false);
     }
 

@@ -27,7 +27,7 @@ public class GameSessionService : IGameSessionService
         try
         {
             // Load all resource locations that match the pattern
-            var handle = Addressables.LoadResourceLocationsAsync("MapData_", typeof(MapData));
+            var handle = Addressables.LoadResourceLocationsAsync("Levels", typeof(MapData));
 
             // Wait for the operation to complete
             await handle.Task;

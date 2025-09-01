@@ -3,11 +3,11 @@ using UnityEngine;
 
 public class UI_MainMenu : UIMenu
 {
-    [SerializeField] GameObject levelPanel;
-    [SerializeField] GameObject settingsPanel;
-    [SerializeField] TextMeshProUGUI versionText;
-    [SerializeField] TextMeshProUGUI coinCountText;
-    [SerializeField] TextMeshProUGUI levelText;
+    [SerializeField] private GameObject levelPanel;
+    [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private TextMeshProUGUI versionText;
+    [SerializeField] private TextMeshProUGUI coinCountText;
+    [SerializeField] private TextMeshProUGUI levelText;
 
     private ISaveService saveService;
     private int levelIndex;

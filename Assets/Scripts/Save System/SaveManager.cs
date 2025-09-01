@@ -15,7 +15,6 @@ public class SaveManager : ISaveService
 
     public void Initialize()
     {
-        Debug.Log("Initializing SaveManager");  
         Load();
     }
 
@@ -28,8 +27,6 @@ public class SaveManager : ISaveService
         {
             PlayerData = DataMigrator.Migrate(PlayerData, PlayerData.meta.saveVersion, CurrentVersion);
         }
-
-        Debug.Log($"SaveManager initialized. Save file: {PlayerData}");
     }
 
     public void Save()

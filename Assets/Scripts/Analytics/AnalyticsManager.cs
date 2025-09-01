@@ -1,6 +1,5 @@
-//#if FIREBASE_INSTALLED
+using Firebase;
 using Firebase.Analytics;
-//#endif
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,13 +7,24 @@ public class AnalyticsManager : IAnalyticsManager
 {
     public void Initialize()
     {
-
+        FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
+        {
+            var status = task.Result;
+            if (status == DependencyStatus.Available)
+            {
+                FirebaseAnalytics.LogEvent("app_started");
+            }
+            else
+            {
+                Debug.LogError("Firebase dependencies not resolved: " + status);
+            }
+        });
     }
 
     public void LogEvent(string eventName, Dictionary<string, object> parameters = null)
     {
         Debug.Log($"[AnalyticsManager] LogEvent: {eventName}");
-        //#if FIREBASE_INSTALLED
+
         if (parameters == null || parameters.Count == 0)
         {
             FirebaseAnalytics.LogEvent(eventName);
@@ -32,9 +42,6 @@ public class AnalyticsManager : IAnalyticsManager
             }
             FirebaseAnalytics.LogEvent(eventName, paramList.ToArray());
         }
-//#else
-   //     Debug.LogError("[FirebaseAnalyticsService] Firebase not installed.");
-//#endif
     }
 
     public void Dispose()

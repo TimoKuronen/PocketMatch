@@ -128,6 +128,7 @@ public class LevelManager : ILevelManager
         }
 
         saveService.PlayerData.nextLevelIndex++;
+        saveService.PlayerData.coins += Services.Get<IScoreManager>().GetTotalScore();
         saveService.Save();
 
         LevelWon?.Invoke();

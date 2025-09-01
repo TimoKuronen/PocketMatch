@@ -40,7 +40,7 @@ public class GridController : MonoBehaviour
     public event Action TileDrop;
     public event Action<TileData> TileDestroyed;
     public event Action<TileData[,]> BoardUpdated;
-    public event Action PowerTileCreated;
+    public event Action<TileData> PowerTileCreated;
 
     private void Awake()
     {
@@ -254,16 +254,12 @@ public class GridController : MonoBehaviour
                 (origin, type, power) =>
                 {
                     var newData = new TileData(type, origin, power);
-                    powerTilePositions.Add(origin); // Directly add the position to the HashSet
+                    powerTilePositions.Add(origin); 
+                    PowerTileCreated?.Invoke(newData);
+
                     return newData;
                 }
             );
-
-            if (powerTilePositions.Count > 0)
-            {
-                Debug.Log($"Creating {powerTilePositions.Count} power tiles from matches.");
-                PowerTileCreated?.Invoke();
-            }
 
             // Execute the power tile command immediately
             yield return createPowerTileCommand.Execute();

@@ -54,7 +54,7 @@ public class GridAudioPlayer : MonoBehaviour
         }
     }
 
-    private void PlayPowerTileCreationAudio()
+    private void PlayPowerTileCreationAudio(TileData tileData)
     {
         soundManager.Play(powerTileCreation, audioSource);
     }

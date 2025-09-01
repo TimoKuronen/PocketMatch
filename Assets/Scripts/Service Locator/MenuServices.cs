@@ -11,6 +11,9 @@ public class MenuServices : Services
         var saveService = new SaveManager();
         AddService<ISaveService>(saveService);
 
+        var analyticsManager = new AnalyticsManager();
+        AddService<IAnalyticsManager>(analyticsManager, isGlobal: true);
+
         foreach (var service in serviceMap.Values)
         {
             service.Initialize();

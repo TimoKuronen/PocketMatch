@@ -1,16 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class FirebaseInitializer : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Awake()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Services.Get<IAnalyticsManager>().LogEvent("session_started", new Dictionary<string, object>
+        {
+            { "device", SystemInfo.deviceModel },
+            { "appVersion", Application.version }
+        });
     }
 }

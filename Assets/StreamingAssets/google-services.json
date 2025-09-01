@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "199631974431",
+    "project_id": "pocketmatch-vantaa",
+    "storage_bucket": "pocketmatch-vantaa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:199631974431:android:0214113b140df16d7aa52a",
+        "android_client_info": {
+          "package_name": "com.TimoKuronen.PocketMatch"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeUbtyQhB1JXJmy0PciiFR3oX1E0bt5GQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

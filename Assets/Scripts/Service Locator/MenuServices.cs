@@ -14,6 +14,11 @@ public class MenuServices : Services
         var analyticsManager = new AnalyticsManager();
         AddService<IAnalyticsManager>(analyticsManager, isGlobal: true);
 
+        foreach (var globalService in globalServices.Values)
+        {
+            globalService.Initialize();
+        }
+
         foreach (var service in serviceMap.Values)
         {
             service.Initialize();

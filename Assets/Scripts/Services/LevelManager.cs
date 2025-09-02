@@ -21,12 +21,6 @@ public class LevelManager : ILevelManager
         CoroutineMonoBehavior.Instance.StartCoroutine(GameTimer());
 
         saveService = Services.Get<ISaveService>();
-
-        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelStarted, new System.Collections.Generic.Dictionary<string, object>
-        {
-            { "level_name", Services.Get<IGameSessionService>().CurrentMapData.name },
-            { "level_index", saveService.PlayerData.nextLevelIndex + 1 }
-        });
     }
 
     private IEnumerator SetLevelData()
@@ -49,6 +43,12 @@ public class LevelManager : ILevelManager
         yield return new WaitUntil(() => GridController.Instance != null);
 
         SubscribeToEvents();
+
+        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelStarted, new System.Collections.Generic.Dictionary<string, object>
+        {
+            { "level_name", Services.Get<IGameSessionService>().CurrentMapData.name },
+            { "level_index", saveService.PlayerData.nextLevelIndex + 1 }
+        });
     }
 
     private IEnumerator GameTimer()

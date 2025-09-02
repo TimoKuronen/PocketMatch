@@ -1,5 +1,6 @@
 using Firebase;
 using Firebase.Analytics;
+using Firebase.Extensions;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,7 +8,7 @@ public class AnalyticsManager : IAnalyticsManager
 {
     public void Initialize()
     {
-        FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
+        FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
         {
             var status = task.Result;
             if (status == DependencyStatus.Available)

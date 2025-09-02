@@ -10,13 +10,23 @@ public class LevelManager : ILevelManager
     public Action<LevelManager> VictoryConditionsUpdated { get; set; }
     public Action LevelWon { get; set; }
     public Action LevelLost { get; set; }
+    public int GameTimeInSeconds { get; private set; }
 
     private ISaveService saveService;
+    private bool gameInProgress = true;
 
     public void Initialize()
     {
         CoroutineMonoBehavior.Instance.StartCoroutine(SetLevelData());
+        CoroutineMonoBehavior.Instance.StartCoroutine(GameTimer());
+
         saveService = Services.Get<ISaveService>();
+
+        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelStarted, new System.Collections.Generic.Dictionary<string, object>
+        {
+            { "level_name", Services.Get<IGameSessionService>().CurrentMapData.name },
+            { "level_index", saveService.PlayerData.nextLevelIndex + 1 }
+        });
     }
 
     private IEnumerator SetLevelData()
@@ -39,6 +49,16 @@ public class LevelManager : ILevelManager
         yield return new WaitUntil(() => GridController.Instance != null);
 
         SubscribeToEvents();
+    }
+
+    private IEnumerator GameTimer()
+    {
+        GameTimeInSeconds = 0;
+        while (true)
+        {
+            yield return new WaitForSeconds(1f);
+            GameTimeInSeconds++;
+        }
     }
 
     private void SubscribeToEvents()
@@ -128,15 +148,34 @@ public class LevelManager : ILevelManager
             return;
         }
 
+        gameInProgress = false;
+
         saveService.PlayerData.nextLevelIndex++;
         saveService.PlayerData.coins += Services.Get<IScoreManager>().GetTotalScore();
         saveService.Save();
+
+        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelCompleted, new System.Collections.Generic.Dictionary<string, object>
+        {
+            { "level_name", LocalMapData.name },
+            { "moves_spent", LocalMapData.VictoryConditions.MoveLimit - MovesRemaining },
+            { "total_score", Services.Get<IScoreManager>().GetTotalScore() },
+            { "moves_spent", LocalMapData.VictoryConditions.MoveLimit - MovesRemaining },
+            { "matchDuration", GameTimeInSeconds }
+        });
 
         LevelWon?.Invoke();
     }
 
     private void ToggleLoseEvent()
     {
+        gameInProgress = false;
+
+        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelFailed, new System.Collections.Generic.Dictionary<string, object>
+        {
+            { "level_name", LocalMapData.name },
+            { "matchDuration", GameTimeInSeconds }
+        });
+
         LevelLost?.Invoke();
     }
 
@@ -150,12 +189,7 @@ public class LevelManager : ILevelManager
 
     private void RecordLevelDataForAnalytics()
     {
-        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelCompleted, new System.Collections.Generic.Dictionary<string, object>
-        {
-            { "level_name", LocalMapData.name },
-            { "moves_spent", LocalMapData.VictoryConditions.MoveLimit - MovesRemaining },
-            { "total_score", Services.Get<IScoreManager>().GetTotalScore() }
-        });
+
     }
 
     public void Update()

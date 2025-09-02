@@ -6,6 +6,7 @@ public static class AnalyticsEvents
     public const string LevelFailed = "level_failed";
     public const string TileMatched = "tile_matched";
     public const string BoosterUsed = "booster_used";
+    public const string MatchDuration = "match_duration";
 
     // Economy
     public const string CoinsEarned = "coins_earned";

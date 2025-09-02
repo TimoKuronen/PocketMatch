@@ -11,4 +11,13 @@ public class FirebaseInitializer : MonoBehaviour
             { "appVersion", Application.version }
         });
     }
+
+    void OnApplicationQuit()
+    {
+        Services.Get<IAnalyticsManager>().LogEvent("session_ended", new Dictionary<string, object>
+        {
+            { "device", SystemInfo.deviceModel },
+            { "appVersion", Application.version }
+        });
+    }
 }

@@ -187,11 +187,6 @@ public class LevelManager : ILevelManager
         GridController.Instance.GridContext.OnDestroy -= OnTileDestroyed;
     }
 
-    private void RecordLevelDataForAnalytics()
-    {
-
-    }
-
     public void Update()
     {
         if (Input.GetKeyDown(KeyCode.W))

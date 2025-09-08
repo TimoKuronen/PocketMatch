@@ -24,6 +24,7 @@ public class AnalyticsManager : IAnalyticsManager
 
     public void LogEvent(string eventName, Dictionary<string, object> parameters = null)
     {
+        return;
         Debug.Log($"[AnalyticsManager] LogEvent: {eventName}");
 
         if (parameters == null || parameters.Count == 0)

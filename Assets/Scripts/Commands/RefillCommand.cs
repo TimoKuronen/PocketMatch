@@ -13,6 +13,8 @@ public class RefillCommand : ICommand
     private readonly Func<Vector2Int, Vector3> GridToWorldPos;
     private readonly Action TileDrop;
 
+    private const float refillDuration = 0.25f;
+
     public RefillCommand(TileData[,] data, TileView[,] views, int w, int h,
         Func<int, int, TileView> createFn,
         Func<Vector2Int, Vector3> toWorldFn,
@@ -35,30 +37,31 @@ public class RefillCommand : ICommand
         {
             for (int y = 0; y < height; y++)
             {
-                var data = gridData[x, y];
-
-                if (!IsRefillable(data) || gridViews[x, y] != null)
+                if (!IsRefillable(x, y) || gridViews[x, y] != null)
                     continue;
 
                 var view = CreateTileAt(x, y);
-                var spawnPos = GridToWorldPos(new Vector2Int(x, height + 3));
+                var spawnPos = GridToWorldPos(new Vector2Int(x, height + 2));
                 var targetPos = GridToWorldPos(new Vector2Int(x, y));
 
                 view.transform.position = spawnPos;
                 view.transform.DOKill();
-                tweens.Add(view.transform.DOMove(targetPos, 0.25f).SetEase(Ease.OutCubic));
+                tweens.Add(view.transform.DOMove(targetPos, refillDuration).SetEase(Ease.OutCubic));
 
                 TileDrop?.Invoke();
             }
         }
 
         yield return tweens.Count > 0
-            ? DOTween.Sequence().AppendInterval(0.25f).WaitForCompletion()
+            ? DOTween.Sequence().AppendInterval(refillDuration).WaitForCompletion()
             : null;
     }
 
-    private bool IsRefillable(TileData data)
+    private bool IsRefillable(int x, int y)
     {
+        if (!InBounds(x, y)) return false;
+
+        var data = gridData[x, y];
         if (data == null || data.State == TileState.Empty)
             return true;
 
@@ -67,4 +70,6 @@ public class RefillCommand : ICommand
 
         return false;
     }
+
+    private bool InBounds(int x, int y) => x >= 0 && x < width && y >= 0 && y < height;
 }

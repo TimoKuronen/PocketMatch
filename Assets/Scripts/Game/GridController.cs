@@ -232,67 +232,65 @@ public class GridController : MonoBehaviour
 
     private IEnumerator MatchCycle()
     {
-        TileSwapped?.Invoke();
-        yield return new WaitForSeconds(0.1f);
+        isProcessingTiles = true;
 
-        while (true)
+        bool changed;
+
+        do
         {
-            yield return new WaitUntil(() => commandInvoker.IsEmpty());
+            changed = false;
+
+            // --- 1. Drop existing tiles ---
+            yield return new DropCommand(gridData, gridViews, width, height, GridToWorldPos).Execute();
+
+            // --- 2. Refill empty cells ---
+            yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToWorldPos, TileDrop).Execute();
+
+            // Wait for animations
             yield return new WaitUntil(() => !AnyTileTweening());
 
+            // --- 3. Find matches ---
             var matchGroups = MatchFinder.GetMatchGroups(gridData);
-            if (matchGroups.Count == 0)
-                break;
+            if (matchGroups.Count > 0)
+            {
+                changed = true;
 
-            var destroyedNeighbours = AdjacentDamageProcessor.GetAdjacentDestroyables(matchGroups, gridData);
+                // Adjacent destroyables
+                var destroyedNeighbours = AdjacentDamageProcessor.GetAdjacentDestroyables(matchGroups, gridData);
 
-            // List to keep track of power tile positions
-            var powerTilePositions = new HashSet<Vector2Int>();
+                // Track power tile creation
+                var powerTilePositions = new HashSet<Vector2Int>();
 
-            // Create and execute the CreatePowerTileCommand
-            var createPowerTileCommand = new CreatePowerTileCommand(matchGroups, gridData, gridViews, MatchFinder.DetermineMatchShape,
-                (origin, type, power) =>
-                {
-                    var newData = new TileData(type, origin, power);
-                    powerTilePositions.Add(origin); 
-                    PowerTileCreated?.Invoke(newData);
+                var createPowerTileCommand = new CreatePowerTileCommand(
+                    matchGroups, gridData, gridViews, MatchFinder.DetermineMatchShape,
+                    (origin, type, power) =>
+                    {
+                        var newData = new TileData(type, origin, power);
+                        powerTilePositions.Add(origin);
+                        PowerTileCreated?.Invoke(newData);
+                        return newData;
+                    }
+                );
 
-                    return newData;
-                }
-            );
+                // Execute power tile creation immediately
+                yield return createPowerTileCommand.Execute();
 
-            // Execute the power tile command immediately
-            yield return createPowerTileCommand.Execute();
+                // Filter matches (exclude power tile positions)
+                var flatMatches = matchGroups
+                    .SelectMany(g => g)
+                    .Distinct()
+                    .Where(pos => !powerTilePositions.Contains(pos))
+                    .Concat(destroyedNeighbours)
+                    .Distinct()
+                    .ToList();
 
-            // Filter out power tile positions from the destruction list
-            var flatMatches = matchGroups
-                .SelectMany(g => g) // Flatten all match groups into a single sequence of tile positions
-                .Distinct() // Remove any duplicate tile positions
-                .Where(pos => !powerTilePositions.Contains(pos)) // Exclude positions of power tiles we just created
-                .Concat(destroyedNeighbours) // Add tiles that should be destroyed due to adjacency or other effects
-                .Distinct() // Remove duplicates again (some neighbours may already be in matches)
-                .ToList(); // Materialize into a List<Vector2Int>
+                // Destroy tiles
+                yield return new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext).Execute();
+            }
 
-            commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext));
-            commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
-            commandInvoker.ExecuteAll();
-        }
-
-        commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToWorldPos, TileDrop));
-        commandInvoker.ExecuteAll();
-
-        yield return new WaitUntil(() => commandInvoker.IsEmpty());
-        yield return new WaitUntil(() => !AnyTileTweening());
-
-        var refillMatches = MatchFinder.GetMatchGroups(gridData);
-        if (refillMatches.Count > 0)
-        {
-            StartCoroutine(MatchCycle());
-            yield break;
-        }
+        } while (changed);
 
         isProcessingTiles = false;
-        //Debug.Log("Match cycle complete, no more matches found.");
         BoardUpdated?.Invoke(gridData);
     }
 
@@ -307,6 +305,37 @@ public class GridController : MonoBehaviour
                     return true;
             }
         }
+        return false;
+    }
+    private bool HasEmptyCells()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                if (IsCellEmpty(x, y))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private bool IsCellEmpty(int x, int y)
+    {
+        var view = gridViews[x, y];
+        var data = gridData[x, y];
+
+        // If there's any view that represents a tile/obstacle, it's not empty.
+        if (view != null && view.Data != null && view.Data.State != TileState.Empty)
+            return false;
+
+        // No view or view is just an empty slot; check data.
+        if (data == null || data.State == TileState.Empty)
+            return true;
+
+        if (data.State == TileState.Destroyable && data is DestroyableTileData destroyable)
+            return destroyable.IsDestroyed;
+
         return false;
     }
 

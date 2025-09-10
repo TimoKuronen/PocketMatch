@@ -277,12 +277,12 @@ public class GridController : MonoBehaviour
 
                 // Filter matches (exclude power tile positions)
                 var flatMatches = matchGroups
-                    .SelectMany(g => g)
-                    .Distinct()
-                    .Where(pos => !powerTilePositions.Contains(pos))
-                    .Concat(destroyedNeighbours)
-                    .Distinct()
-                    .ToList();
+                    .SelectMany(g => g) // Flatten all match groups into a single sequence of tile positions
+                    .Distinct() // Remove any duplicate tile positions
+                    .Where(pos => !powerTilePositions.Contains(pos)) // Exclude positions of power tiles we just created
+                    .Concat(destroyedNeighbours) // Add tiles that should be destroyed due to adjacency or other effects
+                    .Distinct() // Remove duplicates again (some neighbours may already be in matches)
+                    .ToList(); // Materialize into a List<Vector2Int>
 
                 // Destroy tiles
                 yield return new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext).Execute();
@@ -307,41 +307,27 @@ public class GridController : MonoBehaviour
         }
         return false;
     }
-    private bool HasEmptyCells()
-    {
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                if (IsCellEmpty(x, y))
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    private bool IsCellEmpty(int x, int y)
-    {
-        var view = gridViews[x, y];
-        var data = gridData[x, y];
-
-        // If there's any view that represents a tile/obstacle, it's not empty.
-        if (view != null && view.Data != null && view.Data.State != TileState.Empty)
-            return false;
-
-        // No view or view is just an empty slot; check data.
-        if (data == null || data.State == TileState.Empty)
-            return true;
-
-        if (data.State == TileState.Destroyable && data is DestroyableTileData destroyable)
-            return destroyable.IsDestroyed;
-
-        return false;
-    }
 
     private TileView CreateTileAt(int x, int y)
     {
         var data = gridData[x, y];
+        if (data == null)
+        {
+            Debug.Log($"Attempted to create tile at ({x}, {y}) but gridData is null.");
+
+            for (int i = 0; i < gridData.GetLength(0); i++)
+            {
+                for (int z = 0; z < gridData.GetLength(1); z++)
+                {
+                    if (data == null)
+                    {
+                        Debug.Log($"Tile is null or blocked");
+                    }
+                    else Debug.Log($"Tile is normal");
+                }
+            }
+            return null;
+        }
         data.State = TileState.Normal;
         data.Type = GetRandomTileType();
 
@@ -377,7 +363,7 @@ public class GridController : MonoBehaviour
         GenerateGrid(true);
     }
 
-    public void GenerateGrid(bool allowMatches)
+    private void GenerateGrid(bool allowMatches)
     {
         ClearBoard();
 

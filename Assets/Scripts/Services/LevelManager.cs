@@ -159,7 +159,6 @@ public class LevelManager : ILevelManager
             { "level_name", LocalMapData.name },
             { "moves_spent", LocalMapData.VictoryConditions.MoveLimit - MovesRemaining },
             { "total_score", Services.Get<IScoreManager>().GetTotalScore() },
-            { "moves_spent", LocalMapData.VictoryConditions.MoveLimit - MovesRemaining },
             { "matchDuration", GameTimeInSeconds }
         });
 

@@ -35,9 +35,13 @@ public class RefillCommand : ICommand
 
         for (int x = 0; x < width; x++)
         {
-            for (int y = 0; y < height; y++)
+            for (int y = height - 1; y >= 0; y--) // top to bottom
             {
                 if (!IsRefillable(x, y) || gridViews[x, y] != null)
+                    continue;
+
+                // Only spawn if path from top is clear (no obstacles above this cell)
+                if (!HasClearPathAbove(x, y))
                     continue;
 
                 var view = CreateTileAt(x, y);
@@ -69,6 +73,19 @@ public class RefillCommand : ICommand
             return destroyable.IsDestroyed;
 
         return false;
+    }
+
+    private bool HasClearPathAbove(int x, int y)
+    {
+        for (int checkY = y + 1; checkY < height; checkY++)
+        {
+            var data = gridData[x, checkY];
+            if (data is { State: TileState.Blocked })
+                return false;
+            if (data.State == TileState.Destroyable && data is DestroyableTileData destroyable && !destroyable.IsDestroyed)
+                return false;
+        }
+        return true;
     }
 
     private bool InBounds(int x, int y) => x >= 0 && x < width && y >= 0 && y < height;

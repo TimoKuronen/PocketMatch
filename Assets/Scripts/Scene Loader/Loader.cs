@@ -26,6 +26,7 @@ public static class Loader
 
         yield return new WaitForSecondsRealtime(delay);
 
+        Reset();
         targetScene = scene;
         Debug.Log("Loading scene: " + scene);
         SceneManager.LoadScene(Scene.Loader.ToString());

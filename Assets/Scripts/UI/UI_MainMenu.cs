@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -18,9 +19,19 @@ public class UI_MainMenu : UIMenu
         settingsPanel.SetActive(false);
 
         saveService = Services.Get<ISaveService>();
+        if(saveService == null)
+        {
+            InvokeRepeating(nameof(WaitForSaveService), 1f, 1f);
+            return;
+        }
         levelIndex = saveService.PlayerData.nextLevelIndex;
 
         LoadInitialValues();
+    }
+
+    private void WaitForSaveService()
+    {
+        Debug.Log(Services.Get<ISaveService>());
     }
 
     private void LoadInitialValues()

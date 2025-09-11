@@ -1,28 +1,15 @@
+using UnityEngine;
+
 public class GameServices : Services
 {
-    protected override void Initialize()
+    protected override void InitializeSceneServices()
     {
-        var inputManager = new InputService();
-        AddService<IInputService>(inputManager);
+        AddSceneService<IInputService>(new InputService());
+        AddSceneService<ISaveService>(new SaveManager());
+        AddSceneService<IGameSessionService>(new GameSessionService());
+        AddSceneService<ILevelManager>(new LevelManager());
+        AddSceneService<IScoreManager>(new ScoreManager());
 
-        var soundManager = new SoundManager();
-        AddService<ISoundManager>(soundManager);
-
-        var saveService = new SaveManager();
-        AddService<ISaveService>(saveService);
-
-        var GamesessionService = new GameSessionService();
-        AddService<IGameSessionService>(GamesessionService);
-
-        var levelManager = new LevelManager();
-        AddService<ILevelManager>(levelManager);
-
-        var scoreManager = new ScoreManager();
-        AddService<IScoreManager>(scoreManager);
-
-        foreach (var service in serviceMap.Values)
-        {
-            service.Initialize();
-        }
+        InitializeAllSceneServices();
     }
 }

@@ -20,9 +20,6 @@ public class GameServices : Services
         var scoreManager = new ScoreManager();
         AddService<IScoreManager>(scoreManager);
 
-        var analyticsManager = new AnalyticsManager();
-        AddService<IAnalyticsManager>(analyticsManager, isGlobal: true);
-
         foreach (var service in serviceMap.Values)
         {
             service.Initialize();

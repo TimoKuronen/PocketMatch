@@ -31,6 +31,8 @@ public abstract class Services : MonoBehaviour
         }
     }
 
+    public static bool AreGlobalServicesInitialized => globalServices.Count > 0;
+
     /// <summary>
     /// Initialize is called before all other awake methods in the game.
     /// This is where you should set up all services.
@@ -59,7 +61,7 @@ public abstract class Services : MonoBehaviour
                 serviceMap[key] = service;
         }
 
-        //Debug.Log($"Adding service from MonoBehaviour: {service.GetType().Name}");
+        Debug.Log($"Adding service from MonoBehaviour: {service.GetType().Name}");
 
         if (service is IUpdateableService updateableService)
             updateableServices.Add(updateableService);

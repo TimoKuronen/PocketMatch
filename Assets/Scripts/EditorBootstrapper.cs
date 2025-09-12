@@ -6,17 +6,19 @@ using UnityEngine;
 [InitializeOnLoad]
 public static class EditorBootstrapper
 {
+    private const string LoaderScenePath = "Assets/_Project/Scenes/Loader.unity";
+
     static EditorBootstrapper()
     {
-        var loaderScene = AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/_Project/Scenes/Loader.unity");
+        var loaderScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(LoaderScenePath);
         if (loaderScene != null)
         {
             EditorSceneManager.playModeStartScene = loaderScene;
-            Debug.Log("[EditorBootstrapper] Play mode start scene forced to Loader.");
+            Debug.Log($"[EditorBootstrapper] Play mode start scene set to Loader ({LoaderScenePath}).");
         }
         else
         {
-            Debug.LogError("Loader scene not found at 'Assets/Scenes/Loader.unity'!");
+            Debug.LogError($"[EditorBootstrapper] Loader scene not found at '{LoaderScenePath}'!");
         }
     }
 }

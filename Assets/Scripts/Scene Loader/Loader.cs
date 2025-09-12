@@ -12,55 +12,54 @@ public static class Loader
         Loader,
         PlayScene
     }
-
     public static event Action OnSceneLoadStarted;
-
     private static AsyncOperation loadingAsyncOperation;
-    private static Scene targetScene = Scene.MainMenu;
-
+    private static Scene? targetScene = null;
     private static float delayBeforeLoading = 0f;
 
     public static IEnumerator CallDelayedLoad(Scene scene, float delay = 0f)
     {
         OnSceneLoadStarted?.Invoke();
-
         yield return new WaitForSecondsRealtime(delay);
-
-        Reset();
         targetScene = scene;
-        Debug.Log("Loading scene: " + scene);
+        Debug.Log($"[Loader] Loading scene via Loader: {scene}");
         SceneManager.LoadScene(Scene.Loader.ToString());
     }
 
-    /// <summary>
-    /// Call the loader callback when the loading scene is fully loaded.
-    /// </summary>
     public static void LoaderCallback()
     {
-        GameObject loadingGameObject = new GameObject("Loading Game Object");
-        loadingGameObject.AddComponent<CoroutineMonoBehavior>().StartCoroutine(LoadSceneAsync(targetScene, delayBeforeLoading));
+        if (!targetScene.HasValue)
+        {
+#if UNITY_EDITOR
+            Scene currentScene = GetCurrentScene();
+            if (currentScene != Scene.Loader)
+            {
+                targetScene = currentScene;
+            }
+            else
+            {
+                targetScene = Scene.MainMenu;
+            }
+#else
+            targetScene = Scene.MainMenu;
+#endif
+        }
+        GameObject go = new GameObject("LoaderRunner");
+        go.AddComponent<CoroutineMonoBehavior>()
+            .StartCoroutine(LoadSceneAsync(targetScene.Value, delayBeforeLoading));
     }
 
-    /// <summary>
-    /// Reload the current scene.
-    /// </summary>
     public static void Restart()
     {
         Scene currentScene = GetCurrentScene();
-        CallDelayedLoad(currentScene, 1);
+        CoroutineMonoBehavior.RunStatic(CallDelayedLoad(currentScene, 1));
     }
 
-    /// <summary>
-    /// Get the currently active scene as an enum.
-    /// </summary>
     public static Scene GetCurrentScene()
     {
         string sceneName = SceneManager.GetActiveScene().name;
         if (Enum.TryParse(sceneName, out Scene sceneEnum))
-        {
             return sceneEnum;
-        }
-
         return default;
     }
 
@@ -68,37 +67,26 @@ public static class Loader
     {
         OnSceneLoadStarted?.Invoke();
 
-        Debug.Log("Begin loading scene: " + scene);
-
+        Debug.Log($"[Loader] Begin async load: {scene}");
         if (delay > 0)
-        {
             yield return new WaitForSecondsRealtime(delay);
-        }
 
         loadingAsyncOperation = SceneManager.LoadSceneAsync(scene.ToString());
 
         while (!loadingAsyncOperation.isDone)
-        {
             yield return null;
-        }
+        
+        loadingAsyncOperation = null;
+        Debug.Log($"[Loader] Finished loading: {SceneManager.GetActiveScene().name}");
 
-        Reset();
-        Debug.Log("Current Scene: " + SceneManager.GetActiveScene().name);
+        targetScene = null;
+
+        Debug.Log(targetScene);
     }
 
-    /// <summary>
-    /// Get loading progress (0 to 1).
-    /// </summary>
     public static float GetLoadingProgress()
     {
         return loadingAsyncOperation?.progress ?? 1f;
-    }
-
-    public static void Reset()
-    {
-        loadingAsyncOperation = null;
-        targetScene = Scene.MainMenu;
-        delayBeforeLoading = 0f;
     }
 
     public static bool IsGameScene()

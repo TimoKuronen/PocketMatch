@@ -197,11 +197,5 @@ public class LevelManager : ILevelManager
         {
             ToggleLoseEvent();
         }
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            Debug.Log("Resetting savedata");
-            Loader.Reset();
-        }
     }
 }

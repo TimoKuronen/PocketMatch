@@ -13,6 +13,7 @@ public static class Loader
         PlayScene
     }
     public static event Action OnSceneLoadStarted;
+
     private static AsyncOperation loadingAsyncOperation;
     private static Scene? targetScene = null;
     private static float delayBeforeLoading = 0f;
@@ -20,9 +21,11 @@ public static class Loader
     public static IEnumerator CallDelayedLoad(Scene scene, float delay = 0f)
     {
         OnSceneLoadStarted?.Invoke();
+
         yield return new WaitForSecondsRealtime(delay);
+
         targetScene = scene;
-        Debug.Log($"[Loader] Loading scene via Loader: {scene}");
+        //Debug.Log($"[Loader] Loading scene via Loader: {scene}");
         SceneManager.LoadScene(Scene.Loader.ToString());
     }
 
@@ -31,7 +34,13 @@ public static class Loader
         if (!targetScene.HasValue)
         {
 #if UNITY_EDITOR
-            Scene currentScene = GetCurrentScene();
+
+            Scene currentScene = Scene.MainMenu;
+            string sceneName = EditorBootstrapper.CurrentSceneName;
+
+            if (Enum.TryParse(sceneName, out Scene sceneEnum))
+                currentScene = sceneEnum;
+
             if (currentScene != Scene.Loader)
             {
                 targetScene = currentScene;
@@ -44,7 +53,9 @@ public static class Loader
             targetScene = Scene.MainMenu;
 #endif
         }
+
         GameObject go = new GameObject("LoaderRunner");
+        UnityEngine.Object.DontDestroyOnLoad(go);
         go.AddComponent<CoroutineMonoBehavior>()
             .StartCoroutine(LoadSceneAsync(targetScene.Value, delayBeforeLoading));
     }
@@ -67,7 +78,7 @@ public static class Loader
     {
         OnSceneLoadStarted?.Invoke();
 
-        Debug.Log($"[Loader] Begin async load: {scene}");
+       // Debug.Log($"2. [Loader] Begin async load: {scene}");
         if (delay > 0)
             yield return new WaitForSecondsRealtime(delay);
 
@@ -75,13 +86,13 @@ public static class Loader
 
         while (!loadingAsyncOperation.isDone)
             yield return null;
-        
+
         loadingAsyncOperation = null;
-        Debug.Log($"[Loader] Finished loading: {SceneManager.GetActiveScene().name}");
+        //Debug.Log($"3. [Loader] Finished loading: {targetScene}");
 
         targetScene = null;
 
-        Debug.Log(targetScene);
+        //Debug.Log("4. resetting: " + targetScene);
     }
 
     public static float GetLoadingProgress()

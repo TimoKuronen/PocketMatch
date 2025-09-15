@@ -10,16 +10,16 @@ public class GameSessionService : IGameSessionService
     private ISaveService saveService;
     public MapData CurrentMapData { get; private set; }
     public bool IsLevelDataLoaded { get; private set; }
-    public bool LevelCapReached { get; private set; }
+    public bool IsLevelCapReached { get; private set; }
 
     private int totalLevels;
 
     public async void Initialize()
     {
         saveService = Services.Get<ISaveService>();
+
         await LoadTotalLevelsAsync();
         await LoadCurrentLevelDataAsync();
-        Debug.Log("GameSessionService initialized: " + saveService);
     }
 
     public async UniTask LoadTotalLevelsAsync()
@@ -62,8 +62,8 @@ public class GameSessionService : IGameSessionService
             IsLevelDataLoaded = true;
             Debug.Log("MapData loaded: " + CurrentMapData.name);
 
-            LevelCapReached = levelIndex >= totalLevels;
-            Debug.Log($"Level cap reached: {LevelCapReached}");
+            IsLevelCapReached = levelIndex >= totalLevels;
+            Debug.Log($"Level cap reached: {IsLevelCapReached}");
         }
         catch (Exception e)
         {

@@ -619,6 +619,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   winPanel: {fileID: 6459302794706592199}
   losePanel: {fileID: 7433251014179002718}
+  nextLevelButton: {fileID: 9009320733788244944}
   tileIconCollection: {fileID: 11400000, guid: 00b79947c1d705f498693ff9014cba8f, type: 2}
   victoryConditionPrefab: {fileID: 3587731619109642694, guid: d39810434cef50347af1423b7abdc69f, type: 3}
   victoryConditionsContainer: {fileID: 1057863014739118428}

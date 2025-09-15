@@ -215,4 +215,4 @@ MonoBehaviour:
       TileCount: 10
     - TileColor: 4
       TileCount: 10
-    DestroyableTileCount: 4
+    DestroyableTileCount: 6

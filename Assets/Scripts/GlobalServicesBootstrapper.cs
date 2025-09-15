@@ -7,6 +7,5 @@ public class GlobalServicesBootstrapper : Services
         AddGlobalService<ISoundManager>(new SoundManager());
 
         InitializeAllGlobalServices();
-
     }
 }

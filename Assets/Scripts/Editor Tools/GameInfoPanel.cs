@@ -79,6 +79,11 @@ public class GameInfoPanel : EditorWindow
     {
         GUILayout.Space(10);
 
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.Label("Timescale: ");
+        EditorGUILayout.TextField(Time.timeScale.ToString());
+        EditorGUILayout.EndHorizontal();
+
         string movesLeft = Services.Get<ILevelManager>().MovesRemaining.ToString();
 
         EditorGUILayout.BeginHorizontal();

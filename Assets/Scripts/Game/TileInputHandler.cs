@@ -62,7 +62,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     private void HandleDoubleTap()
     {
-        //Debug.Log("Double Tap Detected");
+        Debug.Log("Double Tap Detected");
 
         isDragging = false;
 

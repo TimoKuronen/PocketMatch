@@ -8,6 +8,7 @@ public class UIManager : UIMenu
 {
     [SerializeField] private GameObject winPanel;
     [SerializeField] private GameObject losePanel;
+    [SerializeField] private GameObject nextLevelButton;
 
     [SerializeField] private TileIconCollection tileIconCollection;
     [SerializeField] private VictoryConditionUI victoryConditionPrefab;
@@ -124,6 +125,11 @@ public class UIManager : UIMenu
         foreach (var item in victoryConditions)
         {
             item.gameObject.SetActive(false);
+        }
+
+        if (Services.Get<IGameSessionService>().IsLevelCapReached)
+        {
+            nextLevelButton.SetActive(false);
         }
 
         coinCountText.text = "x " + Services.Get<IScoreManager>().GetTotalScore().ToString();

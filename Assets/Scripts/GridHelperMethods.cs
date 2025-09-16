@@ -4,7 +4,7 @@ public static class GridHelperMethods
 {
     public static bool IsCellEmpty(TileData[,] gridData, int x, int y, int width, int height)
     {
-        if (!InBounds(width, height, x, y))
+        if (!IsInBounds(width, height, x, y))
             return false;
 
         var data = gridData[x, y];
@@ -17,8 +17,10 @@ public static class GridHelperMethods
         return false;
     }
 
-    public static bool InBounds(int width, int height, int x, int y)
+    public static bool IsInBounds(int width, int height, int x, int y)
     {
         return x >= 0 && x < width && y >= 0 && y < height;
     }
+
+    public static bool IsInsideGrid(Vector2Int pos, int width, int height) => pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height;
 }

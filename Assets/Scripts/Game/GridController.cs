@@ -28,9 +28,12 @@ public class GridController : MonoBehaviour
     private CommandInvoker commandInvoker;
     private MapData mapData;
     private TilePoolManager tilePoolManager;
+    private BoardStateEvaluator boardStateEvaluator;
     private bool isProcessingTiles;
     public MatchFinder MatchFinder { get; private set; }
     public GridContext GridContext { get; private set; }
+    public Sprite SharedSprite => sharedTileSprite;
+    public BoardStateEvaluator BoardEvaluator => boardStateEvaluator;
     public Sprite Sprite => sharedTileSprite;
 
     public event Action ActionTaken;
@@ -53,18 +56,28 @@ public class GridController : MonoBehaviour
         Instance = this;
     }
 
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            boardStateEvaluator.DebugHighlightPotentialMoves();
+        }
+    }
+
     private IEnumerator Start()
     {
         yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
         commandInvoker = new CommandInvoker(this);
         MatchFinder = new MatchFinder(width, height);
+        
         tilePoolManager = new TilePoolManager(
             normalTilePrefab,
             blockedTilePrefab,
             breakableTilePrefab,
             tileContainer
         );
+
         mapData = Services.Get<IGameSessionService>().CurrentMapData;
 
         GenerateGrid(allowInitialMatches);
@@ -80,6 +93,8 @@ public class GridController : MonoBehaviour
             TileDestroyed
         );
 
+        boardStateEvaluator = new BoardStateEvaluator(gridData, gridViews, width, height, this);
+
         yield return new WaitForSeconds(0.5f);
 
         BoardUpdated?.Invoke(gridData);
@@ -89,7 +104,7 @@ public class GridController : MonoBehaviour
     {
         Vector2Int target = origin + dir;
 
-        if (!IsInsideGrid(target) || isProcessingTiles)
+        if (!GridHelperMethods.IsInsideGrid(target, width, height) || isProcessingTiles)
             return;
 
         var tileA = gridData[origin.x, origin.y];
@@ -195,7 +210,7 @@ public class GridController : MonoBehaviour
         StartCoroutine(MatchCycle());
     }
 
-    private void SwapTilesInData(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB)
+    public void SwapTilesInData(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB)
     {
         gridData[origin.x, origin.y] = tileB;
         gridData[target.x, target.y] = tileA;
@@ -228,9 +243,7 @@ public class GridController : MonoBehaviour
         isProcessingTiles = false;
     }
 
-    private bool IsInsideGrid(Vector2Int pos) => pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height;
-
-    private IEnumerator MatchCycle()
+    public IEnumerator MatchCycle()
     {
         isProcessingTiles = true;
 
@@ -292,6 +305,13 @@ public class GridController : MonoBehaviour
 
         isProcessingTiles = false;
         BoardUpdated?.Invoke(gridData);
+
+        var moves =  boardStateEvaluator.CountPotentialMoves();
+        if (moves.TotalMoves == 0)
+        {
+            Debug.Log($"No moves left! (Swaps: {moves.SwapMoveCount}, Power: {moves.PowerTileMoveCount})");
+            boardStateEvaluator.ShuffleBoard();
+        }
     }
 
     private bool AnyTileTweening()
@@ -341,6 +361,7 @@ public class GridController : MonoBehaviour
 
         return view;
     }
+    
 
     private void ClearBoard()
     {
@@ -355,12 +376,6 @@ public class GridController : MonoBehaviour
 
         gridData = null;
         gridViews = null;
-    }
-
-    public void ShuffleBoard()
-    {
-        Debug.Log("Shuffling board with possible matches...");
-        GenerateGrid(true);
     }
 
     private void GenerateGrid(bool allowMatches)

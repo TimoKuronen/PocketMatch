@@ -34,7 +34,7 @@ public class EditorShortcuts : EditorWindow
     {
         if (GUILayout.Button("Shuffle"))
         {
-            GridController.Instance.ShuffleBoard();
+            GridController.Instance.BoardEvaluator.ShuffleBoard();
         }
         if (GUILayout.Button("Reset Save"))
         {

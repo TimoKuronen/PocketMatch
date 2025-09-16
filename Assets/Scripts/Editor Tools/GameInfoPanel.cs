@@ -96,7 +96,7 @@ public class GameInfoPanel : EditorWindow
             return;
         }
 
-        string matchesLeft = GridController.Instance.MatchFinder.AvailableMatchesCount.ToString();
+        string matchesLeft = GridController.Instance.BoardEvaluator.CountPotentialMoves().TotalMoves.ToString();
 
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Matches left: ");

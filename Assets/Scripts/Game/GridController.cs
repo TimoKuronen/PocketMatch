@@ -34,6 +34,8 @@ public class GridController : MonoBehaviour
     public GridContext GridContext { get; private set; }
     public Sprite SharedSprite => sharedTileSprite;
     public BoardStateEvaluator BoardEvaluator => boardStateEvaluator;
+    public float TileSize => tileSize;
+    public Vector3 GridOffset => gridOffset;
     public Sprite Sprite => sharedTileSprite;
 
     public event Action ActionTaken;
@@ -447,7 +449,7 @@ public class GridController : MonoBehaviour
         gridOffset);
     }
 
-    private Vector3 GridToWorldPos(Vector2Int gridPosition)
+    public Vector3 GridToWorldPos(Vector2Int gridPosition)
     {
         return new Vector3(gridPosition.x * tileSize, gridPosition.y * tileSize, 0f) + gridOffset;
     }

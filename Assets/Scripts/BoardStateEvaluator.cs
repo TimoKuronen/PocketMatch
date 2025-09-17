@@ -1,15 +1,17 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class BoardStateEvaluator
 {
     private TileData[,] gridData;
     private TileView[,] gridViews;
 
-    int width;
-    int height;
+    private int width;
+    private int height;
 
-    GridController gridController;
+    private GridController gridController;
 
     public BoardStateEvaluator(TileData[,] gridData, TileView[,] gridViews, int width, int height, GridController controller)
     {
@@ -65,7 +67,7 @@ public class BoardStateEvaluator
                     {
                         swapMoves++;
                         uniqueSwaps.Add(swapKey);
-                        Debug.Log($"Valid move: ({x1},{y1}) <-> ({pos2.x},{pos2.y})");
+                        //Debug.Log($"Valid move: ({x1},{y1}) <-> ({pos2.x},{pos2.y})");
                     }
                 }
             }
@@ -93,17 +95,14 @@ public class BoardStateEvaluator
         }
         return count;
     }
-    /// <summary>
-    /// Shuffles the board by rearranging existing tiles (no new tiles spawned).
-    /// Ensures no matches are created post-shuffle.
-    /// </summary>
     public void ShuffleBoard()
     {
-        Debug.Log("Shuffling board (reusing existing tiles)...");
+        Debug.Log("Shuffling board...");
 
         // 1. Collect all normal tiles
         List<TileData> normalTiles = new List<TileData>();
-        List<Vector2Int> normalPositions = new List<Vector2Int>();
+        List<TileView> tileViews = new List<TileView>();
+        List<Vector2Int> tilePositions = new List<Vector2Int>();
 
         for (int x = 0; x < width; x++)
         {
@@ -113,67 +112,106 @@ public class BoardStateEvaluator
                 if (tile != null && tile.State == TileState.Normal)
                 {
                     normalTiles.Add(tile);
-                    normalPositions.Add(new Vector2Int(x, y));
+                    tileViews.Add(gridViews[x, y]);
+                    tilePositions.Add(new Vector2Int(x, y));
                 }
             }
         }
 
-        // 2. Fisher-Yates shuffle the tiles
-        for (int i = normalTiles.Count - 1; i > 0; i--)
+        // 2. Create a backup of original types for safety
+        List<TileType> originalTypes = new List<TileType>();
+        foreach (var tile in normalTiles)
         {
-            int j = UnityEngine.Random.Range(0, i + 1);
-            (normalTiles[i], normalTiles[j]) = (normalTiles[j], normalTiles[i]);
+            originalTypes.Add(tile.Type);
         }
 
-        // 3. Reassign tiles to random positions (avoid matches)
-        int maxAttempts = 100; // Prevent infinite loops
+        // 3. Shuffle logic with match prevention
+        int maxAttempts = 100;
         int attempts = 0;
-        bool hasMatches;
+        bool hasMatches = true;
 
-        do
+        while (hasMatches && attempts < maxAttempts)
         {
-            // Reassign tile types to shuffled positions
+            // Reset to original types before each attempt
             for (int i = 0; i < normalTiles.Count; i++)
             {
-                Vector2Int pos = normalPositions[i];
+                normalTiles[i].Type = originalTypes[i];
+            }
+
+            // Shuffle the types
+            for (int i = normalTiles.Count - 1; i > 0; i--)
+            {
+                int j = UnityEngine.Random.Range(0, i + 1);
+                (normalTiles[i].Type, normalTiles[j].Type) = (normalTiles[j].Type, normalTiles[i].Type);
+            }
+
+            // Apply shuffled types to grid
+            for (int i = 0; i < normalTiles.Count; i++)
+            {
+                Vector2Int pos = tilePositions[i];
                 gridData[pos.x, pos.y].Type = normalTiles[i].Type;
             }
 
             // Check for matches
             hasMatches = gridController.MatchFinder.GetMatchGroups(gridData).Count > 0;
-            if (hasMatches)
-            {
-                // Re-shuffle tile types (not positions)
-                for (int i = normalTiles.Count - 1; i > 0; i--)
-                {
-                    int j = UnityEngine.Random.Range(0, i + 1);
-                    (normalTiles[i], normalTiles[j]) = (normalTiles[j], normalTiles[i]);
-                }
-                attempts++;
-            }
-        } while (hasMatches && attempts < maxAttempts);
+            attempts++;
+        }
 
         if (attempts >= maxAttempts)
         {
-            Debug.LogWarning("Could not shuffle without matches. Proceeding anyway.");
+            Debug.LogWarning($"Could not shuffle without matches after {maxAttempts} attempts. Using last arrangement.");
         }
-
-        // 4. Update visuals (reuse existing TileViews)
-        for (int x = 0; x < width; x++)
+        else
         {
-            for (int y = 0; y < height; y++)
-            {
-                TileData tile = gridData[x, y];
-                if (tile != null && tile.State == TileState.Normal)
-                {
-                    TileView view = gridViews[x, y];
-                    view.Init(tile, gridController.SharedSprite); // Refresh visuals
-                }
-            }
+            Debug.Log($"Successfully shuffled without matches in {attempts} attempts.");
         }
 
-        // 5. Trigger drop/refill if needed (e.g., if tiles were floating)
+        // 5. Animate the shuffle with DOTween
+        CoroutineMonoBehavior.Instance.StartCoroutine(AnimateShuffle(tileViews, tilePositions));
+    }
+
+    private IEnumerator AnimateShuffle(List<TileView> tileViews, List<Vector2Int> tilePositions)
+    {
+        bool isProcessingTiles = true;
+        float moveDuration = 0.3f;
+
+        // Small random movement for each tile
+        foreach (TileView view in tileViews)
+        {
+            view.transform.DOKill();
+
+            // Get current position
+            Vector3 currentPos = view.transform.position;
+
+            // Calculate small random offset
+            Vector3 randomOffset = new Vector3(
+                Random.Range(-0.5f, 0.5f),
+                Random.Range(-0.5f, 0.5f),
+                0f
+            );
+
+            // Move to random position and back
+            view.transform.DOMove(currentPos + randomOffset, moveDuration)
+                .SetEase(Ease.InOutQuad)
+                .OnComplete(() => 
+                {
+                    view.transform.DOMove(currentPos, moveDuration)
+                        .SetEase(Ease.InOutQuad);
+                });
+        }
+
+        yield return new WaitForSeconds(moveDuration * 2);
+
+        // Update all tile visuals to match their new types
+        for (int i = 0; i < tileViews.Count; i++)
+        {
+            Vector2Int pos = tilePositions[i];
+            tileViews[i].Init(gridData[pos.x, pos.y], gridController.SharedSprite);
+        }
+
+        // Trigger match cycle
         CoroutineMonoBehavior.Instance.StartCoroutine(gridController.MatchCycle());
+        isProcessingTiles = false;
     }
 
     /// <summary>

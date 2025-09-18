@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5799087336434750397}
   - component: {fileID: -2429920941000883301}
   - component: {fileID: 1685639883683566380}
-  - component: {fileID: 549678576806478393}
+  - component: {fileID: 4656988426486429719}
   m_Layer: 0
   m_Name: TilePrefab
   m_TagString: Untagged
@@ -63,6 +63,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spriteRenderer: {fileID: 1685639883683566380}
   colorPalette: {fileID: 11400000, guid: f0ab2f195bcd1a64188c47769668d90c, type: 2}
+  icons: {fileID: 11400000, guid: 00b79947c1d705f498693ff9014cba8f, type: 2}
+  damagedColor: {r: 0, g: 0, b: 0, a: 0}
+  <Data>k__BackingField:
+    <Type>k__BackingField: 0
+    <Power>k__BackingField: 0
+    <GridPosition>k__BackingField: {x: 0, y: 0}
+    <State>k__BackingField: 0
 --- !u!212 &1685639883683566380
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -80,6 +87,9 @@ SpriteRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 0
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -104,7 +114,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300014, guid: 1eaee135ce037439d925cee5e41ce026, type: 3}
+  m_Sprite: {fileID: -5252914845595520389, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -115,14 +125,15 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!58 &549678576806478393
-CircleCollider2D:
+--- !u!61 &4656988426486429719
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1602998255832392727}
   m_Enabled: 1
+  serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -146,7 +157,17 @@ CircleCollider2D:
     m_Bits: 4294967295
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Radius: 0.50504035
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 4.8, y: 4.8}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1, y: 1}
+  m_EdgeRadius: 0

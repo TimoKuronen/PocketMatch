@@ -4,6 +4,7 @@ public class TileView : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer spriteRenderer;
     [SerializeField] private ColorPalette colorPalette;
+    [SerializeField] private TileIconCollection icons;
     [SerializeField] private Color damagedColor;
     public TileState ViewKind { get; set; }
     [field: SerializeField] public TileData Data { get; private set; }
@@ -13,17 +14,21 @@ public class TileView : MonoBehaviour
     {
         Data = data;
 
+        //transform.localScale = new Vector3(0.2f, 0.2f, 1f);
+        GetComponent<BoxCollider2D>().size = new Vector2(4f, 4f);
+
         if (data.State != TileState.Normal)
         {
             if (data is DestroyableTileData destroyableData)
             {
+                spriteRenderer.sprite = icons.GetIcon(data.Type, data.Power, data.State);
                 originalColor = spriteRenderer.color;
                 destroyableData.OnTakeDamage += UpdateColorOnDamage;
             }
             return;
         }
 
-        spriteRenderer.sprite = sharedSprite;
+        spriteRenderer.sprite = icons.GetIcon(data.Type, data.Power, data.State);
 
         int colorIndex = (int)data.Type;
         if (colorIndex < 0 || colorIndex >= colorPalette.TileColors.Length)

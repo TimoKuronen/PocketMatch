@@ -33,6 +33,9 @@ public class UIManager : UIMenu
         levelManager.LevelLost += OnLevelLost;
 
         LoadVictoryConditions();
+
+        winPanel.SetActive(false);
+        losePanel.SetActive(false);
     }
 
     private void LoadVictoryConditions()

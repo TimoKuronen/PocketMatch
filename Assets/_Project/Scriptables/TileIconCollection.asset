@@ -20,20 +20,40 @@ MonoBehaviour:
   - TileType: 1
     TilePower: 0
     TileState: 0
-    Icon: {fileID: 2129103282, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: -1049458291, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
   - TileType: 2
     TilePower: 0
     TileState: 0
-    Icon: {fileID: 22125483, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: -659760263, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
   - TileType: 3
     TilePower: 0
     TileState: 0
-    Icon: {fileID: 2129103282, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: -87676246, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
   - TileType: 4
     TilePower: 0
     TileState: 0
-    Icon: {fileID: 263004553, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: 408106318, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
   - TileType: 0
     TilePower: 0
     TileState: 2
-    Icon: {fileID: -1500177204, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: -468733263, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+  - TileType: 0
+    TilePower: 0
+    TileState: 1
+    Icon: {fileID: 21300000, guid: 5f54c8197af52b04381ae9bca97de4d7, type: 3}
+  - TileType: 5
+    TilePower: 1
+    TileState: 3
+    Icon: {fileID: 2181264544912075165, guid: cc3fa87e36f17994a9ac5ac3a194ea9a, type: 3}
+  - TileType: 5
+    TilePower: 2
+    TileState: 3
+    Icon: {fileID: 2181264544912075165, guid: cc3fa87e36f17994a9ac5ac3a194ea9a, type: 3}
+  - TileType: 5
+    TilePower: 3
+    TileState: 3
+    Icon: {fileID: -99478167, guid: cc3fa87e36f17994a9ac5ac3a194ea9a, type: 3}
+  - TileType: 5
+    TilePower: 4
+    TileState: 3
+    Icon: {fileID: -610392332, guid: cc3fa87e36f17994a9ac5ac3a194ea9a, type: 3}

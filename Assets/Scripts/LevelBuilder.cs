@@ -38,7 +38,7 @@ public static class LevelBuilder
         return grid;
     }
 
-    public static void SpawnGridViews(TileData[,] grid, TileView[,] gridViews, TilePoolManager tilePoolManager, Transform parent, Sprite sprite, TileView prefab, float tileSize, Vector3 offset)
+    public static void SpawnGridViews(TileData[,] grid, TileView[,] gridViews, TilePoolManager tilePoolManager, Transform parent, TileView prefab, float tileSize, Vector3 offset)
     {
         int width = grid.GetLength(0);
         int height = grid.GetLength(1);
@@ -54,7 +54,7 @@ public static class LevelBuilder
 
                 view.transform.SetParent(parent, false);
                 view.transform.position = new Vector3(x * tileSize, y * tileSize, 0) + offset;
-                view.Init(grid[x, y], sprite);
+                view.Init(grid[x, y]);
                 view.gameObject.name = $"Tile_{x}_{y}";
                 gridViews[x, y] = view;
             }

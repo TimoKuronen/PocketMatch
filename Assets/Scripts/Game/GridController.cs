@@ -15,7 +15,6 @@ public class GridController : MonoBehaviour
     [SerializeField] private TileView normalTilePrefab;
     [SerializeField] private TileView blockedTilePrefab;
     [SerializeField] private TileView breakableTilePrefab;
-    [SerializeField] private Sprite sharedTileSprite;
     [SerializeField] private Transform tileContainer;
     [SerializeField] private float tileSize = 1f;
     [SerializeField] private Vector3 gridOffset;
@@ -32,11 +31,7 @@ public class GridController : MonoBehaviour
     private bool isProcessingTiles;
     public MatchFinder MatchFinder { get; private set; }
     public GridContext GridContext { get; private set; }
-    public Sprite SharedSprite => sharedTileSprite;
     public BoardStateEvaluator BoardEvaluator => boardStateEvaluator;
-    public float TileSize => tileSize;
-    public Vector3 GridOffset => gridOffset;
-    public Sprite Sprite => sharedTileSprite;
 
     public event Action ActionTaken;
     public event Action TileMoved;
@@ -356,7 +351,7 @@ public class GridController : MonoBehaviour
         var view = tilePoolManager.GetForState(TileState.Normal);
         view.ViewKind = TileState.Normal;
         view.transform.localScale = Vector3.one;
-        view.Init(data, sharedTileSprite);
+        view.Init(data);
         view.gameObject.name = $"Tile_{x}_{y}\"";
 
         gridViews[x, y] = view;
@@ -443,7 +438,6 @@ public class GridController : MonoBehaviour
         gridViews,
         tilePoolManager,
         tileContainer,
-        sharedTileSprite,
         normalTilePrefab,
         tileSize,
         gridOffset);

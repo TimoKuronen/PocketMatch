@@ -38,7 +38,7 @@ public class CreatePowerTileCommand : ICommand
             Vector2Int origin = group[0]; // You may want to use last moved tile
             TileData baseData = gridData[origin.x, origin.y];
 
-            if (baseData == null) 
+            if (baseData == null)
                 continue;
 
             TilePower power = shape switch
@@ -50,14 +50,15 @@ public class CreatePowerTileCommand : ICommand
                 _ => TilePower.None
             };
 
-            if (power == TilePower.None) 
+            if (power == TilePower.None)
                 continue;
 
             TileData newData = createData(origin, baseData.Type, power);
             gridData[origin.x, origin.y] = newData;
+
             if (gridViews[origin.x, origin.y] != null)
             {
-                gridViews[origin.x, origin.y].Init(newData, GridController.Instance.Sprite);
+                gridViews[origin.x, origin.y].Init(newData);
                 gridViews[origin.x, origin.y].transform.DOPunchScale(Vector3.one * 0.25f, 0.2f);
                 gridViews[origin.x, origin.y].DebugAsSpecialTile();
             }

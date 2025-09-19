@@ -206,7 +206,7 @@ public class BoardStateEvaluator
         for (int i = 0; i < tileViews.Count; i++)
         {
             Vector2Int pos = tilePositions[i];
-            tileViews[i].Init(gridData[pos.x, pos.y], gridController.SharedSprite);
+            tileViews[i].Init(gridData[pos.x, pos.y]);
         }
 
         // Trigger match cycle

@@ -536,6 +536,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: UI_Gameplay_Canvas
       objectReference: {fileID: 0}
+    - target: {fileID: 2634084905509795879, guid: b0dcc2119b5c84c44a46a7c10f2fa796, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2648831532546245927, guid: b0dcc2119b5c84c44a46a7c10f2fa796, type: 3}
       propertyPath: m_hasFontAssetChanged
       value: 0

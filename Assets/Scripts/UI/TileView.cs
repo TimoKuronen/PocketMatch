@@ -10,25 +10,22 @@ public class TileView : MonoBehaviour
     [field: SerializeField] public TileData Data { get; private set; }
     private Color originalColor;
 
-    public void Init(TileData data, Sprite sharedSprite)
+    public void Init(TileData data)
     {
         Data = data;
 
-        //transform.localScale = new Vector3(0.2f, 0.2f, 1f);
-        GetComponent<BoxCollider2D>().size = new Vector2(4f, 4f);
+        originalColor = spriteRenderer.color;
+        spriteRenderer.sprite = icons.GetIcon(data.Type, data.Power, data.State);
 
         if (data.State != TileState.Normal)
         {
             if (data is DestroyableTileData destroyableData)
             {
-                spriteRenderer.sprite = icons.GetIcon(data.Type, data.Power, data.State);
                 originalColor = spriteRenderer.color;
                 destroyableData.OnTakeDamage += UpdateColorOnDamage;
             }
             return;
         }
-
-        spriteRenderer.sprite = icons.GetIcon(data.Type, data.Power, data.State);
 
         int colorIndex = (int)data.Type;
         if (colorIndex < 0 || colorIndex >= colorPalette.TileColors.Length)
@@ -38,7 +35,6 @@ public class TileView : MonoBehaviour
         }
 
         spriteRenderer.color = colorPalette.TileColors[colorIndex].Color;
-        originalColor = spriteRenderer.color;
     }
 
     private void UpdateColorOnDamage(int healthLeft)
@@ -53,8 +49,12 @@ public class TileView : MonoBehaviour
             Debug.LogWarning("TileData is not initialized.");
             return;
         }
+
+        Debug.Log($"Debugging special tile with power: {Data.Power}");
+
         switch (Data.Power)
         {
+            
             case TilePower.RowClearer:
                 spriteRenderer.color = Color.yellow;
                 break;

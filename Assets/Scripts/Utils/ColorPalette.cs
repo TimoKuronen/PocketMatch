@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "ColorPalette", menuName = "ScriptableObjects/ColorPalette", order = 1)]
@@ -18,7 +16,8 @@ public class TileColor
         Blue,
         Green,
         Yellow,
-        Purple
+        Purple,
+        Special
     }
 
     public TileType Type;

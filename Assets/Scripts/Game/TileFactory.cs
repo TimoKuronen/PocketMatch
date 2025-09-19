@@ -20,7 +20,7 @@ public class TileFactory
         var view = pool.Get();
 
         view.transform.localScale = Vector3.one;
-        view.Init(data, tileSprite);
+        view.Init(data);
         view.gameObject.name = $"{power}_{type}_{pos.x}_{pos.y}";
 
         return view;

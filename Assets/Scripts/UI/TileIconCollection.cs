@@ -10,7 +10,14 @@ public class TileIconCollection : ScriptableObject
     {
         foreach (var icon in TileIcons)
         {
-            if (icon.TileType == type && icon.TilePower == power && icon.TileState == state)
+            if (power != TilePower.None)
+            {
+                if (icon.TilePower == power)
+                {
+                    return icon.Icon;
+                }
+            }
+            else if (icon.TileType == type && icon.TileState == state)
             {
                 return icon.Icon;
             }

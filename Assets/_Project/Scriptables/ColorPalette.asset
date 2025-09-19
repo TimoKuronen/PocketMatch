@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <TileColors>k__BackingField:
   - Type: 0
-    Color: {r: 0.48235297, g: 0.06666667, b: 0.227451, a: 1}
+    Color: {r: 0.6415094, g: 0.14222142, b: 0.3353421, a: 1}
   - Type: 1
     Color: {r: 0.08235294, g: 0.5921569, b: 0.73333335, a: 1}
   - Type: 2
@@ -22,4 +22,4 @@ MonoBehaviour:
   - Type: 3
     Color: {r: 1, g: 0.79215693, b: 0.227451, a: 1}
   - Type: 4
-    Color: {r: 0.26314303, g: 0.23073158, b: 0.5754717, a: 1}
+    Color: {r: 0.33263206, g: 0.2979708, b: 0.6792453, a: 1}

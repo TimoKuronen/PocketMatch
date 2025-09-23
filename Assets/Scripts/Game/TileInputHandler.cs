@@ -22,10 +22,8 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        if (tileView.Data.State != TileState.Normal)
-        {
+        if (!IsInputAllowed())
             return;
-        }
 
 #if UNITY_EDITOR
         /// Destroying single tiles for debugging purposes
@@ -71,12 +69,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (tileView.Data.State != TileState.Normal)
-        {
-            return;
-        }
-
-        if (!isDragging)
+        if (!IsInputAllowed())
             return;
 
         Vector2 dragDelta = eventData.position - startPointerPos;
@@ -99,5 +92,10 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     {
         isDragging = false;
     }  
+
+    private bool IsInputAllowed()
+    {
+        return !isDragging && !GridController.Instance.IsProcessingTiles && tileView.Data.State == TileState.Normal;
+    }
 }
 

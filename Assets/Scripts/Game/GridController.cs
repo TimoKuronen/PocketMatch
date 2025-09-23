@@ -28,7 +28,7 @@ public class GridController : MonoBehaviour
     private MapData mapData;
     private TilePoolManager tilePoolManager;
     private BoardStateEvaluator boardStateEvaluator;
-    private bool isProcessingTiles;
+    public bool IsProcessingTiles { get; private set; }
     public MatchFinder MatchFinder { get; private set; }
     public GridContext GridContext { get; private set; }
     public BoardStateEvaluator BoardEvaluator => boardStateEvaluator;
@@ -67,7 +67,7 @@ public class GridController : MonoBehaviour
 
         commandInvoker = new CommandInvoker(this);
         MatchFinder = new MatchFinder(width, height);
-        
+
         tilePoolManager = new TilePoolManager(
             normalTilePrefab,
             blockedTilePrefab,
@@ -101,7 +101,7 @@ public class GridController : MonoBehaviour
     {
         Vector2Int target = origin + dir;
 
-        if (!GridHelperMethods.IsInsideGrid(target, width, height) || isProcessingTiles)
+        if (!GridHelperMethods.IsInsideGrid(target, width, height) || IsProcessingTiles)
             return;
 
         var tileA = gridData[origin.x, origin.y];
@@ -116,7 +116,7 @@ public class GridController : MonoBehaviour
         Vector3 origPosA = viewA.transform.position;
         Vector3 origPosB = viewB.transform.position;
 
-        isProcessingTiles = true;
+        IsProcessingTiles = true;
         commandInvoker.AddCommand(new SwapCommand(viewA, viewB, origPosA, origPosB));
         commandInvoker.ExecuteAll();
 
@@ -125,7 +125,7 @@ public class GridController : MonoBehaviour
 
     private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector3 origPosA, Vector3 origPosB)
     {
-        isProcessingTiles = true;
+        IsProcessingTiles = true;
 
         TileMoved?.Invoke();
 
@@ -237,13 +237,13 @@ public class GridController : MonoBehaviour
             .Join(tileB.transform.DOMove(origPosB, 0.25f).SetEase(Ease.OutBack))
             .WaitForCompletion();
 
-        isProcessingTiles = false;
+        IsProcessingTiles = false;
     }
 
     public IEnumerator MatchCycle()
     {
-        isProcessingTiles = true;
-
+        IsProcessingTiles = true;
+        int cycleCount = 0;
         bool changed;
 
         do
@@ -298,12 +298,25 @@ public class GridController : MonoBehaviour
                 yield return new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext).Execute();
             }
 
+            cycleCount++;
+            //Debug.Log($"Match cycle iteration {cycleCount} complete.");
         } while (changed);
 
-        isProcessingTiles = false;
+        IsProcessingTiles = false;
         BoardUpdated?.Invoke(gridData);
 
-        var moves =  boardStateEvaluator.CountPotentialMoves();
+        // add analytics if cycleCount > 1
+        if (cycleCount > 2)
+        {
+            Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
+            Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
+        {
+            { "level_name", Services.Get<ILevelManager>().LocalMapData.GetLevelName() },
+            { "moves_spent", cycleCount-2 }
+        });
+        }
+
+        var moves = boardStateEvaluator.CountPotentialMoves();
         if (moves.TotalMoves == 0)
         {
             Debug.Log($"No moves left! (Swaps: {moves.SwapMoveCount}, Power: {moves.PowerTileMoveCount})");
@@ -358,7 +371,7 @@ public class GridController : MonoBehaviour
 
         return view;
     }
-    
+
 
     private void ClearBoard()
     {

@@ -7,6 +7,7 @@ public static class AnalyticsEvents
     public const string TileMatched = "tile_matched";
     public const string BoosterUsed = "booster_used";
     public const string MatchDuration = "match_duration";
+    public const string ExtraAutomatedMatches = "extra_automated_matches";
 
     // Economy
     public const string CoinsEarned = "coins_earned";

@@ -14,6 +14,11 @@ public class MapData : ScriptableObject
 
     [Header("Victory Related Data")]
     public VictoryConditions VictoryConditions;
+
+    public string GetLevelName()
+    {
+        return name.Replace("MapData_", "Level_");
+    }
 }
 
 [Serializable]

@@ -19,8 +19,6 @@ public class AdsManager : IAdsManager
         LevelPlay.OnInitFailed += SdkInitializationFailedEvent;
         LevelPlay.Init(appKey);
 
-        CreateBannerAd();
-
         Loader.OnSceneLoadStarted += HideBanner;
 
         Debug.Log("Initializing LevelPlay SDK...");
@@ -50,6 +48,7 @@ public class AdsManager : IAdsManager
 
     private void HideBanner()
     {
+        Debug.Log("Hiding Banner Ad...");
         bannerAd.HideAd();
     }
 

@@ -561,7 +561,7 @@ MonoBehaviour:
   victoryConditionsContainer: {fileID: 1057863014739118428}
   colorPalette: {fileID: 11400000, guid: f0ab2f195bcd1a64188c47769668d90c, type: 2}
   movesText: {fileID: 8366981096686471845}
-  coinCountText: {fileID: 0}
+  coinCountText: {fileID: 1679721714496281146}
 --- !u!114 &6934729543501264402
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2143,6 +2143,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5b3df71bb07c04e46939b7b7f31ce1df, type: 3}
+--- !u!114 &1679721714496281146 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8511302269575444392, guid: 5b3df71bb07c04e46939b7b7f31ce1df, type: 3}
+  m_PrefabInstance: {fileID: 7012572660387982738}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &8731357788410163581 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1764753597130448111, guid: 5b3df71bb07c04e46939b7b7f31ce1df, type: 3}

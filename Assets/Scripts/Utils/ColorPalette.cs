@@ -5,6 +5,8 @@ using UnityEngine;
 public class ColorPalette : ScriptableObject
 {
     [field: SerializeField] public TileColor[] TileColors { get; private set; }
+    [field: SerializeField] public Color DamagedColor;
+    [field: SerializeField] public Color PowerTileColor;
 }
 
 [Serializable]
@@ -17,7 +19,6 @@ public class TileColor
         Green,
         Yellow,
         Purple,
-        Special
     }
 
     public TileType Type;

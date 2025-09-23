@@ -1,18 +1,18 @@
 using System;
-using Unity.Services.Core;
 using Unity.Services.LevelPlay;
 using UnityEngine;
 
 public class AdsManager : IAdsManager
 {
+    /*
+    Rewarded Ad: "rewardedVideo" (Android/iOS)
+    Interstitial Ad: "interstitial" (Android/iOS)
+    Banner Ad: "banner" (Android/iOS)
+    */
+
     [SerializeField] private string appKey = "23b074f85";
 
-    /*
-        Rewarded Ad: "rewardedVideo" (Android/iOS)
-        Interstitial Ad: "interstitial" (Android/iOS)
-        Banner Ad: "banner" (Android/iOS)
-    */
-    LevelPlayBannerAd bannerAd;
+    private LevelPlayBannerAd bannerAd;
 
     public void Initialize()
     {
@@ -28,11 +28,12 @@ public class AdsManager : IAdsManager
 
     public void Update()
     {
-        Debug.Log("Press 'B' to show Banner Ad");
+#if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.B))
         {
             ShowBannerAd();
         }
+#endif
     }
 
     private void SdkInitializationFailedEvent(LevelPlayInitError error)
@@ -83,8 +84,5 @@ public class AdsManager : IAdsManager
         bannerAd = new LevelPlayBannerAd("banner", bannerConfig);
     }
 
-    public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
+    public void Dispose() { }
 }

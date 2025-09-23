@@ -9,8 +9,6 @@
     <package>com.unity3d.ads:unity-ads:4.16.1</package>
     <package>com.unity3d.ads-mediation:mediation-sdk:8.11.1</package>
     <package>com.unity3d.ads-mediation:unityads-adapter:4.3.59</package>
-    <package>com.unity3d.mediation:mediation-sdk:[1.0,2.0[</package>
-    <package>com.unity3d.mediation:unityads-adapter:[1.0,2.0[</package>
   </packages>
   <files>
     <file>Assets/GeneratedLocalRepo/Firebase/m2repository/com/google/firebase/firebase-analytics-unity/13.1.0/firebase-analytics-unity-13.1.0.aar</file>

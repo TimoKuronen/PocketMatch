@@ -13,7 +13,6 @@ public class InputService : IInputService
         controls.Gameplay.TouchPress.performed += _ => IsTouching = true;
         controls.Gameplay.TouchPress.canceled += _ => IsTouching = false;
         controls.Enable();
-        Debug.Log("InputService initialized.");
     }
 
     public void Dispose() => controls.Dispose();

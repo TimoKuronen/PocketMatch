@@ -16,9 +16,9 @@ public static class EditorBootstrapper
         if (loaderScene != null)
         {
             CurrentSceneName = SceneManager.GetActiveScene().name;
-            Debug.Log($"[EditorBootstrapper] Current scene: {CurrentSceneName}");
+            //Debug.Log($"[EditorBootstrapper] Current scene: {CurrentSceneName}");
             EditorSceneManager.playModeStartScene = loaderScene;
-            Debug.Log($"[EditorBootstrapper] Play mode start scene set to Loader ({LoaderScenePath}).");
+            //Debug.Log($"[EditorBootstrapper] Play mode start scene set to Loader ({LoaderScenePath}).");
         }
         else
         {

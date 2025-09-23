@@ -50,4 +50,9 @@ public class UI_MainMenu : UIMenu
     {
         Debug.Log("Settings Button pressed, not yet implemented");
     }
+
+    public void AdsButtonPressed()
+    {
+        Services.Get<IAdsManager>().ShowBannerAd();
+    }
 }

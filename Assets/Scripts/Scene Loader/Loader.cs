@@ -18,7 +18,7 @@ public static class Loader
     private static Scene? targetScene = null;
     private static float delayBeforeLoading = 0f;
 
-    public static IEnumerator CallDelayedLoad(Scene scene, float delay = 0f)
+    public static IEnumerator CallDelayedLoad(Scene scene, float delay = 0.1f)
     {
         OnSceneLoadStarted?.Invoke();
 

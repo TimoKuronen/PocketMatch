@@ -23,7 +23,10 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     public void OnPointerDown(PointerEventData eventData)
     {
         if (!IsInputAllowed())
+        {
+            Debug.Log("Input not allowed on pointer down.");
             return;
+        }
 
 #if UNITY_EDITOR
         /// Destroying single tiles for debugging purposes
@@ -70,6 +73,15 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     public void OnDrag(PointerEventData eventData)
     {
         if (!IsInputAllowed())
+        {
+            Debug.Log($"Input not allowed during drag because " +
+                $"{isDragging} or " +
+                $"{GridController.Instance.IsProcessingTiles} or " +
+                $"{tileView.Data.State == TileState.Normal}");
+            return;
+        }
+        
+        if (!isDragging)
             return;
 
         Vector2 dragDelta = eventData.position - startPointerPos;
@@ -95,7 +107,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     private bool IsInputAllowed()
     {
-        return !isDragging && !GridController.Instance.IsProcessingTiles && tileView.Data.State == TileState.Normal;
+        return !GridController.Instance.IsProcessingTiles && tileView.Data.State == TileState.Normal;
     }
 }
 

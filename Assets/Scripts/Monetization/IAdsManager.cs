@@ -1,4 +1,4 @@
-public interface IAdsManager : IUpdateableService
+public interface IAdsManager : IService
 {
     void ShowBannerAd();
 }

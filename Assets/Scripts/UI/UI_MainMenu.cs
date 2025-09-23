@@ -19,11 +19,13 @@ public class UI_MainMenu : UIMenu
         settingsPanel.SetActive(false);
 
         saveService = Services.Get<ISaveService>();
-        if(saveService == null)
+
+        if (saveService == null)
         {
             InvokeRepeating(nameof(WaitForSaveService), 1f, 1f);
             return;
         }
+
         levelIndex = saveService.PlayerData.nextLevelIndex;
 
         LoadInitialValues();

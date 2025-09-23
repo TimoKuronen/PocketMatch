@@ -18,18 +18,12 @@ public class AdsManager : IAdsManager
         LevelPlay.OnInitSuccess += SdkInitializationCompletedEvent;
         LevelPlay.OnInitFailed += SdkInitializationFailedEvent;
         LevelPlay.Init(appKey);
-        CreateBannerAd();
-        Debug.Log("Initializing LevelPlay SDK...");
-    }
 
-    public void Update()
-    {
-#if UNITY_EDITOR
-        if (Input.GetKeyDown(KeyCode.B))
-        {
-            ShowBannerAd();
-        }
-#endif
+        CreateBannerAd();
+
+        Loader.OnSceneLoadStarted += HideBanner;
+
+        Debug.Log("Initializing LevelPlay SDK...");
     }
 
     private void SdkInitializationFailedEvent(LevelPlayInitError error)
@@ -53,10 +47,8 @@ public class AdsManager : IAdsManager
         Debug.Log("Loading Banner Ad...");
         bannerAd.LoadAd();
     }
-    /// <summary>
-    /// TO-DO : call this when scene changes..?
-    /// </summary>
-    public void HideBanner()
+
+    private void HideBanner()
     {
         bannerAd.HideAd();
     }
@@ -77,5 +69,10 @@ public class AdsManager : IAdsManager
         bannerAd = new LevelPlayBannerAd("banner", bannerConfig);
     }
 
-    public void Dispose() { }
+    public void Dispose() 
+    {
+        LevelPlay.OnInitSuccess -= SdkInitializationCompletedEvent;
+        LevelPlay.OnInitFailed -= SdkInitializationFailedEvent;
+        Loader.OnSceneLoadStarted -= HideBanner;
+    }
 }

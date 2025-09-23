@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class LevelManager : ILevelManager
 {
@@ -185,17 +186,17 @@ public class LevelManager : ILevelManager
         GridController.Instance.TileDestroyed -= OnTileDestroyed;
         GridController.Instance.GridContext.OnDestroy -= OnTileDestroyed;
     }
-
+#if UNITY_EDITOR
     public void Update()
     {
-        if (Input.GetKeyDown(KeyCode.W))
+        if (Keyboard.current.wKey.wasPressedThisFrame)
         {
             ToggleWinEvent();
         }
-
-        if (Input.GetKeyDown(KeyCode.L))
+        if (Keyboard.current.lKey.wasPressedThisFrame)
         {
             ToggleLoseEvent();
         }
     }
+#endif
 }

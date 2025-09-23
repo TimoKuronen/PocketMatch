@@ -53,14 +53,6 @@ public class GridController : MonoBehaviour
         Instance = this;
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.M))
-        {
-            boardStateEvaluator.DebugHighlightPotentialMoves();
-        }
-    }
-
     private IEnumerator Start()
     {
         yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);

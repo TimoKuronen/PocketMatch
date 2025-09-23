@@ -9,18 +9,14 @@ public class AdsManager : IAdsManager
     Interstitial Ad: "interstitial" (Android/iOS)
     Banner Ad: "banner" (Android/iOS)
     */
-
     [SerializeField] private string appKey = "23b074f85";
-
     private LevelPlayBannerAd bannerAd;
 
     public void Initialize()
     {
         LevelPlay.ValidateIntegration(); // Force test ads
-
         LevelPlay.OnInitSuccess += SdkInitializationCompletedEvent;
         LevelPlay.OnInitFailed += SdkInitializationFailedEvent;
-
         LevelPlay.Init(appKey);
         CreateBannerAd();
         Debug.Log("Initializing LevelPlay SDK...");
@@ -44,7 +40,6 @@ public class AdsManager : IAdsManager
     private void SdkInitializationCompletedEvent(LevelPlayConfiguration configuration)
     {
         Debug.Log("LevelPlay SDK Initialization Completed Successfully");
-
         CreateBannerAd();
     }
 
@@ -58,7 +53,6 @@ public class AdsManager : IAdsManager
         Debug.Log("Loading Banner Ad...");
         bannerAd.LoadAd();
     }
-
     /// <summary>
     /// TO-DO : call this when scene changes..?
     /// </summary>
@@ -70,17 +64,16 @@ public class AdsManager : IAdsManager
     private void CreateBannerAd()
     {
         Debug.Log("Creating Banner Ad...");
-        LevelPlayAdSize adSize = LevelPlayAdSize.CreateAdaptiveAdSize();
-        int width = adSize.Width;
-        int height = adSize.Height;
+        LevelPlayAdSize adSize = LevelPlayAdSize.BANNER;
 
-        var configBuilder = new LevelPlayBannerAd.Config.Builder();
-        configBuilder.SetDisplayOnLoad(true);
-        configBuilder.SetRespectSafeArea(true);
-        configBuilder.SetPlacementName("bannerPlacement");
-        configBuilder.SetBidFloor(1.0);
+        var configBuilder = new LevelPlayBannerAd.Config.Builder()
+            .SetSize(adSize)
+            .SetPosition(LevelPlayBannerPosition.BottomCenter)
+            .SetDisplayOnLoad(true)
+            .SetRespectSafeArea(true)
+            .SetPlacementName("bannerPlacement");
+
         var bannerConfig = configBuilder.Build();
-
         bannerAd = new LevelPlayBannerAd("banner", bannerConfig);
     }
 

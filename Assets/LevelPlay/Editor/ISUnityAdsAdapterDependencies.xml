@@ -1,18 +1,15 @@
 <dependencies>
-  <unityversion>4.3.64.0</unityversion>
+  <unityversion>5.0.0.0</unityversion>
   <androidPackages>
-    <androidPackage spec="com.unity3d.ads-mediation:unityads-adapter:4.3.59">
+    <androidPackage spec="com.unity3d.ads-mediation:unityads-adapter:5.0.0">
     </androidPackage>
   </androidPackages>
   <androidPackages>
     <androidPackage spec="com.unity3d.ads:unity-ads:4.16.1">
-      <repositories>
-        <repository>https://maven.google.com/</repository>
-      </repositories>
     </androidPackage>
   </androidPackages>
   <iosPods>
-    <iosPod name="IronSourceUnityAdsAdapter" version="4.3.55.0">
+    <iosPod name="IronSourceUnityAdsAdapter" version="5.0.0.0">
       <sources>
         <source>https://github.com/CocoaPods/Specs</source>
       </sources>

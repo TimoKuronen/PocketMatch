@@ -24,16 +24,12 @@ public class DropCommand : ICommand
 
     public IEnumerator Execute()
     {
-        // DEBUG: set to true to see per-pass logs and decisions
-        const bool DEBUG_DROP = false;
-
         bool moved;
         List<Tweener> tweens = new();
 
         do
         {
             moved = false;
-            if (DEBUG_DROP) Debug.Log("DropCommand: starting pass");
 
             // bottom-up: y = 1 .. height-1
             for (int y = 1; y < height; y++)
@@ -50,8 +46,7 @@ public class DropCommand : ICommand
                     int downY = y - 1;
 
                     if (InBounds(downX, downY) && IsCellEmpty(downX, downY))
-                    {
-                        if (DEBUG_DROP) Debug.Log($"DropCommand: vertical [{x},{y}] -> [{downX},{downY}]");
+                    { 
                         MoveTile(currentPos, new Vector2Int(downX, downY), tweens);
                         moved = true;
                         continue;
@@ -66,7 +61,6 @@ public class DropCommand : ICommand
                         // check the target column/path: if no normal tile can drop into left target, allow slide
                         if (!HasDroppableAbove(leftTx, leftTy))
                         {
-                            if (DEBUG_DROP) Debug.Log($"DropCommand: diagonal-left [{x},{y}] -> [{leftTx},{leftTy}]");
                             MoveTile(currentPos, new Vector2Int(leftTx, leftTy), tweens);
                             moved = true;
                             continue;
@@ -80,7 +74,6 @@ public class DropCommand : ICommand
                     {
                         if (!HasDroppableAbove(rightTx, rightTy))
                         {
-                            if (DEBUG_DROP) Debug.Log($"DropCommand: diagonal-right [{x},{y}] -> [{rightTx},{rightTy}]");
                             MoveTile(currentPos, new Vector2Int(rightTx, rightTy), tweens);
                             moved = true;
                             continue;
@@ -91,8 +84,6 @@ public class DropCommand : ICommand
 
             if (moved)
                 yield return DOTween.Sequence().AppendInterval(dropDuration).WaitForCompletion();
-
-            if (DEBUG_DROP) Debug.Log($"DropCommand: pass end moved={moved}");
 
         } while (moved && tweens.Count > 0);
     }

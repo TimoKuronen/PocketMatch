@@ -236,6 +236,7 @@ public class GridController : MonoBehaviour
     {
         IsProcessingTiles = true;
         int cycleCount = 0;
+
         bool changed;
 
         do
@@ -248,10 +249,18 @@ public class GridController : MonoBehaviour
             // --- 2. Refill empty cells ---
             yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToWorldPos, TileDrop).Execute();
 
-            // Wait for animations
+            // --- 3. Wait for animations ---
             yield return new WaitUntil(() => !AnyTileTweening());
 
-            // --- 3. Find matches ---
+            // --- 4. If any refillable cells are still empty, keep looping ---
+            if (HasEmptyNormalSlots())
+            {
+                changed = true;
+                cycleCount++;
+                continue; // don’t check matches until board is physically stable
+            }
+
+            // --- 5. Find matches ---
             var matchGroups = MatchFinder.GetMatchGroups(gridData);
             if (matchGroups.Count > 0)
             {
@@ -279,12 +288,12 @@ public class GridController : MonoBehaviour
 
                 // Filter matches (exclude power tile positions)
                 var flatMatches = matchGroups
-                    .SelectMany(g => g) // Flatten all match groups into a single sequence of tile positions
-                    .Distinct() // Remove any duplicate tile positions
-                    .Where(pos => !powerTilePositions.Contains(pos)) // Exclude positions of power tiles we just created
-                    .Concat(destroyedNeighbours) // Add tiles that should be destroyed due to adjacency or other effects
-                    .Distinct() // Remove duplicates again (some neighbours may already be in matches)
-                    .ToList(); // Materialize into a List<Vector2Int>
+                  .SelectMany(g => g) // Flatten all match groups into a single sequence of tile positions
+                  .Distinct() // Remove any duplicate tile positions
+                  .Where(pos => !powerTilePositions.Contains(pos)) // Exclude positions of power tiles we just created
+                  .Concat(destroyedNeighbours) // Add tiles that should be destroyed due to adjacency or other effects
+                  .Distinct() // Remove duplicates again (some neighbours may already be in matches)
+                  .ToList(); // Materialize into a List<Vector2Int>
 
                 // Destroy tiles
                 yield return new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext).Execute();
@@ -292,12 +301,12 @@ public class GridController : MonoBehaviour
 
             cycleCount++;
             //Debug.Log($"Match cycle iteration {cycleCount} complete.");
+
         } while (changed);
 
         IsProcessingTiles = false;
         BoardUpdated?.Invoke(gridData);
 
-        // add analytics if cycleCount > 1
         if (cycleCount > 2)
         {
             Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
@@ -314,6 +323,25 @@ public class GridController : MonoBehaviour
             Debug.Log($"No moves left! (Swaps: {moves.SwapMoveCount}, Power: {moves.PowerTileMoveCount})");
             boardStateEvaluator.ShuffleBoard();
         }
+    }
+
+    /// <summary>
+    /// Checks if there are any empty cells that could be refilled (normal slots only).
+    /// </summary>
+    private bool HasEmptyNormalSlots()
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                var data = gridData[x, y];
+                if (data == null)
+                    return true; // refillable hole
+                if (data.State == TileState.Empty)
+                    return true;
+            }
+        }
+        return false;
     }
 
     private bool AnyTileTweening()

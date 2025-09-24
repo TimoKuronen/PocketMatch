@@ -49,7 +49,9 @@ public class AdsManager : IAdsManager
     private void HideBanner()
     {
         Debug.Log("Hiding Banner Ad...");
-        bannerAd.HideAd();
+
+        if (bannerAd != null)
+            bannerAd.HideAd();
     }
 
     private void CreateBannerAd()
@@ -68,7 +70,7 @@ public class AdsManager : IAdsManager
         bannerAd = new LevelPlayBannerAd("banner", bannerConfig);
     }
 
-    public void Dispose() 
+    public void Dispose()
     {
         LevelPlay.OnInitSuccess -= SdkInitializationCompletedEvent;
         LevelPlay.OnInitFailed -= SdkInitializationFailedEvent;

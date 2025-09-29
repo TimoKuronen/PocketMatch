@@ -43,11 +43,6 @@ public class AdsManager : IAdsManager
             Debug.Log("Interstitial Ad Loaded");
         };
 
-        interstitialAd.OnAdLoadFailed += error =>
-        {
-            Debug.LogError($"Interstitial Ad Load Failed: {error.Description()}");
-        };
-
         interstitialAd.OnAdDisplayed += adInfo =>
         {
             Debug.Log("Interstitial Ad Displayed");

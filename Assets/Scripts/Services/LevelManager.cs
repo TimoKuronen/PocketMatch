@@ -186,9 +186,10 @@ public class LevelManager : ILevelManager
         GridController.Instance.TileDestroyed -= OnTileDestroyed;
         GridController.Instance.GridContext.OnDestroy -= OnTileDestroyed;
     }
-#if UNITY_EDITOR
+
     public void Update()
     {
+#if UNITY_EDITOR
         if (Keyboard.current.wKey.wasPressedThisFrame)
         {
             ToggleWinEvent();
@@ -197,6 +198,6 @@ public class LevelManager : ILevelManager
         {
             ToggleLoseEvent();
         }
-    }
 #endif
+    }
 }

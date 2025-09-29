@@ -20,20 +20,9 @@ public class UI_MainMenu : UIMenu
 
         saveService = Services.Get<ISaveService>();
 
-        if (saveService == null)
-        {
-            InvokeRepeating(nameof(WaitForSaveService), 1f, 1f);
-            return;
-        }
-
         levelIndex = saveService.PlayerData.nextLevelIndex;
 
         LoadInitialValues();
-    }
-
-    private void WaitForSaveService()
-    {
-        Debug.Log(Services.Get<ISaveService>());
     }
 
     private void LoadInitialValues()
@@ -51,6 +40,15 @@ public class UI_MainMenu : UIMenu
     public void SettingsButtonPressed()
     {
         Debug.Log("Settings Button pressed, not yet implemented");
+    }
+
+    public void ResetSaveButtonPressed()
+    {
+        Services.Get<ISaveService>().ResetToDefaults();
+
+        levelIndex = saveService.PlayerData.nextLevelIndex;
+
+        LoadInitialValues();
     }
 
     public void AdsButtonPressed()

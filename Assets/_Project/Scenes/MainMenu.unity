@@ -520,7 +520,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 47432203270169870}
         m_TargetAssemblyTypeName: UI_MainMenu, Assembly-CSharp
-        m_MethodName: AdsButtonPressed
+        m_MethodName: ResetSaveButtonPressed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

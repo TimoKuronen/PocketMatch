@@ -20,6 +20,7 @@ public class UIManager : UIMenu
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
     private ILevelManager levelManager;
+    private IAdsManager adsManager;
 
     private IEnumerator Start()
     {
@@ -27,6 +28,7 @@ public class UIManager : UIMenu
 
         mapData = Services.Get<IGameSessionService>().CurrentMapData;
 
+        adsManager = Services.Get<IAdsManager>();
         levelManager = Services.Get<ILevelManager>();
         levelManager.VictoryConditionsUpdated += OnVictoryConditionsUpdated;
         levelManager.LevelWon += OnLevelWon;
@@ -118,7 +120,16 @@ public class UIManager : UIMenu
     public void NextLevelButtonPressed()
     {
         Debug.Log("Next level button pressed");
+        adsManager.ShowInterstitialAd(); // replace with event that ads manager listens to
+        StartCoroutine(HandleLevelLoadingWithAd());
+    }
+
+    private IEnumerator HandleLevelLoadingWithAd()
+    {
+        Debug.Log("Waiting for ad to complete...");
+        yield return new WaitUntil(() => adsManager.InterstitialAdCompleted);
         StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
+        Debug.Log("Ad completed, loading next level...");
     }
 
     private void OnLevelWon()

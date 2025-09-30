@@ -30,14 +30,12 @@ public class UIManager : UIMenu
 
         adsManager = Services.Get<IAdsManager>();
         levelManager = Services.Get<ILevelManager>();
+
         levelManager.VictoryConditionsUpdated += OnVictoryConditionsUpdated;
         levelManager.LevelWon += OnLevelWon;
         levelManager.LevelLost += OnLevelLost;
 
         LoadVictoryConditions();
-
-        winPanel.SetActive(false);
-        losePanel.SetActive(false);
     }
 
     private void LoadVictoryConditions()

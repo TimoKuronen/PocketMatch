@@ -91,5 +91,8 @@ public class GridAudioPlayer : MonoBehaviour
         GridController.Instance.TileSwapped -= PlayMatchAudio;
         GridController.Instance.TileSwapError -= PlaySwitchErrorAudio;
         GridController.Instance.TileDestroyed -= PlayDestroyAudio;
+        GridController.Instance.TileMoved -= PlayTileMoveAudio;
+        GridController.Instance.PowerTileCreated -= PlayPowerTileCreationAudio;
+        GridController.Instance.GridContext.OnSpecialTileTriggered -= PlaySpecialTileAudio;
     }
 }

@@ -75,6 +75,7 @@ public class LevelManager : ILevelManager
         if (data.State == TileState.Destroyable)
         {
             VictoryConditions.DestroyableTileCount--;
+            Debug.Log("Destroyable tile destroyed, decrementing count to " + VictoryConditions.DestroyableTileCount);
         }
         else if (VictoryConditions.RequiredColorMatchCount != null && VictoryConditions.RequiredColorMatchCount.Length > 0)
         {

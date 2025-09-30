@@ -20,11 +20,5 @@ public class DestroyableTileData : TileData, IDamageableTile
     {
         HitPoints -= amount;
         OnTakeDamage?.Invoke(HitPoints);
-
-        if (HitPoints <= 0)
-        {
-            State = TileState.Empty;
-            Power = TilePower.None;
-        }
     }
 }

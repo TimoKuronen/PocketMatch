@@ -87,3 +87,4 @@ build/
 *.jar
 /Assets/TextMesh Pro/Fonts/*
 !/Assets/TextMesh Pro/Fonts/.gitkeep
+Assets/TextMesh Pro/Fonts/Asimovian-Regular SDF.asset

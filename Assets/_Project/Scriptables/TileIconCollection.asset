@@ -48,7 +48,7 @@ MonoBehaviour:
   - TileType: 5
     TilePower: 2
     TileState: 3
-    Icon: {fileID: 2181264544912075165, guid: cc3fa87e36f17994a9ac5ac3a194ea9a, type: 3}
+    Icon: {fileID: 21300000, guid: d714c401086f83641be181d5f04bd0a3, type: 3}
   - TileType: 5
     TilePower: 3
     TileState: 3

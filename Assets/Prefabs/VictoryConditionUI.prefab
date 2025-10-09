@@ -102,7 +102,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 2
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -213,7 +213,7 @@ GameObject:
   - component: {fileID: 423704115140956302}
   - component: {fileID: 3587731619109642694}
   m_Layer: 5
-  m_Name: Victory Condition UI
+  m_Name: VictoryConditionUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

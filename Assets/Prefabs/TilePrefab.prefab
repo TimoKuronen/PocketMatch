@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -2429920941000883301}
   - component: {fileID: 1685639883683566380}
   - component: {fileID: 4656988426486429719}
+  - component: {fileID: 3169270280919005299}
   m_Layer: 0
   m_Name: TilePrefab
   m_TagString: Untagged
@@ -64,7 +65,6 @@ MonoBehaviour:
   spriteRenderer: {fileID: 1685639883683566380}
   colorPalette: {fileID: 11400000, guid: f0ab2f195bcd1a64188c47769668d90c, type: 2}
   icons: {fileID: 11400000, guid: 00b79947c1d705f498693ff9014cba8f, type: 2}
-  damagedColor: {r: 0, g: 0, b: 0, a: 0}
   <Data>k__BackingField:
     <Type>k__BackingField: 0
     <Power>k__BackingField: 0
@@ -171,3 +171,17 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 4, y: 4}
   m_EdgeRadius: 0
+--- !u!114 &3169270280919005299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1602998255832392727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd7d7dd69a2607e498047789835063fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  image: {fileID: 0}
+  label: {fileID: 0}

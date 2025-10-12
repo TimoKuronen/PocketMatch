@@ -46,7 +46,8 @@ public class RefillCommand : ICommand
                 var view = CreateTileAt(x, y);
                 var rect = (RectTransform)view.transform;
 
-                var spawnPos = GridToUIPos(new Vector2Int(x, height + 2));
+                // spawn above top row
+                var spawnPos = GridToUIPos(new Vector2Int(x, height + 1));
                 var targetPos = GridToUIPos(new Vector2Int(x, y));
 
                 rect.anchoredPosition = spawnPos;
@@ -57,9 +58,8 @@ public class RefillCommand : ICommand
             }
         }
 
-        yield return tweens.Count > 0
-            ? DOTween.Sequence().AppendInterval(refillDuration).WaitForCompletion()
-            : null;
+        if (tweens.Count > 0)
+            yield return new WaitForSeconds(refillDuration);
     }
 
     private bool IsRefillable(int x, int y)

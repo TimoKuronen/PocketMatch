@@ -28,6 +28,7 @@ public class GridController : MonoBehaviour
     private MapData mapData;
     private TilePoolManager tilePoolManager;
     private BoardStateEvaluator boardStateEvaluator;
+    public bool IsBoardInitialized { get; private set; } = false;
     public bool IsProcessingTiles { get; private set; }
     public MatchFinder MatchFinder { get; private set; }
     public GridContext GridContext { get; private set; }
@@ -55,6 +56,7 @@ public class GridController : MonoBehaviour
 
     private IEnumerator Start()
     {
+        Debug.Log("GridController starting...");
         yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
         commandInvoker = new CommandInvoker(this);
@@ -87,6 +89,10 @@ public class GridController : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         BoardUpdated?.Invoke(gridData);
+
+        IsBoardInitialized = true;
+
+        Debug.Log("GridController setup completed");
     }
 
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
@@ -105,8 +111,10 @@ public class GridController : MonoBehaviour
         var viewA = gridViews[origin.x, origin.y];
         var viewB = gridViews[target.x, target.y];
 
-        Vector3 origPosA = viewA.transform.position;
-        Vector3 origPosB = viewB.transform.position;
+        var rectA = viewA.GetComponent<RectTransform>();
+        var rectB = viewB.GetComponent<RectTransform>();
+        Vector2 origPosA = rectA.anchoredPosition;
+        Vector2 origPosB = rectB.anchoredPosition;
 
         IsProcessingTiles = true;
         commandInvoker.AddCommand(new SwapCommand(viewA, viewB, origPosA, origPosB));
@@ -115,7 +123,7 @@ public class GridController : MonoBehaviour
         StartCoroutine(CheckSwapMatch(origin, target, tileA, tileB, viewA, viewB, origPosA, origPosB));
     }
 
-    private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector3 origPosA, Vector3 origPosB)
+    private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector2 origPosA, Vector2 origPosB)
     {
         IsProcessingTiles = true;
 
@@ -154,9 +162,11 @@ public class GridController : MonoBehaviour
         }
         else
         {
-            StartCoroutine(RevertSwap(viewA, viewB, origPosA, origPosB));
+            // Revert using UI anchored positions
+            yield return StartCoroutine(RevertSwap(viewA, viewB, origPosA, origPosB));
         }
     }
+
 
     /// <summary>
     /// Input based trigger for tile power.
@@ -214,23 +224,26 @@ public class GridController : MonoBehaviour
         gridViews[target.x, target.y] = viewA;
     }
 
-    private IEnumerator RevertSwap(TileView tileA, TileView tileB, Vector3 origPosA, Vector3 origPosB)
+    private IEnumerator RevertSwap(TileView tileA, TileView tileB, Vector2 origPosA, Vector2 origPosB)
     {
-        //Debug.Log("Reverting swap...");
-        // Kill any existing tweens just in case
-        tileA.transform.DOKill();
-        tileB.transform.DOKill();
+        // Kill any existing tweens on rect transforms
+        var rectA = tileA.GetComponent<RectTransform>();
+        var rectB = tileB.GetComponent<RectTransform>();
+
+        rectA.DOKill();
+        rectB.DOKill();
 
         TileSwapError?.Invoke();
 
-        // Animate both tiles back to their original positions
-        yield return DOTween.Sequence()
-            .Join(tileA.transform.DOMove(origPosA, 0.25f).SetEase(Ease.OutBack))
-            .Join(tileB.transform.DOMove(origPosB, 0.25f).SetEase(Ease.OutBack))
-            .WaitForCompletion();
+        // Animate both tiles back to their original anchored positions
+        Sequence seq = DOTween.Sequence();
+        seq.Join(rectA.DOAnchorPos(origPosA, 0.25f).SetEase(Ease.OutBack));
+        seq.Join(rectB.DOAnchorPos(origPosB, 0.25f).SetEase(Ease.OutBack));
+        yield return seq.WaitForCompletion();
 
         IsProcessingTiles = false;
     }
+
 
     public IEnumerator MatchCycle()
     {
@@ -415,16 +428,13 @@ public class GridController : MonoBehaviour
         gridData = LevelBuilder.BuildLevelFromMapData(mapData);
         gridViews = new TileView[gridData.GetLength(0), gridData.GetLength(1)];
 
-        // Generate random tile types for normal tiles
+        // Randomize normal tiles
         for (int x = 0; x < gridData.GetLength(0); x++)
         {
             for (int y = 0; y < gridData.GetLength(1); y++)
             {
                 var data = gridData[x, y];
-
-                if (data == null || data.State != TileState.Normal)
-                    continue;
-
+                if (data == null || data.State != TileState.Normal) continue;
                 data.Type = GetRandomTileType();
             }
         }
@@ -441,41 +451,40 @@ public class GridController : MonoBehaviour
                     for (int y = 0; y < gridData.GetLength(1); y++)
                     {
                         var data = gridData[x, y];
-                        if (data == null || data.State != TileState.Normal)
-                            continue;
-
+                        if (data == null || data.State != TileState.Normal) continue;
                         data.Type = GetRandomTileType();
                     }
                 }
 
                 hasMatches = MatchFinder.GetMatchGroups(gridData).Count > 0;
                 safeguard--;
-
                 if (safeguard <= 0)
                 {
                     Debug.LogWarning("Safeguard hit: could not generate grid without matches.");
                     break;
                 }
-
             } while (hasMatches);
         }
 
+        // Use RectTransform size for tile size
         tileSize = normalTilePrefab.GetComponent<RectTransform>().sizeDelta.x;
 
-        LevelBuilder.SpawnGridViews(
-            gridData,
-            gridViews,
-            tilePoolManager,
-            tileContainer,
-            normalTilePrefab,
-            tileSize,
-            gridOffset);
+        LevelBuilder.SpawnGridViews(gridData, gridViews, tilePoolManager, tileContainer);
     }
 
-    private Vector2 GridToUIPos(Vector2Int gridPos)
+    public Vector2 GridToUIPos(Vector2Int gridPos)
     {
-        float x = gridPos.x * tileSize;
-        float y = gridPos.y * tileSize;
+        float boardWidth = width * tileSize;
+        float boardHeight = height * tileSize;
+
+        // Pivot-corrected offset
+        float offsetX = -tileContainer.pivot.x * tileContainer.rect.width + (tileContainer.rect.width - boardWidth) / 2f;
+        float offsetY = -tileContainer.pivot.y * tileContainer.rect.height + (tileContainer.rect.height - boardHeight) / 2f;
+
+        // Row 0 is bottom
+        float x = gridPos.x * tileSize + offsetX;
+        float y = gridPos.y * tileSize + offsetY;
+
         return new Vector2(x, y);
     }
 

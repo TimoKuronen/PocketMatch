@@ -42,10 +42,7 @@ public static class LevelBuilder
         TileData[,] grid,
         TileView[,] gridViews,
         TilePoolManager tilePoolManager,
-        Transform parent,
-        TileView prefab,
-        float tileSize,
-        Vector2 offset)
+        Transform parent)
     {
         int width = grid.GetLength(0);
         int height = grid.GetLength(1);
@@ -55,15 +52,14 @@ public static class LevelBuilder
             for (int y = 0; y < height; y++)
             {
                 var data = grid[x, y];
-                if (data == null)
-                    continue;
+                if (data == null) continue;
 
                 var view = tilePoolManager.GetForState(data.State);
                 view.transform.SetParent(parent, false);
 
-                // UI placement via RectTransform
                 RectTransform rect = view.GetComponent<RectTransform>();
-                rect.anchoredPosition = new Vector2(x * tileSize + offset.x, y * tileSize + offset.y);
+                rect.localScale = Vector3.one;
+                rect.anchoredPosition = GridController.Instance.GridToUIPos(new Vector2Int(x, y));
 
                 view.Init(data);
                 view.gameObject.name = $"Tile_{x}_{y}";
@@ -71,5 +67,4 @@ public static class LevelBuilder
             }
         }
     }
-
 }

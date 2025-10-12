@@ -25,8 +25,6 @@ public class DropCommand : ICommand
     public IEnumerator Execute()
     {
         bool moved;
-        List<Tweener> tweens = new();
-
         do
         {
             moved = false;
@@ -38,102 +36,30 @@ public class DropCommand : ICommand
                     if (!IsNormalTile(x, y))
                         continue;
 
-                    Vector2Int currentPos = new(x, y);
-                    int downX = x;
-                    int downY = y - 1;
-
-                    // Straight down
-                    if (InBounds(downX, downY) && IsCellEmpty(downX, downY))
-                    {
-                        MoveTile(currentPos, new Vector2Int(downX, downY), tweens);
-                        moved = true;
+                    int targetY = y - 1;
+                    if (!InBounds(x, targetY))
                         continue;
-                    }
 
-                    // Diagonal left
-                    int leftTx = x - 1;
-                    int leftTy = y - 1;
-                    if (InBounds(leftTx, leftTy) && IsCellEmpty(leftTx, leftTy) && !HasDroppableAbove(leftTx, leftTy))
-                    {
-                        MoveTile(currentPos, new Vector2Int(leftTx, leftTy), tweens);
-                        moved = true;
-                        continue;
-                    }
+                    // Keep falling until it hits a filled cell or bottom
+                    int fallTo = y;
+                    while (fallTo > 0 && IsCellEmpty(x, fallTo - 1))
+                        fallTo--;
 
-                    // Diagonal right
-                    int rightTx = x + 1;
-                    int rightTy = y - 1;
-                    if (InBounds(rightTx, rightTy) && IsCellEmpty(rightTx, rightTy) && !HasDroppableAbove(rightTx, rightTy))
+                    if (fallTo != y)
                     {
-                        MoveTile(currentPos, new Vector2Int(rightTx, rightTy), tweens);
+                        MoveTile(new Vector2Int(x, y), new Vector2Int(x, fallTo));
                         moved = true;
-                        continue;
                     }
                 }
             }
 
             if (moved)
-                yield return DOTween.Sequence().AppendInterval(dropDuration).WaitForCompletion();
+                yield return new WaitForSeconds(dropDuration);
 
-        } while (moved && tweens.Count > 0);
+        } while (moved);
     }
 
-    private bool HasDroppableAbove(int x, int y)
-    {
-        if (!InBounds(x, y)) return false;
-
-        for (int yy = y + 1; yy < height; yy++)
-        {
-            var above = gridData[x, yy];
-            if (above == null || above.State == TileState.Empty)
-                continue;
-
-            if (above.State == TileState.Blocked)
-                return false;
-            if (above.State == TileState.Destroyable && above is DestroyableTileData dd && !dd.IsDestroyed)
-                return false;
-
-            if (above.State == TileState.Normal)
-            {
-                bool pathClear = true;
-                for (int checkY = yy - 1; checkY >= y; checkY--)
-                {
-                    var mid = gridData[x, checkY];
-                    if (mid == null) continue;
-
-                    if (mid.State == TileState.Normal || mid.State == TileState.Blocked)
-                        pathClear = false;
-                    if (mid is DestroyableTileData mdd && !mdd.IsDestroyed)
-                        pathClear = false;
-                }
-                if (pathClear) return true;
-            }
-        }
-        return false;
-    }
-
-    private bool IsCellEmpty(int x, int y)
-    {
-        if (!InBounds(x, y)) return false;
-
-        var d = gridData[x, y];
-        if (d == null) return true;
-        if (d.State == TileState.Empty) return true;
-        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed) return true;
-
-        return false;
-    }
-
-    private bool IsNormalTile(int x, int y)
-    {
-        if (!InBounds(x, y)) return false;
-        var d = gridData[x, y];
-        return d != null && d.State == TileState.Normal;
-    }
-
-    private bool InBounds(int x, int y) => x >= 0 && x < width && y >= 0 && y < height;
-
-    private void MoveTile(Vector2Int from, Vector2Int to, List<Tweener> tweens)
+    private void MoveTile(Vector2Int from, Vector2Int to)
     {
         var data = gridData[from.x, from.y];
         var view = gridViews[from.x, from.y];
@@ -149,6 +75,27 @@ public class DropCommand : ICommand
 
         var rect = (RectTransform)view.transform;
         rect.DOKill();
-        tweens.Add(rect.DOAnchorPos(GridToUIPos(to), dropDuration).SetEase(Ease.OutCubic));
+        rect.DOAnchorPos(GridToUIPos(to), dropDuration).SetEase(Ease.OutCubic);
     }
+
+    private bool IsNormalTile(int x, int y)
+    {
+        if (!InBounds(x, y)) return false;
+        var d = gridData[x, y];
+        return d != null && d.State == TileState.Normal;
+    }
+
+    private bool IsCellEmpty(int x, int y)
+    {
+        if (!InBounds(x, y)) return false;
+
+        var d = gridData[x, y];
+        if (d == null) return true;
+        if (d.State == TileState.Empty) return true;
+        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed) return true;
+
+        return false;
+    }
+
+    private bool InBounds(int x, int y) => x >= 0 && x < width && y >= 0 && y < height;
 }

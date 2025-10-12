@@ -23,9 +23,10 @@ public class SwapCommand : ICommand
         rectA.DOKill();
         rectB.DOKill();
 
-        rectA.DOAnchorPos(targetPosB, 0.15f);
-        rectB.DOAnchorPos(targetPosA, 0.15f);
+        Sequence seq = DOTween.Sequence();
+        seq.Join(rectA.DOAnchorPos(targetPosB, 0.15f).SetEase(Ease.InOutQuad));
+        seq.Join(rectB.DOAnchorPos(targetPosA, 0.15f).SetEase(Ease.InOutQuad));
 
-        yield return new WaitForSeconds(0.2f);
+        yield return seq.WaitForCompletion();
     }
 }

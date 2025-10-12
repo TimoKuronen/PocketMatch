@@ -19,7 +19,7 @@ public class GridAudioPlayer : MonoBehaviour
 
     private IEnumerator Start()
     {
-        yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+        yield return new WaitUntil(() => GridController.Instance.IsBoardInitialized);
 
         audioSource = GetComponent<AudioSource>();
         soundManager = Services.Get<ISoundManager>();

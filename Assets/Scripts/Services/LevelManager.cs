@@ -41,7 +41,7 @@ public class LevelManager : ILevelManager
         Debug.Log($"LevelManager {LocalMapData.name} initialized with MoveLimit: {MovesRemaining}");
         VictoryConditions = LocalMapData.VictoryConditions;
 
-        yield return new WaitUntil(() => GridController.Instance != null);
+        yield return new WaitUntil(() => GridController.Instance != null && GridController.Instance.IsBoardInitialized);
 
         SubscribeToEvents();
 

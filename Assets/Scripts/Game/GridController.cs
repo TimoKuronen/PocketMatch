@@ -15,7 +15,7 @@ public class GridController : MonoBehaviour
     [SerializeField] private TileView normalTilePrefab;
     [SerializeField] private TileView blockedTilePrefab;
     [SerializeField] private TileView breakableTilePrefab;
-    [SerializeField] private Transform tileContainer;
+    [SerializeField] private RectTransform tileContainer;
     [SerializeField] private float tileSize = 1f;
     [SerializeField] private Vector3 gridOffset;
 
@@ -188,8 +188,8 @@ public class GridController : MonoBehaviour
         yield return new WaitUntil(() => !AnyTileTweening());
 
         // now that grid is cleared, run Drop and Refill
-        commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
-        commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToWorldPos, TileDrop));
+        commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
+        commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop));
         commandInvoker.ExecuteAll();
 
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
@@ -244,10 +244,10 @@ public class GridController : MonoBehaviour
             changed = false;
 
             // --- 1. Drop existing tiles ---
-            yield return new DropCommand(gridData, gridViews, width, height, GridToWorldPos).Execute();
+            yield return new DropCommand(gridData, gridViews, width, height, GridToUIPos).Execute();
 
             // --- 2. Refill empty cells ---
-            yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToWorldPos, TileDrop).Execute();
+            yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop).Execute();
 
             // --- 3. Wait for animations ---
             yield return new WaitUntil(() => !AnyTileTweening());
@@ -423,10 +423,7 @@ public class GridController : MonoBehaviour
                 var data = gridData[x, y];
 
                 if (data == null || data.State != TileState.Normal)
-                {
-                    //Debug.Log($"Tile is null or blocked, skipping randomization.");
                     continue;
-                }
 
                 data.Type = GetRandomTileType();
             }
@@ -435,11 +432,10 @@ public class GridController : MonoBehaviour
         if (!allowMatches)
         {
             bool hasMatches;
-            int safeguard = 100; // infinite loop guard
+            int safeguard = 100;
 
             do
             {
-                // Randomize only normal slots
                 for (int x = 0; x < gridData.GetLength(0); x++)
                 {
                     for (int y = 0; y < gridData.GetLength(1); y++)
@@ -457,28 +453,30 @@ public class GridController : MonoBehaviour
 
                 if (safeguard <= 0)
                 {
-                    Debug.Log("Safeguard hit: could not generate grid without matches.");
+                    Debug.LogWarning("Safeguard hit: could not generate grid without matches.");
                     break;
                 }
 
             } while (hasMatches);
         }
 
-        tileSize = normalTilePrefab.GetComponent<SpriteRenderer>().bounds.size.x;
+        tileSize = normalTilePrefab.GetComponent<RectTransform>().sizeDelta.x;
 
         LevelBuilder.SpawnGridViews(
-        gridData,
-        gridViews,
-        tilePoolManager,
-        tileContainer,
-        normalTilePrefab,
-        tileSize,
-        gridOffset);
+            gridData,
+            gridViews,
+            tilePoolManager,
+            tileContainer,
+            normalTilePrefab,
+            tileSize,
+            gridOffset);
     }
 
-    public Vector3 GridToWorldPos(Vector2Int gridPosition)
+    private Vector2 GridToUIPos(Vector2Int gridPos)
     {
-        return new Vector3(gridPosition.x * tileSize, gridPosition.y * tileSize, 0f) + gridOffset;
+        float x = gridPos.x * tileSize;
+        float y = gridPos.y * tileSize;
+        return new Vector2(x, y);
     }
 
     private void CenterCameraOnGrid()
@@ -508,7 +506,7 @@ public class GridController : MonoBehaviour
         flatMatches.Add(origin);
 
         commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed));
-        commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToWorldPos));
+        commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
         commandInvoker.ExecuteAll();
 
         StartCoroutine(MatchCycle());

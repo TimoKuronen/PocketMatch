@@ -1,14 +1,13 @@
 using DG.Tweening;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SwapCommand : ICommand
 {
-    private TileView viewA, viewB;
-    private Vector3 targetPosA, targetPosB;
+    private readonly TileView viewA, viewB;
+    private readonly Vector2 targetPosA, targetPosB;
 
-    public SwapCommand(TileView a, TileView b, Vector3 posA, Vector3 posB)
+    public SwapCommand(TileView a, TileView b, Vector2 posA, Vector2 posB)
     {
         viewA = a;
         viewB = b;
@@ -18,8 +17,15 @@ public class SwapCommand : ICommand
 
     public IEnumerator Execute()
     {
-        viewA.transform.DOMove(targetPosB, 0.15f);
-        viewB.transform.DOMove(targetPosA, 0.15f);
+        var rectA = (RectTransform)viewA.transform;
+        var rectB = (RectTransform)viewB.transform;
+
+        rectA.DOKill();
+        rectB.DOKill();
+
+        rectA.DOAnchorPos(targetPosB, 0.15f);
+        rectB.DOAnchorPos(targetPosA, 0.15f);
+
         yield return new WaitForSeconds(0.2f);
     }
 }

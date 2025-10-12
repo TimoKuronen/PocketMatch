@@ -38,7 +38,14 @@ public static class LevelBuilder
         return grid;
     }
 
-    public static void SpawnGridViews(TileData[,] grid, TileView[,] gridViews, TilePoolManager tilePoolManager, Transform parent, TileView prefab, float tileSize, Vector3 offset)
+    public static void SpawnGridViews(
+        TileData[,] grid,
+        TileView[,] gridViews,
+        TilePoolManager tilePoolManager,
+        Transform parent,
+        TileView prefab,
+        float tileSize,
+        Vector2 offset)
     {
         int width = grid.GetLength(0);
         int height = grid.GetLength(1);
@@ -47,17 +54,22 @@ public static class LevelBuilder
         {
             for (int y = 0; y < height; y++)
             {
-                if (grid[x, y] == null)
+                var data = grid[x, y];
+                if (data == null)
                     continue;
 
-                var view = tilePoolManager.GetForState(grid[x, y].State);
-
+                var view = tilePoolManager.GetForState(data.State);
                 view.transform.SetParent(parent, false);
-                view.transform.position = new Vector3(x * tileSize, y * tileSize, 0) + offset;
-                view.Init(grid[x, y]);
+
+                // UI placement via RectTransform
+                RectTransform rect = view.GetComponent<RectTransform>();
+                rect.anchoredPosition = new Vector2(x * tileSize + offset.x, y * tileSize + offset.y);
+
+                view.Init(data);
                 view.gameObject.name = $"Tile_{x}_{y}";
                 gridViews[x, y] = view;
             }
         }
     }
+
 }

@@ -56,7 +56,7 @@ public class UIGridController : MonoBehaviour
 
                 rt.anchoredPosition = anchoredPos;
 
-                tile.Initialize($"({x},{y})", Random.ColorHSV());
+                //tile.Initialize($"({x},{y})", Random.ColorHSV());
             }
         }
     }

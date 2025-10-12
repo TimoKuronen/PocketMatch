@@ -1,8 +1,9 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TileView : MonoBehaviour
 {
-    [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private Image image;
     [SerializeField] private ColorPalette colorPalette;
     [SerializeField] private TileIconCollection icons;
 
@@ -10,15 +11,19 @@ public class TileView : MonoBehaviour
     [field: SerializeField] public TileData Data { get; private set; }
 
     private Color originalColor;
+    private RectTransform rectTransform;
 
     public void Init(TileData data)
     {
         Data = data;
 
-        originalColor = spriteRenderer.color;
-        spriteRenderer.sprite = icons.GetIcon(data.Type, data.Power, data.State);
+        if (rectTransform == null)
+            rectTransform = GetComponent<RectTransform>();
 
-        // Unnormal tiles aren't assigned a color
+        originalColor = image.color;
+        image.sprite = icons.GetIcon(data.Type, data.Power, data.State);
+
+        // Unnormal tiles aren’t assigned a color
         if (data.State != TileState.Normal)
         {
             if (data is DestroyableTileData destroyableData)
@@ -28,10 +33,10 @@ public class TileView : MonoBehaviour
             return;
         }
 
-        // power tiles have their own color
+        // Power tiles have their own color
         if (data.Power != TilePower.None)
         {
-            spriteRenderer.color = colorPalette.PowerTileColor;
+            image.color = colorPalette.PowerTileColor;
             return;
         }
 
@@ -42,13 +47,13 @@ public class TileView : MonoBehaviour
             Debug.LogWarning($"Invalid tile type index: {colorIndex}");
             return;
         }
-        
-        spriteRenderer.color = colorPalette.TileColors[colorIndex].Color;
+
+        image.color = colorPalette.TileColors[colorIndex].Color;
     }
 
     private void UpdateColorOnDamage(int healthLeft)
     {
-        spriteRenderer.color = colorPalette.DamagedColor;
+        image.color = colorPalette.DamagedColor;
     }
 
     private void OnDisable()
@@ -58,6 +63,22 @@ public class TileView : MonoBehaviour
             destroyableData.OnTakeDamage -= UpdateColorOnDamage;
         }
 
-        spriteRenderer.color = originalColor;
+        image.color = originalColor;
+    }
+
+    public void SetAnchoredPosition(Vector2 pos)
+    {
+        if (rectTransform == null)
+            rectTransform = GetComponent<RectTransform>();
+
+        rectTransform.anchoredPosition = pos;
+    }
+
+    public Vector2 GetAnchoredPosition()
+    {
+        if (rectTransform == null)
+            rectTransform = GetComponent<RectTransform>();
+
+        return rectTransform.anchoredPosition;
     }
 }

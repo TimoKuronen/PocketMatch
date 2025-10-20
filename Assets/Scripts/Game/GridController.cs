@@ -194,16 +194,24 @@ public class GridController : MonoBehaviour
         //Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");
 
         // Wait until all destroy commands from power are complete
+      //  Debug.Log("# 1 Waiting for commandInvoker to empty...");
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
+       // Debug.Log("CommandInvoker empty!");
+      //  Debug.Log("# 1 Waiting for tweens to finish...");
         yield return new WaitUntil(() => !AnyTileTweening());
+       // Debug.Log("Tweens done!");
 
         // now that grid is cleared, run Drop and Refill
         commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
         commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop));
         commandInvoker.ExecuteAll();
 
+      //  Debug.Log("# 2 Waiting for commandInvoker to empty...");
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
+       // Debug.Log("CommandInvoker empty!");
+       // Debug.Log("# 2 Waiting for tweens to finish...");
         yield return new WaitUntil(() => !AnyTileTweening());
+        //Debug.Log("Tweens done!");
 
         // Finally continue match cycle
         StartCoroutine(MatchCycle());
@@ -247,6 +255,7 @@ public class GridController : MonoBehaviour
 
     public IEnumerator MatchCycle()
     {
+        Debug.Log("Starting match cycle...");
         IsProcessingTiles = true;
         int cycleCount = 0;
 
@@ -259,15 +268,22 @@ public class GridController : MonoBehaviour
             // --- 1. Drop existing tiles ---
             yield return new DropCommand(gridData, gridViews, width, height, GridToUIPos).Execute();
 
+            Debug.Log("Board after drop:");
+
             // --- 2. Refill empty cells ---
             yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop).Execute();
 
+            Debug.Log("Board after refill:");
+
             // --- 3. Wait for animations ---
+            Debug.Log("Waiting for tweens to finish...");
             yield return new WaitUntil(() => !AnyTileTweening());
+            Debug.Log("Tweens done!");
 
             // --- 4. If any refillable cells are still empty, keep looping ---
             if (HasEmptyNormalSlots())
             {
+                Debug.Log("Still has empty slots after refill, continuing cycle...");
                 changed = true;
                 cycleCount++;
                 continue; // don’t check matches until board is physically stable
@@ -279,6 +295,7 @@ public class GridController : MonoBehaviour
             {
                 changed = true;
 
+                Debug.Log($"Found more match groups.");
                 // Adjacent destroyables
                 var destroyedNeighbours = AdjacentDamageProcessor.GetAdjacentDestroyables(matchGroups, gridData);
 
@@ -482,8 +499,8 @@ public class GridController : MonoBehaviour
         float offsetY = -tileContainer.pivot.y * tileContainer.rect.height + (tileContainer.rect.height - boardHeight) / 2f;
 
         // Row 0 is bottom
-        float x = gridPos.x * tileSize + offsetX;
-        float y = gridPos.y * tileSize + offsetY;
+        float x = gridPos.x * tileSize + offsetX + tileSize / 2f;
+        float y = gridPos.y * tileSize + offsetY + tileSize / 2f;
 
         return new Vector2(x, y);
     }

@@ -16,23 +16,23 @@ MonoBehaviour:
   - TileType: 0
     TilePower: 0
     TileState: 0
-    Icon: {fileID: -5252914845595520389, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: 21300000, guid: a65835e4725eb5e4497a05ed3fb7ec30, type: 3}
   - TileType: 1
     TilePower: 0
     TileState: 0
-    Icon: {fileID: -1049458291, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: 21300000, guid: ae6fee3825e05604ca17b3373eb5ab01, type: 3}
   - TileType: 2
     TilePower: 0
     TileState: 0
-    Icon: {fileID: -659760263, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: 21300000, guid: f9ac21759641fb14b901e9f79aa0e21e, type: 3}
   - TileType: 3
     TilePower: 0
     TileState: 0
-    Icon: {fileID: -87676246, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: 21300000, guid: e9fe6db0dbe68ff479b752fbfd126b22, type: 3}
   - TileType: 4
     TilePower: 0
     TileState: 0
-    Icon: {fileID: 408106318, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: 21300000, guid: 156c8a1731136f1409a60ac5abee474d, type: 3}
   - TileType: 0
     TilePower: 0
     TileState: 2
@@ -44,16 +44,16 @@ MonoBehaviour:
   - TileType: 5
     TilePower: 1
     TileState: 3
-    Icon: {fileID: 2181264544912075165, guid: cc3fa87e36f17994a9ac5ac3a194ea9a, type: 3}
+    Icon: {fileID: 21300000, guid: 29af99001b87f284686ba3967b6a4425, type: 3}
   - TileType: 5
     TilePower: 2
     TileState: 3
-    Icon: {fileID: 21300000, guid: d714c401086f83641be181d5f04bd0a3, type: 3}
+    Icon: {fileID: 21300000, guid: 371f9653fda15f8499f4ec353b95ad32, type: 3}
   - TileType: 5
     TilePower: 3
     TileState: 3
-    Icon: {fileID: -99478167, guid: cc3fa87e36f17994a9ac5ac3a194ea9a, type: 3}
+    Icon: {fileID: 21300000, guid: ad37411128fc53d46a3d800e5592db8b, type: 3}
   - TileType: 5
     TilePower: 4
     TileState: 3
-    Icon: {fileID: -610392332, guid: cc3fa87e36f17994a9ac5ac3a194ea9a, type: 3}
+    Icon: {fileID: 21300000, guid: 13bacec9a1f868749b9caafd0381b190, type: 3}

@@ -46,8 +46,8 @@ public class RefillCommand : ICommand
                 var view = CreateTileAt(x, y);
                 var rect = (RectTransform)view.transform;
 
-                // spawn above top row
-                var spawnPos = GridToUIPos(new Vector2Int(x, height + 1));
+                // spawn well above top row so the drop looks natural
+                var spawnPos = GridToUIPos(new Vector2Int(x, height + 2));
                 var targetPos = GridToUIPos(new Vector2Int(x, y));
 
                 rect.anchoredPosition = spawnPos;
@@ -59,12 +59,13 @@ public class RefillCommand : ICommand
         }
 
         if (tweens.Count > 0)
-            yield return new WaitForSeconds(refillDuration);
+            yield return DOTween.Sequence().AppendInterval(refillDuration).WaitForCompletion();
     }
 
     private bool IsRefillable(int x, int y)
     {
-        if (!InBounds(x, y)) return false;
+        if (!InBounds(x, y)) 
+            return false;
 
         var data = gridData[x, y];
         if (data == null || data.State == TileState.Empty)

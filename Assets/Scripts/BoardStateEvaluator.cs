@@ -172,46 +172,42 @@ public class BoardStateEvaluator
 
     private IEnumerator AnimateShuffle(List<TileView> tileViews, List<Vector2Int> tilePositions)
     {
-        bool isProcessingTiles = true;
         float moveDuration = 0.3f;
+        List<Tweener> tweens = new();
 
-        // Small random movement for each tile
         foreach (TileView view in tileViews)
         {
-            view.transform.DOKill();
+            var rect = (RectTransform)view.transform;
+            rect.DOKill(); // kill existing tweens
 
-            // Get current position
-            Vector3 currentPos = view.transform.position;
-
-            // Calculate small random offset
-            Vector3 randomOffset = new Vector3(
-                Random.Range(-0.5f, 0.5f),
-                Random.Range(-0.5f, 0.5f),
-                0f
+            Vector2 currentPos = rect.anchoredPosition;
+            Vector2 randomOffset = new Vector2(
+                UnityEngine.Random.Range(-30f, 30f),
+                UnityEngine.Random.Range(-30f, 30f)
             );
 
-            // Move to random position and back
-            view.transform.DOMove(currentPos + randomOffset, moveDuration)
+            Tweener t = rect.DOAnchorPos(currentPos + randomOffset, moveDuration)
                 .SetEase(Ease.InOutQuad)
-                .OnComplete(() => 
-                {
-                    view.transform.DOMove(currentPos, moveDuration)
-                        .SetEase(Ease.InOutQuad);
-                });
+                .SetLoops(2, LoopType.Yoyo);
+            tweens.Add(t);
         }
 
         yield return new WaitForSeconds(moveDuration * 2);
 
-        // Update all tile visuals to match their new types
+        // Ensure all tweens are cleared
+        foreach (var view in tileViews)
+            ((RectTransform)view.transform).DOKill();
+
+        // Re-init visuals
         for (int i = 0; i < tileViews.Count; i++)
         {
             Vector2Int pos = tilePositions[i];
             tileViews[i].Init(gridData[pos.x, pos.y]);
         }
 
-        // Trigger match cycle
+        // Resume normal matching AFTER animations are fully done
+        yield return new WaitForSeconds(0.05f);
         CoroutineMonoBehavior.Instance.StartCoroutine(gridController.MatchCycle());
-        isProcessingTiles = false;
     }
 
     /// <summary>

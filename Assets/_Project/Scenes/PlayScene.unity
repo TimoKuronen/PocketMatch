@@ -650,11 +650,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 485272160429731552, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
       propertyPath: gridOffset.x
-      value: -150
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 485272160429731552, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
       propertyPath: gridOffset.y
-      value: -150
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 485272160429731552, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
       propertyPath: tileContainer

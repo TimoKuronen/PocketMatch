@@ -43,11 +43,13 @@ public class DropCommand : ICommand
                     Vector2Int currentPos = new Vector2Int(x, y);
 
                     // 1) Try straight down first
-                    int downX = x;
-                    int downY = y - 1;
-                    if (InBounds(downX, downY) && IsCellEmpty(downX, downY))
+                    int fallTo = y;
+                    while (fallTo > 0 && IsCellEmpty(x, fallTo - 1))
+                        fallTo--;
+
+                    if (fallTo != y)
                     {
-                        MoveTile(currentPos, new Vector2Int(downX, downY), tweens);
+                        MoveTile(currentPos, new Vector2Int(x, fallTo), tweens);
                         moved = true;
                         continue;
                     }
@@ -96,12 +98,18 @@ public class DropCommand : ICommand
     /// </summary>
     private bool IsCandidateToMove(int x, int y)
     {
-        if (!InBounds(x, y)) return false;
-        var d = gridData[x, y];
-        if (d == null) return false;
+        if (!InBounds(x, y)) 
+            return false;
 
-        if (d.State == TileState.Normal) return true;
-        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed) return true;
+        var d = gridData[x, y];
+
+        if (d == null) 
+            return false;
+        if (d.State == TileState.Normal) 
+            return true;
+        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed) 
+            return true;
+
         return false;
     }
 
@@ -111,7 +119,8 @@ public class DropCommand : ICommand
     /// </summary>
     private bool HasDroppableAbove(int x, int y)
     {
-        if (!InBounds(x, y)) return false;
+        if (!InBounds(x, y)) 
+            return false;
 
         for (int yy = y + 1; yy < height; yy++)
         {
@@ -175,9 +184,12 @@ public class DropCommand : ICommand
 
         var d = gridData[x, y];
 
-        if (d == null) return true;
-        if (d.State == TileState.Empty) return true;
-        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed) return true;
+        if (d == null) 
+            return true;
+        if (d.State == TileState.Empty) 
+            return true;
+        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed) 
+            return true;
 
         return false;
     }

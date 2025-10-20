@@ -52,7 +52,8 @@ public static class LevelBuilder
             for (int y = 0; y < height; y++)
             {
                 var data = grid[x, y];
-                if (data == null) continue;
+                if (data == null) 
+                    continue;
 
                 var view = tilePoolManager.GetForState(data.State);
                 view.transform.SetParent(parent, false);
@@ -64,6 +65,19 @@ public static class LevelBuilder
                 view.Init(data);
                 view.gameObject.name = $"Tile_{x}_{y}";
                 gridViews[x, y] = view;
+            }
+        }
+    }
+
+    public static void SpawnGridFrames(int width, int height, RectTransform framePrefab, Transform parent)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                RectTransform rect = GameObject.Instantiate(framePrefab, Vector3.zero, Quaternion.identity, parent);
+                rect.localScale = Vector3.one;
+                rect.anchoredPosition = GridController.Instance.GridToUIPos(new Vector2Int(x, y));
             }
         }
     }

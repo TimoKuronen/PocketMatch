@@ -16,8 +16,8 @@ public class GridController : MonoBehaviour
     [SerializeField] private TileView blockedTilePrefab;
     [SerializeField] private TileView breakableTilePrefab;
     [SerializeField] private RectTransform tileContainer;
+    [SerializeField] private RectTransform tileFramePrefab;
     [SerializeField] private float tileSize = 1f;
-    [SerializeField] private Vector3 gridOffset;
 
     [Header("Initial Debugging Settings")]
     [SerializeField] private bool allowInitialMatches = false;
@@ -422,7 +422,6 @@ public class GridController : MonoBehaviour
         return view;
     }
 
-
     private void ClearBoard()
     {
         if (gridViews != null)
@@ -451,7 +450,8 @@ public class GridController : MonoBehaviour
             for (int y = 0; y < gridData.GetLength(1); y++)
             {
                 var data = gridData[x, y];
-                if (data == null || data.State != TileState.Normal) continue;
+                if (data == null || data.State != TileState.Normal) 
+                    continue;
                 data.Type = GetRandomTileType();
             }
         }
@@ -487,6 +487,7 @@ public class GridController : MonoBehaviour
         tileSize = normalTilePrefab.GetComponent<RectTransform>().sizeDelta.x;
 
         LevelBuilder.SpawnGridViews(gridData, gridViews, tilePoolManager, tileContainer);
+        LevelBuilder.SpawnGridFrames(width, height, tileFramePrefab, tileContainer);
     }
 
     public Vector2 GridToUIPos(Vector2Int gridPos)

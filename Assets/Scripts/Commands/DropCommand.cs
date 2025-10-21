@@ -201,6 +201,12 @@ public class DropCommand : ICommand
         var data = gridData[from.x, from.y];
         var view = gridViews[from.x, from.y];
 
+        if (view == null || data == null)
+        {
+            Debug.LogError(data + " is null when trying to move to position " + from.ToString());
+            Debug.LogError(view + " is null");
+            Debug.Break();
+        }
         gridData[to.x, to.y] = data;
         gridViews[to.x, to.y] = view;
 

@@ -28,8 +28,8 @@ public class VictoryConditionUI : MonoBehaviour
             conditionIcon.color = Color.white;
             return;
         }
-        int colorIndex = (int)tileType;
-        conditionIcon.color = colorPalette.TileColors[colorIndex].Color;
+        //int colorIndex = (int)tileType;
+        //conditionIcon.color = colorPalette.TileColors[colorIndex].Color;
     }
 
     public void UpdateUI(string conditionText)

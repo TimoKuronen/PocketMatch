@@ -268,17 +268,17 @@ public class GridController : MonoBehaviour
             // --- 1. Drop existing tiles ---
             yield return new DropCommand(gridData, gridViews, width, height, GridToUIPos).Execute();
 
-            Debug.Log("Board after drop:");
+           // Debug.Log("Board after drop:");
 
             // --- 2. Refill empty cells ---
             yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop).Execute();
 
-            Debug.Log("Board after refill:");
+            //Debug.Log("Board after refill:");
 
             // --- 3. Wait for animations ---
-            Debug.Log("Waiting for tweens to finish...");
+            //Debug.Log("Waiting for tweens to finish...");
             yield return new WaitUntil(() => !AnyTileTweening());
-            Debug.Log("Tweens done!");
+            //Debug.Log("Tweens done!");
 
             // --- 4. If any refillable cells are still empty, keep looping ---
             if (HasEmptyNormalSlots())
@@ -295,7 +295,7 @@ public class GridController : MonoBehaviour
             {
                 changed = true;
 
-                Debug.Log($"Found more match groups.");
+               // Debug.Log($"Found more match groups.");
                 // Adjacent destroyables
                 var destroyedNeighbours = AdjacentDamageProcessor.GetAdjacentDestroyables(matchGroups, gridData);
 
@@ -326,6 +326,7 @@ public class GridController : MonoBehaviour
                   .ToList(); // Materialize into a List<Vector2Int>
 
                 // Destroy tiles
+                TileSwapped?.Invoke();
                 yield return new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext).Execute();
             }
 
@@ -531,6 +532,8 @@ public class GridController : MonoBehaviour
         List<Vector2Int> flatMatches = new();
         var tileA = gridData[origin.x, origin.y];
         flatMatches.Add(origin);
+
+        TileSwapped?.Invoke();
 
         commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed));
         commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));

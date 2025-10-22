@@ -29,6 +29,27 @@ public static class Loader
         SceneManager.LoadScene(Scene.Loader.ToString());
     }
 
+    public static IEnumerator ShowInterstitialThenContinue(IAdsManager adsManager, Scene sceneToLoad)
+    {
+        adsManager.ShowInterstitialAd();
+
+        float timeout = 3f;
+        float timer = 0f;
+
+        while (!adsManager.InterstitialAdCompleted && timer < timeout)
+        {
+            timer += Time.unscaledDeltaTime;
+            Debug.Log("Waiting for interstitial ad to complete...");
+            yield return null;
+        }
+
+        if (!adsManager.InterstitialAdCompleted)
+        {
+            Debug.LogWarning("Interstitial failed or no fill. Continuing flow.");
+            adsManager.ForceMarkAdComplete(); // helper we’ll add below
+        }
+    }
+
     public static void LoaderCallback()
     {
         if (!targetScene.HasValue)

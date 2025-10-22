@@ -118,12 +118,13 @@ public class UIManager : UIMenu
     public void NextLevelButtonPressed()
     {
         Debug.Log("Next level button pressed");
-        adsManager.ShowInterstitialAd(); // replace with event that ads manager listens to
         StartCoroutine(HandleLevelLoadingWithAd());
     }
 
     private IEnumerator HandleLevelLoadingWithAd()
     {
+        StartCoroutine(Loader.ShowInterstitialThenContinue(adsManager, Loader.Scene.PlayScene));
+
         Debug.Log("Waiting for ad to complete...");
         yield return new WaitUntil(() => adsManager.InterstitialAdCompleted);
         StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));

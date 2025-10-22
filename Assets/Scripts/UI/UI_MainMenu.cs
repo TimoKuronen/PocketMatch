@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ public class UI_MainMenu : UIMenu
     [SerializeField] private TextMeshProUGUI levelText;
 
     private ISaveService saveService;
+    private IAdsManager adsManager;
     private int levelIndex;
 
     private void Start()
@@ -19,6 +21,7 @@ public class UI_MainMenu : UIMenu
         settingsPanel.SetActive(false);
 
         saveService = Services.Get<ISaveService>();
+        adsManager = Services.Get<IAdsManager>();
 
         levelIndex = saveService.PlayerData.nextLevelIndex;
 
@@ -35,6 +38,19 @@ public class UI_MainMenu : UIMenu
     {
         Debug.Log("Play Button pressed, loading level " + (levelIndex + 1));
         StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
+        //StartCoroutine(HandleLevelLoadingWithAd());
+    }
+
+    private IEnumerator HandleLevelLoadingWithAd()
+    {
+        StartCoroutine(Loader.ShowInterstitialThenContinue(adsManager, Loader.Scene.PlayScene));
+
+        Debug.Log("Waiting for ad to complete...");
+
+        yield return new WaitUntil(() => adsManager.InterstitialAdCompleted);
+
+        StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
+        Debug.Log("Ad completed, loading next level...");
     }
 
     public void SettingsButtonPressed()

@@ -982,10 +982,6 @@ PrefabInstance:
       propertyPath: tileContainer
       value: 
       objectReference: {fileID: 1356153396}
-    - target: {fileID: 485272160429731552, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
-      propertyPath: tileFramePrefab
-      value: 
-      objectReference: {fileID: 901421959083162220, guid: 92c937bf21495c24986d5cb1cb4ffbd4, type: 3}
     - target: {fileID: 3351214363345049549, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

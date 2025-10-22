@@ -6,9 +6,9 @@ public class ColorPalette : ScriptableObject
 {
     [field: SerializeField] public TileColor[] TileColors { get; private set; }
     [field: SerializeField] public Color DamagedColor;
-    [field: SerializeField] public Color PowerTileColor;
 }
 
+[Obsolete]
 [Serializable]
 public class TileColor
 {

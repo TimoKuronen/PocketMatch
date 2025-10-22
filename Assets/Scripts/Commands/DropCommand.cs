@@ -43,6 +43,7 @@ public class DropCommand : ICommand
                     Vector2Int currentPos = new Vector2Int(x, y);
 
                     // 1) Try straight down first
+                    // SHOULD PRIORITIZE THESE BUT DIAGONAL SLIDES OVERPOWER - FIX!
                     int fallTo = y;
                     while (fallTo > 0 && IsCellEmpty(x, fallTo - 1))
                         fallTo--;
@@ -89,8 +90,6 @@ public class DropCommand : ICommand
 
         } while (moved && tweens.Count > 0);
     }
-
-    // --- Helpers ---
 
     /// <summary>
     /// A tile is candidate to move if it's a Normal tile, or a Destroyable that has been destroyed.

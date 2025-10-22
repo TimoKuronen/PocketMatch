@@ -126,47 +126,50 @@ public class GridController : MonoBehaviour
     private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector2 origPosA, Vector2 origPosB)
     {
         IsProcessingTiles = true;
-
         TileMoved?.Invoke();
 
+        // Wait briefly for the swap animation to complete visually
         yield return new WaitForSeconds(0.2f);
 
+        // Create a temp copy to test for matches
         var tempGridData = gridData.Clone() as TileData[,];
         tempGridData[origin.x, origin.y] = tileB;
         tempGridData[target.x, target.y] = tileA;
 
+        // --- Handle power tiles immediately ---
         if (tileA.Power != TilePower.None || tileB.Power != TilePower.None)
         {
             SwapTilesInData(origin, target, tileA, tileB);
 
             if (tileA.Power != TilePower.None)
-            {
                 StartCoroutine(TriggerPowerEvent(tileA));
-            }
 
             if (tileB.Power != TilePower.None)
-            {
                 StartCoroutine(TriggerPowerEvent(tileB));
-            }
 
             yield break;
         }
 
+        // --- Check for valid matches after the swap ---
         var matches = MatchFinder.GetMatchGroups(tempGridData);
         if (matches.Count > 0)
         {
             SwapTilesInData(origin, target, tileA, tileB);
             StartCoroutine(MatchCycle());
-
             ActionTaken?.Invoke();
         }
         else
         {
-            // Revert using UI anchored positions
-            yield return StartCoroutine(RevertSwap(viewA, viewB, origPosA, origPosB));
+            TileSwapError?.Invoke();
+
+            // swap them back to their original positions
+            var revertCommand = new SwapCommand(viewA, viewB, origPosB, origPosA, 0.25f, Ease.OutBack);
+
+            yield return revertCommand.Execute();
+
+            IsProcessingTiles = false;
         }
     }
-
 
     /// <summary>
     /// Input based trigger for tile power.
@@ -194,22 +197,22 @@ public class GridController : MonoBehaviour
         //Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");
 
         // Wait until all destroy commands from power are complete
-      //  Debug.Log("# 1 Waiting for commandInvoker to empty...");
+        //  Debug.Log("# 1 Waiting for commandInvoker to empty...");
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
-       // Debug.Log("CommandInvoker empty!");
-      //  Debug.Log("# 1 Waiting for tweens to finish...");
+        // Debug.Log("CommandInvoker empty!");
+        //  Debug.Log("# 1 Waiting for tweens to finish...");
         yield return new WaitUntil(() => !AnyTileTweening());
-       // Debug.Log("Tweens done!");
+        // Debug.Log("Tweens done!");
 
         // now that grid is cleared, run Drop and Refill
         commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
         commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop));
         commandInvoker.ExecuteAll();
 
-      //  Debug.Log("# 2 Waiting for commandInvoker to empty...");
+        //  Debug.Log("# 2 Waiting for commandInvoker to empty...");
         yield return new WaitUntil(() => commandInvoker.IsEmpty());
-       // Debug.Log("CommandInvoker empty!");
-       // Debug.Log("# 2 Waiting for tweens to finish...");
+        // Debug.Log("CommandInvoker empty!");
+        // Debug.Log("# 2 Waiting for tweens to finish...");
         yield return new WaitUntil(() => !AnyTileTweening());
         //Debug.Log("Tweens done!");
 
@@ -232,27 +235,6 @@ public class GridController : MonoBehaviour
         gridViews[target.x, target.y] = viewA;
     }
 
-    private IEnumerator RevertSwap(TileView tileA, TileView tileB, Vector2 origPosA, Vector2 origPosB)
-    {
-        // Kill any existing tweens on rect transforms
-        var rectA = tileA.GetComponent<RectTransform>();
-        var rectB = tileB.GetComponent<RectTransform>();
-
-        rectA.DOKill();
-        rectB.DOKill();
-
-        TileSwapError?.Invoke();
-
-        // Animate both tiles back to their original anchored positions
-        Sequence seq = DOTween.Sequence();
-        seq.Join(rectA.DOAnchorPos(origPosA, 0.25f).SetEase(Ease.OutBack));
-        seq.Join(rectB.DOAnchorPos(origPosB, 0.25f).SetEase(Ease.OutBack));
-        yield return seq.WaitForCompletion();
-
-        IsProcessingTiles = false;
-    }
-
-
     public IEnumerator MatchCycle()
     {
         Debug.Log("Starting match cycle...");
@@ -268,7 +250,7 @@ public class GridController : MonoBehaviour
             // --- 1. Drop existing tiles ---
             yield return new DropCommand(gridData, gridViews, width, height, GridToUIPos).Execute();
 
-           // Debug.Log("Board after drop:");
+            // Debug.Log("Board after drop:");
 
             // --- 2. Refill empty cells ---
             yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop).Execute();
@@ -295,7 +277,7 @@ public class GridController : MonoBehaviour
             {
                 changed = true;
 
-               // Debug.Log($"Found more match groups.");
+                // Debug.Log($"Found more match groups.");
                 // Adjacent destroyables
                 var destroyedNeighbours = AdjacentDamageProcessor.GetAdjacentDestroyables(matchGroups, gridData);
 
@@ -451,7 +433,7 @@ public class GridController : MonoBehaviour
             for (int y = 0; y < gridData.GetLength(1); y++)
             {
                 var data = gridData[x, y];
-                if (data == null || data.State != TileState.Normal) 
+                if (data == null || data.State != TileState.Normal)
                     continue;
                 data.Type = GetRandomTileType();
             }
@@ -500,7 +482,6 @@ public class GridController : MonoBehaviour
         float offsetX = -tileContainer.pivot.x * tileContainer.rect.width + (tileContainer.rect.width - boardWidth) / 2f;
         float offsetY = -tileContainer.pivot.y * tileContainer.rect.height + (tileContainer.rect.height - boardHeight) / 2f;
 
-        // Row 0 is bottom
         float x = gridPos.x * tileSize + offsetX + tileSize / 2f;
         float y = gridPos.y * tileSize + offsetY + tileSize / 2f;
 

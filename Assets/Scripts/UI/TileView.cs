@@ -32,23 +32,6 @@ public class TileView : MonoBehaviour
             }
             return;
         }
-
-        // Power tiles have their own color
-        //if (data.Power != TilePower.None)
-        //{
-        //    image.color = colorPalette.PowerTileColor;
-        //    return;
-        //}
-
-        // Normal tiles are colored by type
-        //int colorIndex = (int)data.Type;
-        //if (colorIndex < 0 || colorIndex >= colorPalette.TileColors.Length)
-        //{
-        //    Debug.LogWarning($"Invalid tile type index: {colorIndex}");
-        //    return;
-        //}
-
-        //image.color = colorPalette.TileColors[colorIndex].Color;
     }
 
     private void UpdateColorOnDamage(int healthLeft)

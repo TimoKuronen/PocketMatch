@@ -13,7 +13,6 @@ public class UIManager : UIMenu
     [SerializeField] private TileIconCollection tileIconCollection;
     [SerializeField] private VictoryConditionUI victoryConditionPrefab;
     [SerializeField] private Transform victoryConditionsContainer;
-    [SerializeField] private ColorPalette colorPalette;
     [SerializeField] private TextMeshProUGUI movesText;
     [SerializeField] private TextMeshProUGUI coinCountText;
 
@@ -50,7 +49,6 @@ public class UIManager : UIMenu
                 item.TileCount.ToString(),
                 tileIconCollection.GetIcon(item.TileColor, TilePower.None, TileState.Normal),
                 item.TileColor,
-                colorPalette,
                 ConditionType.ColorMatch);
 
             victoryConditions.Add(victoryCondition);
@@ -64,7 +62,6 @@ public class UIManager : UIMenu
                 mapData.VictoryConditions.DestroyableTileCount.ToString(),
                 tileIconCollection.GetIcon(TileType.Red, TilePower.None, TileState.Destroyable),
                 TileType.Red,
-                colorPalette,
                 ConditionType.DestroyableTiles);
 
             victoryConditions.Add(victoryCondition);

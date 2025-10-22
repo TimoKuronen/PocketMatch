@@ -16,7 +16,7 @@ public class VictoryConditionUI : MonoBehaviour
     public ConditionType ConditionType { get; private set; }
     public TileType TileType { get; private set; }
 
-    public void Init(string text, Sprite icon, TileType tileType, ColorPalette colorPalette, ConditionType conditionType)
+    public void Init(string text, Sprite icon, TileType tileType, ConditionType conditionType)
     {
         conditionIcon.sprite = icon;
         conditionText.text = text;
@@ -28,8 +28,6 @@ public class VictoryConditionUI : MonoBehaviour
             conditionIcon.color = Color.white;
             return;
         }
-        //int colorIndex = (int)tileType;
-        //conditionIcon.color = colorPalette.TileColors[colorIndex].Color;
     }
 
     public void UpdateUI(string conditionText)

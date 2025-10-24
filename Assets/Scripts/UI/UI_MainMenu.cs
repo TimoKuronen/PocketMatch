@@ -26,6 +26,8 @@ public class UI_MainMenu : UIMenu
         levelIndex = saveService.PlayerData.nextLevelIndex;
 
         LoadInitialValues();
+
+        adsManager.ShowBannerAd();
     }
 
     private void LoadInitialValues()
@@ -37,8 +39,8 @@ public class UI_MainMenu : UIMenu
     public void PlayButtonPressed()
     {
         Debug.Log("Play Button pressed, loading level " + (levelIndex + 1));
+        adsManager.HideBannerAd();
         StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
-        //StartCoroutine(HandleLevelLoadingWithAd());
     }
 
     private IEnumerator HandleLevelLoadingWithAd()

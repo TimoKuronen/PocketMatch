@@ -36,7 +36,7 @@ MonoBehaviour:
   - TileType: 0
     TilePower: 0
     TileState: 2
-    Icon: {fileID: -468733263, guid: a978645b88a2f6c4cb5e80c9b481cf5f, type: 3}
+    Icon: {fileID: 192640703, guid: cc3fa87e36f17994a9ac5ac3a194ea9a, type: 3}
   - TileType: 0
     TilePower: 0
     TileState: 1

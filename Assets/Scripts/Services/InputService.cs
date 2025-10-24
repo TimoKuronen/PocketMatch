@@ -15,5 +15,9 @@ public class InputService : IInputService
         controls.Enable();
     }
 
-    public void Dispose() => controls.Dispose();
+    public void Dispose()
+    {
+        controls.Disable();
+        controls.Dispose();
+    }
 }

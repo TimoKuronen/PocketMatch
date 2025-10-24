@@ -56,7 +56,6 @@ public class GridController : MonoBehaviour
 
     private IEnumerator Start()
     {
-        Debug.Log("GridController starting...");
         yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
         commandInvoker = new CommandInvoker(this);
@@ -91,8 +90,6 @@ public class GridController : MonoBehaviour
         BoardUpdated?.Invoke(gridData);
 
         IsBoardInitialized = true;
-
-        Debug.Log("GridController setup completed");
     }
 
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)

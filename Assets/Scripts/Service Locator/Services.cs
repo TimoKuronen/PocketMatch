@@ -99,7 +99,9 @@ public abstract class Services : MonoBehaviour
     private void DisposeSceneServices()
     {
         foreach (var service in sceneServices.Values)
+        {
             service.Dispose();
+        }
 
         sceneServices.Clear();
         updateableServices.Clear();

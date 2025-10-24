@@ -39,7 +39,6 @@ public static class Loader
         while (!adsManager.InterstitialAdCompleted && timer < timeout)
         {
             timer += Time.unscaledDeltaTime;
-            Debug.Log("Waiting for interstitial ad to complete...");
             yield return null;
         }
 

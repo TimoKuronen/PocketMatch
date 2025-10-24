@@ -452,6 +452,22 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: 100
       objectReference: {fileID: 0}
+    - target: {fileID: 307944253768469346, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 307944253768469346, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 307944253768469346, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 307944253768469346, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 620025720563773612, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
@@ -596,6 +612,22 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6829791398894595530, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6829791398894595530, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6829791398894595530, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6829791398894595530, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8238732178354986709, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -614,6 +646,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8238732178354986709, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8862244435347213936, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9034601869207506046, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

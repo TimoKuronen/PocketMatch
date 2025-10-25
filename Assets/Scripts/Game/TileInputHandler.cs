@@ -83,7 +83,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
                 $"{tileView.Data.State == TileState.Normal}");
             return;
         }
-        
+
         if (!isDragging)
             return;
 
@@ -106,7 +106,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     public void OnPointerUp(PointerEventData eventData)
     {
         isDragging = false;
-    }  
+    }
 
     private bool IsInputAllowed()
     {

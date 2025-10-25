@@ -52,7 +52,7 @@ public static class LevelBuilder
             for (int y = 0; y < height; y++)
             {
                 var data = grid[x, y];
-                if (data == null) 
+                if (data == null)
                     continue;
 
                 var view = tilePoolManager.GetForState(data.State);

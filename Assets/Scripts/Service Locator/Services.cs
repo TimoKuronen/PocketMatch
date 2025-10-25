@@ -6,7 +6,7 @@ using UnityEngine;
 public abstract class Services : MonoBehaviour
 {
     // --- Static singletons ---
-    private static Services globalInstance;  
+    private static Services globalInstance;
     private static Services currentSceneInstance;
 
     // --- Service storage ---

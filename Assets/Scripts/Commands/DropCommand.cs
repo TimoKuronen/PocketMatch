@@ -97,16 +97,16 @@ public class DropCommand : ICommand
     /// </summary>
     private bool IsCandidateToMove(int x, int y)
     {
-        if (!InBounds(x, y)) 
+        if (!InBounds(x, y))
             return false;
 
         var d = gridData[x, y];
 
-        if (d == null) 
+        if (d == null)
             return false;
-        if (d.State == TileState.Normal) 
+        if (d.State == TileState.Normal)
             return true;
-        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed) 
+        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed)
             return true;
 
         return false;
@@ -118,7 +118,7 @@ public class DropCommand : ICommand
     /// </summary>
     private bool HasDroppableAbove(int x, int y)
     {
-        if (!InBounds(x, y)) 
+        if (!InBounds(x, y))
             return false;
 
         for (int yy = y + 1; yy < height; yy++)
@@ -178,16 +178,16 @@ public class DropCommand : ICommand
 
     private bool IsCellEmpty(int x, int y)
     {
-        if (!InBounds(x, y)) 
+        if (!InBounds(x, y))
             return false;
 
         var d = gridData[x, y];
 
-        if (d == null) 
+        if (d == null)
             return true;
-        if (d.State == TileState.Empty) 
+        if (d.State == TileState.Empty)
             return true;
-        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed) 
+        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed)
             return true;
 
         return false;

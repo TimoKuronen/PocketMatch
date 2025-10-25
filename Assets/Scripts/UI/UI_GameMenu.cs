@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -30,9 +29,9 @@ public class UIManager : UIMenu
         adsManager = Services.Get<IAdsManager>();
         levelManager = Services.Get<ILevelManager>();
 
-        levelManager.VictoryConditionsUpdated += OnVictoryConditionsUpdated;
-        levelManager.LevelWon += OnLevelWon;
-        levelManager.LevelLost += OnLevelLost;
+        levelManager.OnVictoryConditionsUpdated += OnVictoryConditionsUpdated;
+        levelManager.OnLevelWon += OnLevelWon;
+        levelManager.OnLevelLost += OnLevelLost;
 
         LoadVictoryConditions();
     }
@@ -160,8 +159,8 @@ public class UIManager : UIMenu
 
     private void OnDestroy()
     {
-        levelManager.VictoryConditionsUpdated -= OnVictoryConditionsUpdated;
-        levelManager.LevelWon -= OnLevelWon;
-        levelManager.LevelLost -= OnLevelLost;
+        levelManager.OnVictoryConditionsUpdated -= OnVictoryConditionsUpdated;
+        levelManager.OnLevelWon -= OnLevelWon;
+        levelManager.OnLevelLost -= OnLevelLost;
     }
 }

@@ -8,9 +8,9 @@ public class LevelManager : ILevelManager
     public int MovesRemaining { get; private set; }
     public MapData LocalMapData { get; private set; }
     public VictoryConditions VictoryConditions { get; private set; }
-    public Action<LevelManager> VictoryConditionsUpdated { get; set; }
-    public Action LevelWon { get; set; }
-    public Action LevelLost { get; set; }
+    public Action<LevelManager> OnVictoryConditionsUpdated { get; set; }
+    public Action OnLevelWon { get; set; }
+    public Action OnLevelLost { get; set; }
     public int GameTimeInSeconds { get; private set; }
 
     private ISaveService saveService;
@@ -91,7 +91,7 @@ public class LevelManager : ILevelManager
             }
         }
 
-        VictoryConditionsUpdated?.Invoke(this);
+        OnVictoryConditionsUpdated?.Invoke(this);
     }
 
     private void CheckVictoryConditions(TileData[,] obj)
@@ -138,7 +138,7 @@ public class LevelManager : ILevelManager
     private void OnActionTaken()
     {
         MovesRemaining--;
-        VictoryConditionsUpdated?.Invoke(this);
+        OnVictoryConditionsUpdated?.Invoke(this);
     }
 
     private void ToggleWinEvent()
@@ -146,7 +146,7 @@ public class LevelManager : ILevelManager
         if (Services.Get<IGameSessionService>().IsLevelCapReached)
         {
             Debug.Log("Level cap reached, not incrementing level index.");
-            LevelWon?.Invoke();
+            OnLevelWon?.Invoke();
             return;
         }
 
@@ -164,7 +164,7 @@ public class LevelManager : ILevelManager
             { "matchDuration", GameTimeInSeconds }
         });
 
-        LevelWon?.Invoke();
+        OnLevelWon?.Invoke();
     }
 
     private void ToggleLoseEvent()
@@ -177,7 +177,7 @@ public class LevelManager : ILevelManager
             { "matchDuration", GameTimeInSeconds }
         });
 
-        LevelLost?.Invoke();
+        OnLevelLost?.Invoke();
     }
 
     public void Dispose()

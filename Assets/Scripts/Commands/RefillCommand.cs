@@ -64,7 +64,7 @@ public class RefillCommand : ICommand
 
     private bool IsRefillable(int x, int y)
     {
-        if (!InBounds(x, y)) 
+        if (!InBounds(x, y))
             return false;
 
         var data = gridData[x, y];

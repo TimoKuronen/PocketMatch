@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 
@@ -40,14 +39,14 @@ public class ScoreManager : IScoreManager
         }
     }
 
-    public int GetTotalScore() 
+    public int GetTotalScore()
     {
         collectedScore += Services.Get<ILevelManager>().MovesRemaining * eventScoring.pointsPerUnusedMovement;
 
-        return collectedScore; 
+        return collectedScore;
     }
 
-    public void Dispose() 
+    public void Dispose()
     {
         GridController.Instance.PowerTileCreated -= OnPowerTileCreated;
     }

@@ -87,7 +87,7 @@ public class AnalyticsManager : IAnalyticsManager
 
     private void FlushEvents()
     {
-        if (!firebaseReady) 
+        if (!firebaseReady)
             return;
 
         var eventsCopy = new List<CachedEvent>(eventQueue);
@@ -131,7 +131,7 @@ public class AnalyticsManager : IAnalyticsManager
 
     private void OnAppFocusChanged(bool hasFocus)
     {
-        if (!hasFocus) 
+        if (!hasFocus)
             SaveCache();
     }
 

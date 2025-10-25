@@ -77,12 +77,12 @@ public class GridContext
 
         foreach (var pos in positions)
         {
-            if (!IsInside(pos)) 
+            if (!IsInside(pos))
                 continue;
 
             var data = Data[pos.x, pos.y];
 
-            if (data == null) 
+            if (data == null)
                 continue;
 
             if (data is IDamageableTile damageable)

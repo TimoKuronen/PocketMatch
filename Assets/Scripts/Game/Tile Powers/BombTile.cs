@@ -17,5 +17,10 @@ public class BombTile : ITilePowerBehavior
         }
 
         context.DamageTiles(area, 1);
+        CameraShake.Instance.RequestShake(new CameraShakeData
+        {
+            Intensity = 4f,
+            Duration = 0.3f
+        });
     }
 }

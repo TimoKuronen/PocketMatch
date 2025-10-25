@@ -16,7 +16,7 @@ public static class AdjacentDamageProcessor
                 {
                     var neighbour = matchPos + dir;
 
-                    if (!IsInside(gridData, neighbour)) 
+                    if (!IsInside(gridData, neighbour))
                         continue;
 
                     var data = gridData[neighbour.x, neighbour.y];

@@ -98,7 +98,7 @@ public static class Loader
     {
         OnSceneLoadStarted?.Invoke();
 
-       // Debug.Log($"2. [Loader] Begin async load: {scene}");
+        // Debug.Log($"2. [Loader] Begin async load: {scene}");
         if (delay > 0)
             yield return new WaitForSecondsRealtime(delay);
 

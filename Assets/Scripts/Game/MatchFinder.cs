@@ -163,9 +163,9 @@ public class MatchFinder
             bool sameY = match.All(p => p.y == match[0].y);
             bool sameX = match.All(p => p.x == match[0].x);
 
-            if (sameX) 
+            if (sameX)
                 return MatchShape.FourHorizontal;
-            if (sameY) 
+            if (sameY)
                 return MatchShape.FourVertical;
         }
         if (match.Count == 3)

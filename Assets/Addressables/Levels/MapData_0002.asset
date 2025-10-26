@@ -19,7 +19,23 @@ MonoBehaviour:
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
-  - tilePower: 3
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
@@ -43,10 +59,6 @@ MonoBehaviour:
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
-  - tilePower: 1
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
@@ -55,6 +67,18 @@ MonoBehaviour:
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 1
+    isBlocked: 0
+    hitPoints: 3
+  - tilePower: 0
+    isDestroyable: 1
+    isBlocked: 0
+    hitPoints: 3
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
@@ -74,35 +98,11 @@ MonoBehaviour:
   - tilePower: 0
     isDestroyable: 1
     isBlocked: 0
-    hitPoints: 1
+    hitPoints: 3
   - tilePower: 0
     isDestroyable: 1
     isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 1
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 1
-    isBlocked: 0
-    hitPoints: 1
+    hitPoints: 3
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
@@ -122,11 +122,11 @@ MonoBehaviour:
   - tilePower: 0
     isDestroyable: 1
     isBlocked: 0
-    hitPoints: 1
+    hitPoints: 3
   - tilePower: 0
     isDestroyable: 1
     isBlocked: 0
-    hitPoints: 1
+    hitPoints: 3
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
@@ -163,7 +163,7 @@ MonoBehaviour:
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
-  - tilePower: 0
+  - tilePower: 4
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1

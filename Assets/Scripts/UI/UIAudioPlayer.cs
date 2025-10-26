@@ -16,9 +16,9 @@ public class UIAudioPlayer : MonoBehaviour
         uiMenu = GetComponent<UIMenu>();
         soundManager = Services.Get<ISoundManager>();
 
-        uiMenu.MenuOpened += OnMenuOpened;
-        uiMenu.MenuClosed += OnMenuClosed;
-        uiMenu.ButtonPressed += OnButtonClicked;
+        uiMenu.OnMenuOpened += OnMenuOpened;
+        uiMenu.OnMenuClosed += OnMenuClosed;
+        uiMenu.OnButtonPressed += OnButtonClicked;
     }
     private void OnMenuOpened() => soundManager.Play(openMenuSFX, audioSource);
     private void OnMenuClosed() => soundManager.Play(closeMenuSFX, audioSource);
@@ -26,8 +26,8 @@ public class UIAudioPlayer : MonoBehaviour
 
     private void OnDestroy()
     {
-        uiMenu.MenuOpened -= OnMenuOpened;
-        uiMenu.MenuClosed -= OnMenuClosed;
-        uiMenu.ButtonPressed -= OnButtonClicked;
+        uiMenu.OnMenuOpened -= OnMenuOpened;
+        uiMenu.OnMenuClosed -= OnMenuClosed;
+        uiMenu.OnButtonPressed -= OnButtonClicked;
     }
 }

@@ -28,7 +28,7 @@ public class RainbowTile : ITilePowerBehavior
             for (int y = 0; y < context.Height; y++)
             {
                 var data = context.Data[x, y];
-                if (data != null && data.Type == targetType)
+                if (data != null && data.State == TileState.Normal && data.Type == targetType)
                 {
                     toDestroy.Add(new Vector2Int(x, y));
                 }

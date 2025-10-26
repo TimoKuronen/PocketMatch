@@ -3,8 +3,7 @@ using UnityEngine;
 
 public abstract class UIMenu : MonoBehaviour
 {
-    public event Action MenuOpened;
-    public event Action MenuClosed;
-    public event Action ButtonPressed;
+    public event Action OnMenuOpened;
+    public event Action OnMenuClosed;
     public event Action OnButtonPressed;
 }

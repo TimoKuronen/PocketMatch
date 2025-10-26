@@ -6,6 +6,7 @@ public class GlobalServicesBootstrapper : Services
         AddGlobalService<IAnalyticsManager>(new AnalyticsManager());
         AddGlobalService<ISoundManager>(new SoundManager());
         AddGlobalService<IAdsManager>(new AdsManager());
+        AddGlobalService<ISettingsService>(new SettingsManager());
 
         InitializeAllGlobalServices();
     }

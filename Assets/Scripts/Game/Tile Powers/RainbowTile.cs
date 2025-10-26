@@ -11,9 +11,13 @@ public class RainbowTile : ITilePowerBehavior
         overrideType = forcedType;
     }
 
-    public void Apply(Vector2Int origin, GridContext context)
+    public void Apply(Vector2Int origin, GridContext context, TileType matchedWithTile)
     {
-        TileType targetType = overrideType ?? GetMostCommonType(context.Data, context.Width, context.Height);
+        TileType targetType;
+
+        if (matchedWithTile == TileType.None)
+            targetType = overrideType ?? GetMostCommonType(context.Data, context.Width, context.Height);
+        else targetType = matchedWithTile;
 
         Debug.Log($"RainbowTile activated, targeting {targetType}");
 
@@ -30,6 +34,8 @@ public class RainbowTile : ITilePowerBehavior
                 }
             }
         }
+
+        toDestroy.Add(origin); // Also destroy the rainbow tile itself
 
         context.CommandInvoker.AddCommand(
             new DestroyCommand(toDestroy, context.Views, context.Data, context.Pool, context.OnDestroy, context));

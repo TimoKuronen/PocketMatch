@@ -100,7 +100,7 @@ public class DestroyCommand : ICommand
         if (context != null && powersToTrigger.Count > 0)
         {
             foreach (var tile in powersToTrigger)
-                context.TriggerPower(tile);
+                context.TriggerPower(tile, TileType.None);
         }
     }
 }

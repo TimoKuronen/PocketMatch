@@ -2,5 +2,5 @@ using UnityEngine;
 
 public interface ITilePowerBehavior
 {
-    void Apply(Vector2Int origin, GridContext context);
+    void Apply(Vector2Int origin, GridContext context, TileType matchedWithTile);
 }

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public enum TileType { Red, Blue, Green, Yellow, Purple, Special }
+public enum TileType { Red, Blue, Green, Yellow, Purple, Special, None }
 public enum TilePower { None, RowClearer, ColumnClearer, Bomb, Rainbow }
 public enum TileState { Normal, Blocked, Destroyable, Empty }
 

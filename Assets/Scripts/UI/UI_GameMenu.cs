@@ -119,8 +119,10 @@ public class UIManager : UIMenu
 
     private IEnumerator HandleLevelLoadingWithAd()
     {
-        StartCoroutine(Loader.ShowInterstitialThenContinue(adsManager, Loader.Scene.PlayScene));
+//#if UNITY_EDITOR
 
+        StartCoroutine(Loader.ShowInterstitialThenContinue(adsManager, Loader.Scene.PlayScene));
+//#endif
         Debug.Log("Waiting for ad to complete...");
         yield return new WaitUntil(() => adsManager.InterstitialAdCompleted);
         StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));

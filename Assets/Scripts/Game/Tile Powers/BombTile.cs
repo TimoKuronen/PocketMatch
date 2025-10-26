@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class BombTile : ITilePowerBehavior
 {
-    public void Apply(Vector2Int origin, GridContext context)
+    public void Apply(Vector2Int origin, GridContext context, TileType matchedWithTile)
     {
         var area = new List<Vector2Int>();
         for (int dx = -1; dx <= 1; dx++)
@@ -17,7 +17,7 @@ public class BombTile : ITilePowerBehavior
         }
 
         context.DamageTiles(area, 1);
-        CameraShake.Instance.RequestShake(new CameraShakeData
+        BoardShaker.Instance.RequestShake(new BoardShakeData
         {
             Intensity = 4f,
             Duration = 0.3f

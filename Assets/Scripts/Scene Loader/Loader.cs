@@ -18,11 +18,12 @@ public static class Loader
     private static Scene? targetScene = null;
     private static float delayBeforeLoading = 0f;
 
-    public static IEnumerator CallDelayedLoad(Scene scene, float delay = 0.1f)
+    public static IEnumerator CallDelayedLoad(Scene scene, float delay = 0.0f)
     {
         OnSceneLoadStarted?.Invoke();
 
-        yield return new WaitForSecondsRealtime(delay);
+        if(delay > 0)
+            yield return new WaitForSecondsRealtime(delay);
 
         targetScene = scene;
         //Debug.Log($"[Loader] Loading scene via Loader: {scene}");
@@ -83,7 +84,7 @@ public static class Loader
     public static void Restart()
     {
         Scene currentScene = GetCurrentScene();
-        CoroutineMonoBehavior.RunStatic(CallDelayedLoad(currentScene, 1));
+        CoroutineMonoBehavior.RunStatic(CallDelayedLoad(currentScene, 0.1f));
     }
 
     public static Scene GetCurrentScene()

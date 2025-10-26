@@ -139,10 +139,10 @@ public class GridController : MonoBehaviour
             SwapTilesInData(origin, target, tileA, tileB);
 
             if (tileA.Power != TilePower.None)
-                StartCoroutine(TriggerPowerEvent(tileA));
+                StartCoroutine(TriggerPowerEvent(tileA, tileB.Type));
 
             if (tileB.Power != TilePower.None)
-                StartCoroutine(TriggerPowerEvent(tileB));
+                StartCoroutine(TriggerPowerEvent(tileB, tileA.Type));
 
             yield break;
         }
@@ -183,12 +183,12 @@ public class GridController : MonoBehaviour
 
         ActionTaken?.Invoke();
 
-        StartCoroutine(TriggerPowerEvent(tileView.Data));
+        StartCoroutine(TriggerPowerEvent(tileView.Data, TileType.None));
     }
 
-    private IEnumerator TriggerPowerEvent(TileData tileData)
+    private IEnumerator TriggerPowerEvent(TileData tileData, TileType matchedWithTile)
     {
-        GridContext.TriggerTilePower(tileData.GridPosition);
+        GridContext.TriggerTilePower(tileData.GridPosition, matchedWithTile);
         commandInvoker.ExecuteAll();
 
         //Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");

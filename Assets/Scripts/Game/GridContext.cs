@@ -36,13 +36,13 @@ public class GridContext
         return pos.x >= 0 && pos.x < Width && pos.y >= 0 && pos.y < Height;
     }
 
-    public void TriggerPower(TileData tile)
+    public void TriggerPower(TileData tile, TileType matchedWithTile)
     {
         if (tile == null || tile.Power == TilePower.None)
             return;
 
         var behavior = TilePowerFactory.Get(tile.Power);
-        behavior?.Apply(tile.GridPosition, this);
+        behavior?.Apply(tile.GridPosition, this, matchedWithTile);
 
         OnSpecialTileTriggered?.Invoke(tile);
 
@@ -50,25 +50,25 @@ public class GridContext
         tile.Power = TilePower.None;
     }
 
-    public void TriggerPowersIn(IEnumerable<Vector2Int> positions)
-    {
-        foreach (var pos in positions)
-        {
-            if (!IsInside(pos))
-                continue;
+    //public void TriggerPowersIn(IEnumerable<Vector2Int> positions)
+    //{
+    //    foreach (var pos in positions)
+    //    {
+    //        if (!IsInside(pos))
+    //            continue;
 
-            var data = Data[pos.x, pos.y];
-            TriggerPower(data);
-        }
-    }
+    //        var data = Data[pos.x, pos.y];
+    //        TriggerPower(data);
+    //    }
+    //}
 
-    public void TriggerTilePower(Vector2Int pos)
+    public void TriggerTilePower(Vector2Int pos, TileType matchedWithTile)
     {
         if (!IsInside(pos))
             return;
 
         var data = Data[pos.x, pos.y];
-        TriggerPower(data);
+        TriggerPower(data, matchedWithTile);
     }
 
     public void DamageTiles(IEnumerable<Vector2Int> positions, int damage)

@@ -46,7 +46,7 @@ public static class Loader
         if (!adsManager.InterstitialAdCompleted)
         {
             Debug.LogWarning("Interstitial failed or no fill. Continuing flow.");
-            adsManager.ForceMarkAdComplete(); // helper we’ll add below
+            adsManager.ForceMarkAdComplete();
         }
     }
 
@@ -90,8 +90,10 @@ public static class Loader
     public static Scene GetCurrentScene()
     {
         string sceneName = SceneManager.GetActiveScene().name;
+
         if (Enum.TryParse(sceneName, out Scene sceneEnum))
             return sceneEnum;
+
         return default;
     }
 

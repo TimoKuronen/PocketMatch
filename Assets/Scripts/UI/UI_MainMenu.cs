@@ -67,9 +67,4 @@ public class UI_MainMenu : UIMenu
 
         LoadInitialValues();
     }
-
-    public void AdsButtonPressed()
-    {
-        Services.Get<IAdsManager>().ShowBannerAd();
-    }
 }

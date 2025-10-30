@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class SettingsManager : ISettingsService
+public class GameSettingsService
 {
     public void Initialize()
     {

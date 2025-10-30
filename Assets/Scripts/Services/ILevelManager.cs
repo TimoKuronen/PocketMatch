@@ -1,6 +1,7 @@
 using System;
+using VContainer.Unity;
 
-public interface ILevelManager : IUpdateableService
+public interface ILevelManager : ITickable
 {
     int MovesRemaining { get; }
     Action<LevelManager> OnVictoryConditionsUpdated { get; set; }

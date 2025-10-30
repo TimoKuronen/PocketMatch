@@ -1,6 +1,6 @@
 using System;
 
-public interface IAdsManager : IService
+public interface IAdsService
 {
     void ShowBannerAd();
     void ShowInterstitialAd();

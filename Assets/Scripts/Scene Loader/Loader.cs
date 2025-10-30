@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using VContainer.Unity;
 
 public static class Loader
 {
@@ -30,23 +31,23 @@ public static class Loader
         SceneManager.LoadScene(Scene.Loader.ToString());
     }
 
-    public static IEnumerator ShowInterstitialThenContinue(IAdsManager adsManager, Scene sceneToLoad)
+    public static IEnumerator ShowInterstitialThenContinue(IAdsService adsService, Scene sceneToLoad)
     {
-        adsManager.ShowInterstitialAd();
+        adsService.ShowInterstitialAd();
 
         float timeout = 3f;
         float timer = 0f;
 
-        while (!adsManager.InterstitialAdCompleted && timer < timeout)
+        while (!adsService.InterstitialAdCompleted && timer < timeout)
         {
             timer += Time.unscaledDeltaTime;
             yield return null;
         }
 
-        if (!adsManager.InterstitialAdCompleted)
+        if (!adsService.InterstitialAdCompleted)
         {
             Debug.LogWarning("Interstitial failed or no fill. Continuing flow.");
-            adsManager.ForceMarkAdComplete();
+            adsService.ForceMarkAdComplete();
         }
     }
 
@@ -101,21 +102,25 @@ public static class Loader
     {
         OnSceneLoadStarted?.Invoke();
 
-        // Debug.Log($"2. [Loader] Begin async load: {scene}");
         if (delay > 0)
             yield return new WaitForSecondsRealtime(delay);
 
-        loadingAsyncOperation = SceneManager.LoadSceneAsync(scene.ToString());
+        var bootstrap = LifetimeScope.Find<BootstrapLifetimeScope>(); // finds the DDOL bootstrap
 
-        while (!loadingAsyncOperation.isDone)
-            yield return null;
+        using (LifetimeScope.EnqueueParent(bootstrap))
+        {
+            loadingAsyncOperation = SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Additive);
+            while (!loadingAsyncOperation.isDone)
+                yield return null;
+        }
+
+        var loadedScene = SceneManager.GetSceneByName(scene.ToString());
+        SceneManager.SetActiveScene(loadedScene);
+
+        SceneManager.UnloadSceneAsync(Scene.Loader.ToString());
 
         loadingAsyncOperation = null;
-        //Debug.Log($"3. [Loader] Finished loading: {targetScene}");
-
         targetScene = null;
-
-        //Debug.Log("4. resetting: " + targetScene);
     }
 
     public static float GetLoadingProgress()

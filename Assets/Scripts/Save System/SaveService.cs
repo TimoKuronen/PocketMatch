@@ -3,8 +3,9 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using UnityEngine;
+using VContainer;
 
-public class SaveManager : ISaveService
+public class SaveService : ISaveService
 {
     private readonly string saveFile = Path.Combine(Application.persistentDataPath, "save.dat");
     private readonly string settingsFile = Path.Combine(Application.persistentDataPath, "settings.dat");
@@ -13,7 +14,8 @@ public class SaveManager : ISaveService
     public PlayerData PlayerData { get; private set; }
     public SettingsData Settings { get; private set; }
 
-    public void Initialize()
+    [Inject]
+    public void Contstruct()
     {
         Load();
     }

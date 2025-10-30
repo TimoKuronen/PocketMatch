@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using VContainer;
 
 public class UI_MainMenu : UIMenu
 {
@@ -11,22 +12,28 @@ public class UI_MainMenu : UIMenu
     [SerializeField] private TextMeshProUGUI levelText;
 
     private ISaveService saveService;
-    private IAdsManager adsManager;
+    private IAdsService adsService;
     private int levelIndex;
+
+    [Inject]
+    public void Construct(ISaveService saveService, IAdsService adsService)
+    {
+        Debug.Log("UI_MainMenu Construct called with services " + saveService + ", " + adsService);
+        this.saveService = saveService;
+        this.adsService = adsService;
+    }
 
     private void Start()
     {
+        Debug.Log("UI_MainMenu Start called");
         levelPanel.SetActive(true);
         settingsPanel.SetActive(false);
-
-        saveService = Services.Get<ISaveService>();
-        adsManager = Services.Get<IAdsManager>();
 
         levelIndex = saveService.PlayerData.nextLevelIndex;
 
         LoadInitialValues();
 
-        adsManager.ShowBannerAd();
+        adsService.ShowBannerAd();
     }
 
     private void LoadInitialValues()
@@ -38,17 +45,17 @@ public class UI_MainMenu : UIMenu
     public void PlayButtonPressed()
     {
         Debug.Log("Play Button pressed, loading level " + (levelIndex + 1));
-        adsManager.HideBannerAd();
+        adsService.HideBannerAd();
         StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
     }
 
     private IEnumerator HandleLevelLoadingWithAd()
     {
-        StartCoroutine(Loader.ShowInterstitialThenContinue(adsManager, Loader.Scene.PlayScene));
+        StartCoroutine(Loader.ShowInterstitialThenContinue(adsService, Loader.Scene.PlayScene));
 
         Debug.Log("Waiting for ad to complete...");
 
-        yield return new WaitUntil(() => adsManager.InterstitialAdCompleted);
+        yield return new WaitUntil(() => adsService.InterstitialAdCompleted);
 
         StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
         Debug.Log("Ad completed, loading next level...");
@@ -61,7 +68,7 @@ public class UI_MainMenu : UIMenu
 
     public void ResetSaveButtonPressed()
     {
-        Services.Get<ISaveService>().ResetToDefaults();
+        //Services.Get<ISaveService>().ResetToDefaults();
 
         levelIndex = saveService.PlayerData.nextLevelIndex;
 

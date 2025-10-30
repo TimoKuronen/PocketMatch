@@ -16,8 +16,6 @@ public class GameSessionService : IGameSessionService
 
     public async void Initialize()
     {
-        saveService = Services.Get<ISaveService>();
-
         await LoadTotalLevelsAsync();
         await LoadCurrentLevelDataAsync();
     }

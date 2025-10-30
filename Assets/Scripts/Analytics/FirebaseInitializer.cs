@@ -1,23 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VContainer;
 
 public class FirebaseInitializer : MonoBehaviour
 {
-    private IEnumerator Start()
+    private IAnalyticsService analyticsService;
+
+    [Inject]
+    private void Construct(IAnalyticsService analyticsService)
     {
-        Services.Get<IAnalyticsManager>().LogEvent("session_started", new Dictionary<string, object>
+        this.analyticsService = analyticsService;
+
+        analyticsService.LogEvent("session_started", new Dictionary<string, object>
         {
             { "device", SystemInfo.deviceModel },
             { "appVersion", Application.version }
         });
-
-        yield return null;
     }
 
     void OnApplicationQuit()
     {
-        Services.Get<IAnalyticsManager>().LogEvent("session_ended", new Dictionary<string, object>
+        analyticsService?.LogEvent("session_ended", new Dictionary<string, object>
         {
             { "device", SystemInfo.deviceModel },
             { "appVersion", Application.version }

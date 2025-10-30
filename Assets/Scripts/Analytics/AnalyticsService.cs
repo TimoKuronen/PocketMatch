@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public class AnalyticsManager : IAnalyticsManager
+public class AnalyticsService : IAnalyticsService
 {
     private const string CacheFile = "analytics_cache.json";
     private List<CachedEvent> eventQueue = new List<CachedEvent>();

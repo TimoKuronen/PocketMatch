@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class SoundManager : ISoundManager
+public class AudioService : IAudioService
 {
     private int maxSimultaneousUISounds = 10;
 

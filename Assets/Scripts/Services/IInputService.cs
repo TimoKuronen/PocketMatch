@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public interface IInputService : IService
+public interface IInputService 
 {
     Vector2 TouchPosition { get; }
     bool IsTouching { get; }

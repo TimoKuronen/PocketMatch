@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class ScoreManager : IScoreManager
+public class ScoreService : IScoreService
 {
     private EventScoring eventScoring;
     private int collectedScore;
@@ -15,7 +15,8 @@ public class ScoreManager : IScoreManager
 
     private IEnumerator SubscribeToEvents()
     {
-        yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+        yield return null;
+        //yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
         GridController.Instance.PowerTileCreated += OnPowerTileCreated;
     }
@@ -41,7 +42,7 @@ public class ScoreManager : IScoreManager
 
     public int GetTotalScore()
     {
-        collectedScore += Services.Get<ILevelManager>().MovesRemaining * eventScoring.pointsPerUnusedMovement;
+        //collectedScore += Services.Get<ILevelManager>().MovesRemaining * eventScoring.pointsPerUnusedMovement;
 
         return collectedScore;
     }

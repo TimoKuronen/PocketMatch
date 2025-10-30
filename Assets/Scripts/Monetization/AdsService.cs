@@ -1,8 +1,9 @@
 using System;
 using Unity.Services.LevelPlay;
 using UnityEngine;
+using VContainer;
 
-public class AdsManager : IAdsManager, IDisposable
+public class AdsService : IAdsService, IDisposable
 {
     private const string AppKey = "23b074f85";
     private const string BannerAdId = "dq0x680o73ez3iyt";
@@ -16,7 +17,8 @@ public class AdsManager : IAdsManager, IDisposable
 
     #region Initialization
 
-    public void Initialize()
+    [Inject]
+    public void Contstruct()
     {
         Debug.Log("[AdsManager] Initializing LevelPlay SDK...");
 
@@ -216,8 +218,8 @@ public class AdsManager : IAdsManager, IDisposable
     {
         try
         {
-            var analytics = Services.Get<IAnalyticsManager>();
-            analytics?.LogEvent(eventName);
+            //var analytics = Services.Get<IAnalyticsManager>();
+            //analytics?.LogEvent(eventName);
         }
         catch (Exception e)
         {

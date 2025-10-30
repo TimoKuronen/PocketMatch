@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-public interface IAnalyticsManager : IService
+public interface IAnalyticsService
 {
     void LogEvent(string eventName, Dictionary<string, object> parameters = null);
 }

@@ -1,4 +1,4 @@
-public interface ISaveService : IService
+public interface ISaveService
 {
     PlayerData PlayerData { get; }
     SettingsData Settings { get; }

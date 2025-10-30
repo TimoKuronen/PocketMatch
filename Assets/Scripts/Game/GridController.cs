@@ -56,7 +56,7 @@ public class GridController : MonoBehaviour
 
     private IEnumerator Start()
     {
-        yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+        //yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
         commandInvoker = new CommandInvoker(this);
         MatchFinder = new MatchFinder(width, height);
@@ -68,7 +68,7 @@ public class GridController : MonoBehaviour
             tileContainer
         );
 
-        mapData = Services.Get<IGameSessionService>().CurrentMapData;
+        //mapData = Services.Get<IGameSessionService>().CurrentMapData;
 
         GenerateGrid(allowInitialMatches);
         CenterCameraOnGrid();
@@ -319,12 +319,12 @@ public class GridController : MonoBehaviour
 
         if (cycleCount > 2)
         {
-            Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
-            Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
-        {
-            { "level_name", Services.Get<ILevelManager>().LocalMapData.GetLevelName() },
-            { "moves_spent", cycleCount-2 }
-        });
+            //Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
+            //Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
+            //{
+            //    { "level_name", Services.Get<ILevelManager>().LocalMapData.GetLevelName() },
+            //    { "moves_spent", cycleCount-2 }
+            //});
         }
 
         var moves = boardStateEvaluator.CountPotentialMoves();

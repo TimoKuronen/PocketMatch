@@ -1,4 +1,4 @@
-public interface IGameSessionService : IService
+public interface IGameSessionService
 {
     public MapData CurrentMapData { get; }
     public bool IsLevelDataLoaded { get; }

@@ -9,20 +9,19 @@ public class UIAudioPlayer : MonoBehaviour
     [SerializeField] private AudioCue buttonPressSFX;
 
     private UIMenu uiMenu;
-    private ISoundManager soundManager;
+    private IAudioService soundService;
 
     void Start()
     {
         uiMenu = GetComponent<UIMenu>();
-        soundManager = Services.Get<ISoundManager>();
 
         uiMenu.OnMenuOpened += OnMenuOpened;
         uiMenu.OnMenuClosed += OnMenuClosed;
         uiMenu.OnButtonPressed += OnButtonClicked;
     }
-    private void OnMenuOpened() => soundManager.Play(openMenuSFX, audioSource);
-    private void OnMenuClosed() => soundManager.Play(closeMenuSFX, audioSource);
-    private void OnButtonClicked() => soundManager.Play(buttonPressSFX, audioSource);
+    private void OnMenuOpened() => soundService.Play(openMenuSFX, audioSource);
+    private void OnMenuClosed() => soundService.Play(closeMenuSFX, audioSource);
+    private void OnButtonClicked() => soundService.Play(buttonPressSFX, audioSource);
 
     private void OnDestroy()
     {

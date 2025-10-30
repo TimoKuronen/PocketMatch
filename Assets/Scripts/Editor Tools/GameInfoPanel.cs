@@ -84,12 +84,12 @@ public class GameInfoPanel : EditorWindow
         EditorGUILayout.TextField(Time.timeScale.ToString());
         EditorGUILayout.EndHorizontal();
 
-        string movesLeft = Services.Get<ILevelManager>().MovesRemaining.ToString();
+        //string movesLeft = Services.Get<ILevelManager>().MovesRemaining.ToString();
 
-        EditorGUILayout.BeginHorizontal();
-        GUILayout.Label("Moves left: ");
-        EditorGUILayout.TextField(movesLeft);
-        EditorGUILayout.EndHorizontal();
+        //EditorGUILayout.BeginHorizontal();
+        //GUILayout.Label("Moves left: ");
+        //EditorGUILayout.TextField(movesLeft);
+        //EditorGUILayout.EndHorizontal();
 
         if (GridController.Instance.MatchFinder == null)
         {

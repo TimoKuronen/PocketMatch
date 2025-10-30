@@ -20,15 +20,14 @@ public class LevelManager : ILevelManager
     {
         CoroutineMonoBehavior.Instance.StartCoroutine(SetLevelData());
         CoroutineMonoBehavior.Instance.StartCoroutine(GameTimer());
-
-        saveService = Services.Get<ISaveService>();
     }
 
     private IEnumerator SetLevelData()
     {
-        yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+        yield return null;
+        //yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
-        LocalMapData = MonoBehaviour.Instantiate(Services.Get<IGameSessionService>().CurrentMapData);
+        //LocalMapData = MonoBehaviour.Instantiate(Services.Get<IGameSessionService>().CurrentMapData);
 
         if (LocalMapData == null)
         {
@@ -45,11 +44,11 @@ public class LevelManager : ILevelManager
 
         SubscribeToEvents();
 
-        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelStarted, new System.Collections.Generic.Dictionary<string, object>
-        {
-            { "level_name", Services.Get<IGameSessionService>().CurrentMapData.name },
-            { "level_index", saveService.PlayerData.nextLevelIndex + 1 }
-        });
+        //Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelStarted, new System.Collections.Generic.Dictionary<string, object>
+        //{
+        //    { "level_name", Services.Get<IGameSessionService>().CurrentMapData.name },
+        //    { "level_index", saveService.PlayerData.nextLevelIndex + 1 }
+        //});
     }
 
     private IEnumerator GameTimer()
@@ -143,26 +142,26 @@ public class LevelManager : ILevelManager
 
     private void ToggleWinEvent()
     {
-        if (Services.Get<IGameSessionService>().IsLevelCapReached)
-        {
-            Debug.Log("Level cap reached, not incrementing level index.");
-            OnLevelWon?.Invoke();
-            return;
-        }
+        //if (Services.Get<IGameSessionService>().IsLevelCapReached)
+        //{
+        //    Debug.Log("Level cap reached, not incrementing level index.");
+        //    OnLevelWon?.Invoke();
+        //    return;
+        //}
 
         gameInProgress = false;
 
-        saveService.PlayerData.nextLevelIndex++;
-        saveService.PlayerData.coins += Services.Get<IScoreManager>().GetTotalScore();
-        saveService.Save();
+        //saveService.PlayerData.nextLevelIndex++;
+        //saveService.PlayerData.coins += Services.Get<IScoreManager>().GetTotalScore();
+        //saveService.Save();
 
-        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelCompleted, new System.Collections.Generic.Dictionary<string, object>
-        {
-            { "level_name", LocalMapData.name },
-            { "moves_spent", LocalMapData.VictoryConditions.MoveLimit - MovesRemaining },
-            { "total_score", Services.Get<IScoreManager>().GetTotalScore() },
-            { "matchDuration", GameTimeInSeconds }
-        });
+        //Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelCompleted, new System.Collections.Generic.Dictionary<string, object>
+        //{
+        //    { "level_name", LocalMapData.name },
+        //    { "moves_spent", LocalMapData.VictoryConditions.MoveLimit - MovesRemaining },
+        //    { "total_score", Services.Get<IScoreManager>().GetTotalScore() },
+        //    { "matchDuration", GameTimeInSeconds }
+        //});
 
         OnLevelWon?.Invoke();
     }
@@ -171,11 +170,11 @@ public class LevelManager : ILevelManager
     {
         gameInProgress = false;
 
-        Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelFailed, new System.Collections.Generic.Dictionary<string, object>
-        {
-            { "level_name", LocalMapData.name },
-            { "matchDuration", GameTimeInSeconds }
-        });
+        //Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.LevelFailed, new System.Collections.Generic.Dictionary<string, object>
+        //{
+        //    { "level_name", LocalMapData.name },
+        //    { "matchDuration", GameTimeInSeconds }
+        //});
 
         OnLevelLost?.Invoke();
     }
@@ -188,7 +187,7 @@ public class LevelManager : ILevelManager
         GridController.Instance.GridContext.OnDestroy -= OnTileDestroyed;
     }
 
-    public void Update()
+    public void Tick()
     {
 #if UNITY_EDITOR
         if (Keyboard.current.wKey.wasPressedThisFrame)

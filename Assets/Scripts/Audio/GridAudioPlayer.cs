@@ -16,7 +16,7 @@ public class GridAudioPlayer : MonoBehaviour
     [SerializeField] private AudioCue levelLostAudio;
 
     private AudioSource audioSource;
-    private ISoundManager soundManager;
+    private IAudioService audioService;
     private ILevelManager levelManager;
 
     private IEnumerator Start()
@@ -24,8 +24,6 @@ public class GridAudioPlayer : MonoBehaviour
         yield return new WaitUntil(() => GridController.Instance.IsBoardInitialized);
 
         audioSource = GetComponent<AudioSource>();
-        soundManager = Services.Get<ISoundManager>();
-        levelManager = Services.Get<ILevelManager>();
 
         GridController.Instance.TileDrop += PlayHitAudio;
         GridController.Instance.TileSwapped += PlayMatchAudio;
@@ -43,16 +41,16 @@ public class GridAudioPlayer : MonoBehaviour
         switch (data.Power)
         {
             case TilePower.ColumnClearer:
-                soundManager.Play(tileLineDestroyerAudio, audioSource);
+                audioService.Play(tileLineDestroyerAudio, audioSource);
                 break;
             case TilePower.RowClearer:
-                soundManager.Play(tileLineDestroyerAudio, audioSource);
+                audioService.Play(tileLineDestroyerAudio, audioSource);
                 break;
             case TilePower.Bomb:
-                soundManager.Play(tileBombAudio, audioSource);
+                audioService.Play(tileBombAudio, audioSource);
                 break;
             case TilePower.Rainbow:
-                soundManager.Play(tileRainbowAudio, audioSource);
+                audioService.Play(tileRainbowAudio, audioSource);
                 break;
             default:
                 break;
@@ -61,43 +59,43 @@ public class GridAudioPlayer : MonoBehaviour
 
     private void PlayPowerTileCreationAudio(TileData tileData)
     {
-        soundManager.Play(powerTileCreationAudio, audioSource);
+        audioService.Play(powerTileCreationAudio, audioSource);
     }
 
 
     private void PlayTileMoveAudio()
     {
-        soundManager.Play(tileMoveAudio, audioSource);
+        audioService.Play(tileMoveAudio, audioSource);
     }
 
     private void PlayDestroyAudio(TileData data)
     {
-        soundManager.Play(tileDestroyAudio, audioSource);
+        audioService.Play(tileDestroyAudio, audioSource);
     }
 
     private void PlaySwitchErrorAudio()
     {
-        soundManager.Play(tileSwitchErrorAudio, audioSource);
+        audioService.Play(tileSwitchErrorAudio, audioSource);
     }
 
     private void PlayMatchAudio()
     {
-        soundManager.Play(tileMatchAudio, audioSource);
+        audioService.Play(tileMatchAudio, audioSource);
     }
 
     private void PlayHitAudio()
     {
-        soundManager.Play(tileHitAudio, audioSource);
+        audioService.Play(tileHitAudio, audioSource);
     }
 
     private void PlayLevelLostAudio()
     {
-        soundManager.Play(levelLostAudio, audioSource);
+        audioService.Play(levelLostAudio, audioSource);
     }
 
     private void PlayLevelWonAudio()
     {
-        soundManager.Play(levelWonAudio, audioSource);
+        audioService.Play(levelWonAudio, audioSource);
     }
 
     private void OnDestroy()

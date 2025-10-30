@@ -18,16 +18,17 @@ public class UIManager : UIMenu
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
     private ILevelManager levelManager;
-    private IAdsManager adsManager;
+    private IAdsService adsService;
 
     private IEnumerator Start()
     {
-        yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+        yield return null;
+        //yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
 
-        mapData = Services.Get<IGameSessionService>().CurrentMapData;
+        //mapData = Services.Get<IGameSessionService>().CurrentMapData;
 
-        adsManager = Services.Get<IAdsManager>();
-        levelManager = Services.Get<ILevelManager>();
+        //adsService = Services.Get<IAdsManager>();
+        //levelManager = Services.Get<ILevelManager>();
 
         levelManager.OnVictoryConditionsUpdated += OnVictoryConditionsUpdated;
         levelManager.OnLevelWon += OnLevelWon;
@@ -121,10 +122,10 @@ public class UIManager : UIMenu
     {
 //#if UNITY_EDITOR
 
-        StartCoroutine(Loader.ShowInterstitialThenContinue(adsManager, Loader.Scene.PlayScene));
+        StartCoroutine(Loader.ShowInterstitialThenContinue(adsService, Loader.Scene.PlayScene));
 //#endif
         Debug.Log("Waiting for ad to complete...");
-        yield return new WaitUntil(() => adsManager.InterstitialAdCompleted);
+        yield return new WaitUntil(() => adsService.InterstitialAdCompleted);
         StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
         Debug.Log("Ad completed, loading next level...");
     }
@@ -138,12 +139,12 @@ public class UIManager : UIMenu
             item.gameObject.SetActive(false);
         }
 
-        if (Services.Get<IGameSessionService>().IsLevelCapReached)
-        {
-            nextLevelButton.SetActive(false);
-        }
+        //if (Services.Get<IGameSessionService>().IsLevelCapReached)
+        //{
+        //    nextLevelButton.SetActive(false);
+        //}
 
-        coinCountText.text = "x " + Services.Get<IScoreManager>().GetTotalScore().ToString();
+        //coinCountText.text = "x " + Services.Get<IScoreManager>().GetTotalScore().ToString();
         movesText.gameObject.SetActive(false);
     }
 

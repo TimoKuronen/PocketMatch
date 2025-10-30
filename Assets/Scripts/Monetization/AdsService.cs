@@ -15,10 +15,11 @@ public class AdsService : IAdsService, IDisposable
     public event Action OnInterstitialAdClosed;
     public bool InterstitialAdCompleted { get; private set; } = false;
 
-    #region Initialization
+    private IAnalyticsService analyticsService;
 
+    #region Initialization
     [Inject]
-    public void Contstruct()
+    public void Contstruct(IAnalyticsService analyticsService)
     {
         Debug.Log("[AdsManager] Initializing LevelPlay SDK...");
 
@@ -217,8 +218,7 @@ public class AdsService : IAdsService, IDisposable
     {
         try
         {
-            //var analytics = Services.Get<IAnalyticsManager>();
-            //analytics?.LogEvent(eventName);
+            analyticsService?.LogEvent(eventName);
         }
         catch (Exception e)
         {

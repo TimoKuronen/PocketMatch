@@ -46,18 +46,18 @@ public class UI_MainMenu : UIMenu
     {
         Debug.Log("Play Button pressed, loading level " + (levelIndex + 1));
         adsService.HideBannerAd();
-        StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
+        Loader.Load(Loader.GameScene.PlayScene);
     }
 
     private IEnumerator HandleLevelLoadingWithAd()
     {
-        StartCoroutine(Loader.ShowInterstitialThenContinue(adsService, Loader.Scene.PlayScene));
+        StartCoroutine(Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene));
 
         Debug.Log("Waiting for ad to complete...");
 
         yield return new WaitUntil(() => adsService.InterstitialAdCompleted);
 
-        StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
+        Loader.Load(Loader.GameScene.PlayScene);
         Debug.Log("Ad completed, loading next level...");
     }
 
@@ -68,7 +68,7 @@ public class UI_MainMenu : UIMenu
 
     public void ResetSaveButtonPressed()
     {
-        //Services.Get<ISaveService>().ResetToDefaults();
+        saveService.ResetToDefaults();
 
         levelIndex = saveService.PlayerData.nextLevelIndex;
 

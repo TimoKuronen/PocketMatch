@@ -6,32 +6,81 @@ using VContainer.Unity;
 
 public static class Loader
 {
-    public enum Scene
+    public enum GameScene
     {
         Empty,
         MainMenu,
         Loader,
         PlayScene
     }
+
     public static event Action OnSceneLoadStarted;
 
     private static AsyncOperation loadingAsyncOperation;
-    private static Scene? targetScene = null;
+    private static bool isLoading;
+    private static GameScene? targetScene;
     private static float delayBeforeLoading = 0f;
 
-    public static IEnumerator CallDelayedLoad(Scene scene, float delay = 0.0f)
+    private static string previousSceneName;
+
+#if UNITY_EDITOR
+    private static string editorStartingScene => EditorBootstrapper.CurrentSceneName;
+#endif
+
+    #region Public
+
+    public static void Load(GameScene nextScene, float delay = 0f)
     {
-        OnSceneLoadStarted?.Invoke();
+        if (isLoading)
+        {
+            Debug.LogWarning("[Loader] Load requested while another load is active.");
+            return;
+        }
 
-        if(delay > 0)
-            yield return new WaitForSecondsRealtime(delay);
+        previousSceneName = SceneManager.GetActiveScene().name;
 
-        targetScene = scene;
-        //Debug.Log($"[Loader] Loading scene via Loader: {scene}");
-        SceneManager.LoadScene(Scene.Loader.ToString());
+        targetScene = nextScene;
+        delayBeforeLoading = delay;
+
+        SceneManager.LoadScene(GameScene.Loader.ToString(), LoadSceneMode.Single);
     }
 
-    public static IEnumerator ShowInterstitialThenContinue(IAdsService adsService, Scene sceneToLoad)
+    internal static IEnumerator ContinueLoadFromLoader()
+    {
+#if UNITY_EDITOR
+        // Handle editor case first — figure out which scene Play started from
+        if (!targetScene.HasValue)
+        {
+            if (Enum.TryParse(editorStartingScene, out GameScene fromEditor))
+            {
+                targetScene = fromEditor;
+                Debug.Log($"[Loader] Editor play started from '{editorStartingScene}', reloading same scene: {targetScene}");
+            }
+            else
+            {
+                Debug.LogWarning($"[Loader] Unknown editor start scene '{editorStartingScene}', defaulting to MainMenu.");
+                targetScene = GameScene.MainMenu;
+            }
+        }
+#else
+        // Runtime fallback
+        if (!targetScene.HasValue)
+        {
+            Debug.Log("[Loader] No target specified, defaulting to MainMenu.");
+            targetScene = GameScene.MainMenu;
+        }
+#endif
+
+        yield return LoadSceneAsync(targetScene.Value, delayBeforeLoading);
+    }
+
+    public static void Restart()
+    {
+        GameScene current = GetCurrentScene();
+        Load(current, 0.1f);
+    }
+
+    public static IEnumerator ShowInterstitialThenContinue(IAdsService adsService, GameScene sceneToLoad)
     {
         adsService.ShowInterstitialAd();
 
@@ -46,90 +95,58 @@ public static class Loader
 
         if (!adsService.InterstitialAdCompleted)
         {
-            Debug.LogWarning("Interstitial failed or no fill. Continuing flow.");
+            Debug.LogWarning("[Loader] Interstitial failed or timed out. Continuing.");
             adsService.ForceMarkAdComplete();
         }
+
+        Load(sceneToLoad);
     }
 
-    public static void LoaderCallback()
+    #endregion
+
+    #region Core
+
+    private static IEnumerator LoadSceneAsync(GameScene targetScene, float delay)
     {
-        if (!targetScene.HasValue)
-        {
-#if UNITY_EDITOR
-
-            Scene currentScene = Scene.MainMenu;
-            string sceneName = EditorBootstrapper.CurrentSceneName;
-
-            if (Enum.TryParse(sceneName, out Scene sceneEnum))
-                currentScene = sceneEnum;
-
-            if (currentScene != Scene.Loader)
-            {
-                targetScene = currentScene;
-            }
-            else
-            {
-                targetScene = Scene.MainMenu;
-            }
-#else
-            targetScene = Scene.MainMenu;
-#endif
-        }
-
-        GameObject go = new GameObject("LoaderRunner");
-        UnityEngine.Object.DontDestroyOnLoad(go);
-        go.AddComponent<CoroutineMonoBehavior>()
-            .StartCoroutine(LoadSceneAsync(targetScene.Value, delayBeforeLoading));
-    }
-
-    public static void Restart()
-    {
-        Scene currentScene = GetCurrentScene();
-        CoroutineMonoBehavior.RunStatic(CallDelayedLoad(currentScene, 0.1f));
-    }
-
-    public static Scene GetCurrentScene()
-    {
-        string sceneName = SceneManager.GetActiveScene().name;
-
-        if (Enum.TryParse(sceneName, out Scene sceneEnum))
-            return sceneEnum;
-
-        return default;
-    }
-
-    private static IEnumerator LoadSceneAsync(Scene scene, float delay)
-    {
+        isLoading = true;
         OnSceneLoadStarted?.Invoke();
 
         if (delay > 0)
             yield return new WaitForSecondsRealtime(delay);
 
-        var bootstrap = LifetimeScope.Find<BootstrapLifetimeScope>(); // finds the DDOL bootstrap
+        var bootstrap = LifetimeScope.Find<BootstrapLifetimeScope>();
 
         using (LifetimeScope.EnqueueParent(bootstrap))
         {
-            loadingAsyncOperation = SceneManager.LoadSceneAsync(scene.ToString(), LoadSceneMode.Additive);
+            loadingAsyncOperation = SceneManager.LoadSceneAsync(targetScene.ToString(), LoadSceneMode.Additive);
             while (!loadingAsyncOperation.isDone)
                 yield return null;
         }
 
-        var loadedScene = SceneManager.GetSceneByName(scene.ToString());
+        var loadedScene = SceneManager.GetSceneByName(targetScene.ToString());
         SceneManager.SetActiveScene(loadedScene);
-
-        SceneManager.UnloadSceneAsync(Scene.Loader.ToString());
+        SceneManager.UnloadSceneAsync(GameScene.Loader.ToString());
 
         loadingAsyncOperation = null;
-        targetScene = null;
+        isLoading = false;
     }
 
-    public static float GetLoadingProgress()
+    #endregion
+
+    #region Utility
+
+    public static GameScene GetCurrentScene()
     {
-        return loadingAsyncOperation?.progress ?? 1f;
+        if (Enum.TryParse(SceneManager.GetActiveScene().name, out GameScene result))
+            return result;
+        return default;
     }
 
-    public static bool IsGameScene()
-    {
-        return GetCurrentScene() != Scene.Empty && GetCurrentScene() > Scene.Loader;
-    }
+    public static float GetLoadingProgress() =>
+        loadingAsyncOperation?.progress ?? 1f;
+
+    public static bool IsGameScene() =>
+        GetCurrentScene() != GameScene.Empty && GetCurrentScene() > GameScene.Loader;
+
+    #endregion
 }

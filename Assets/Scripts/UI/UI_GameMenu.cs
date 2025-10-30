@@ -22,13 +22,19 @@ public class UIManager : UIMenu
     private ILevelManager levelManager;
     private IAdsService adsService;
     private IGameSessionService gameSessionService;
+    private IScoreService scoreService;
 
     [Inject]    
-    public void Construct(ILevelManager levelManager, IAdsService adsService, IGameSessionService gameSessionService)
+    public void Construct(
+        ILevelManager levelManager, 
+        IAdsService adsService, 
+        IGameSessionService gameSessionService,
+        IScoreService scoreService)
     {
         this.levelManager = levelManager;
         this.adsService = adsService;
         this.gameSessionService = gameSessionService;
+        this.scoreService = scoreService;
     }
 
     private IEnumerator Start()
@@ -104,7 +110,7 @@ public class UIManager : UIMenu
     public void MenuButtonPressed()
     {
         Debug.Log("Menu button pressed");
-        StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.MainMenu));
+        Loader.Load(Loader.GameScene.MainMenu);
     }
 
     /// <summary>
@@ -129,11 +135,11 @@ public class UIManager : UIMenu
     {
 //#if UNITY_EDITOR
 
-        StartCoroutine(Loader.ShowInterstitialThenContinue(adsService, Loader.Scene.PlayScene));
+        StartCoroutine(Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene));
 //#endif
         Debug.Log("Waiting for ad to complete...");
         yield return new WaitUntil(() => adsService.InterstitialAdCompleted);
-        StartCoroutine(Loader.CallDelayedLoad(Loader.Scene.PlayScene));
+        Loader.Load(Loader.GameScene.PlayScene);
         Debug.Log("Ad completed, loading next level...");
     }
 
@@ -151,7 +157,7 @@ public class UIManager : UIMenu
             nextLevelButton.SetActive(false);
         }
 
-        //coinCountText.text = "x " + Services.Get<IScoreManager>().GetTotalScore().ToString();
+        coinCountText.text = "x " + scoreService.GetTotalScore().ToString();
         movesText.gameObject.SetActive(false);
     }
 

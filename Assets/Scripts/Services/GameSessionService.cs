@@ -9,7 +9,6 @@ public class GameSessionService : IGameSessionService
     private const string defaultAddress = "Assets/Addressables/Levels/MapData_";
     private ISaveService saveService;
     public MapData CurrentMapData { get; private set; }
-    public bool IsLevelDataLoaded { get; private set; }
     public bool IsLevelCapReached { get; private set; }
 
     private int totalLevels;
@@ -24,15 +23,12 @@ public class GameSessionService : IGameSessionService
     {
         try
         {
-            // Load all resource locations that match the pattern
             var handle = Addressables.LoadResourceLocationsAsync("Levels", typeof(MapData));
 
-            // Wait for the operation to complete
             await handle.Task;
 
             if (handle.Status == AsyncOperationStatus.Succeeded)
             {
-                // Count the number of levels
                 totalLevels = handle.Result.Count;
                 Debug.Log($"Total levels found: {totalLevels}");
             }
@@ -57,7 +53,6 @@ public class GameSessionService : IGameSessionService
         {
             var handle = Addressables.LoadAssetAsync<MapData>(address);
             CurrentMapData = await handle.Task;
-            IsLevelDataLoaded = true;
             Debug.Log("MapData loaded: " + CurrentMapData.name);
 
             IsLevelCapReached = levelIndex >= totalLevels;
@@ -66,7 +61,7 @@ public class GameSessionService : IGameSessionService
         catch (Exception e)
         {
             Debug.LogError("Failed to load MapData: " + e);
-            IsLevelDataLoaded = false;
+            GameSignals.MarkSessionLoaded();
         }
     }
     public void Dispose() { }

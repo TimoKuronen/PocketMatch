@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 public class UIAudioPlayer : MonoBehaviour
 {
@@ -9,7 +10,13 @@ public class UIAudioPlayer : MonoBehaviour
     [SerializeField] private AudioCue buttonPressSFX;
 
     private UIMenu uiMenu;
-    private IAudioService soundService;
+    private IAudioService audioService;
+
+    [Inject]
+    public void Construct(IAudioService audioService)
+    {
+        this.audioService = audioService;
+    }
 
     void Start()
     {
@@ -19,9 +26,9 @@ public class UIAudioPlayer : MonoBehaviour
         uiMenu.OnMenuClosed += OnMenuClosed;
         uiMenu.OnButtonPressed += OnButtonClicked;
     }
-    private void OnMenuOpened() => soundService.Play(openMenuSFX, audioSource);
-    private void OnMenuClosed() => soundService.Play(closeMenuSFX, audioSource);
-    private void OnButtonClicked() => soundService.Play(buttonPressSFX, audioSource);
+    private void OnMenuOpened() => audioService.Play(openMenuSFX, audioSource);
+    private void OnMenuClosed() => audioService.Play(closeMenuSFX, audioSource);
+    private void OnButtonClicked() => audioService.Play(buttonPressSFX, audioSource);
 
     private void OnDestroy()
     {

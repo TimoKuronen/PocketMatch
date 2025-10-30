@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using VContainer;
 
 public class UIManager : UIMenu
 {
@@ -17,18 +18,24 @@ public class UIManager : UIMenu
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
+
     private ILevelManager levelManager;
     private IAdsService adsService;
+    private IGameSessionService gameSessionService;
+
+    [Inject]    
+    public void Construct(ILevelManager levelManager, IAdsService adsService, IGameSessionService gameSessionService)
+    {
+        this.levelManager = levelManager;
+        this.adsService = adsService;
+        this.gameSessionService = gameSessionService;
+    }
 
     private IEnumerator Start()
     {
-        yield return null;
-        //yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
 
-        //mapData = Services.Get<IGameSessionService>().CurrentMapData;
-
-        //adsService = Services.Get<IAdsManager>();
-        //levelManager = Services.Get<ILevelManager>();
+        mapData = gameSessionService.CurrentMapData;
 
         levelManager.OnVictoryConditionsUpdated += OnVictoryConditionsUpdated;
         levelManager.OnLevelWon += OnLevelWon;
@@ -139,10 +146,10 @@ public class UIManager : UIMenu
             item.gameObject.SetActive(false);
         }
 
-        //if (Services.Get<IGameSessionService>().IsLevelCapReached)
-        //{
-        //    nextLevelButton.SetActive(false);
-        //}
+        if (gameSessionService.IsLevelCapReached)
+        {
+            nextLevelButton.SetActive(false);
+        }
 
         //coinCountText.text = "x " + Services.Get<IScoreManager>().GetTotalScore().ToString();
         movesText.gameObject.SetActive(false);

@@ -1,4 +1,5 @@
 using UnityEngine;
+using VContainer;
 
 public class InputService : IInputService
 {
@@ -6,12 +7,15 @@ public class InputService : IInputService
     public Vector2 TouchPosition { get; private set; }
     public bool IsTouching { get; private set; }
 
-    public void Initialize()
+    [Inject]
+    public void Construct()
     {
         controls = new GameControls();
+
         controls.Gameplay.TouchPosition.performed += ctx => TouchPosition = ctx.ReadValue<Vector2>();
         controls.Gameplay.TouchPress.performed += _ => IsTouching = true;
         controls.Gameplay.TouchPress.canceled += _ => IsTouching = false;
+
         controls.Enable();
     }
 

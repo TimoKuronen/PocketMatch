@@ -18,8 +18,7 @@ public class DebugGrid : MonoBehaviour
 
     private IEnumerator Start()
     {
-        yield return null;
-        //yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
 
         GridController.Instance.BoardUpdated += OnBoardUpdated;
         CreateDebugBoards();

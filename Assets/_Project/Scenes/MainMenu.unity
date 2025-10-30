@@ -235,7 +235,8 @@ MonoBehaviour:
   parentReference:
     TypeName: BootstrapLifetimeScope
   autoRun: 1
-  autoInjectGameObjects: []
+  autoInjectGameObjects:
+  - {fileID: 47432203270169870}
 --- !u!4 &906170691
 Transform:
   m_ObjectHideFlags: 0
@@ -248,8 +249,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 47432203270169870}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1500352956
@@ -474,7 +474,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 906170691}
+    m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 56070200066099015, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
       propertyPath: m_SizeDelta.x
@@ -697,9 +697,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
---- !u!224 &47432203270169870 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 2151272936028534957, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+--- !u!1 &47432203270169870 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1409419441953587478, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
   m_PrefabInstance: {fileID: 47432203270169869}
   m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
@@ -709,4 +709,5 @@ SceneRoots:
   - {fileID: 906170691}
   - {fileID: 619394802}
   - {fileID: 1500352959}
+  - {fileID: 47432203270169869}
   - {fileID: 2044097324}

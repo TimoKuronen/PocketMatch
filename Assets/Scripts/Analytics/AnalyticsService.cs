@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using VContainer;
 
 public class AnalyticsService : IAnalyticsService
 {
@@ -13,7 +14,8 @@ public class AnalyticsService : IAnalyticsService
     private List<CachedEvent> eventQueue = new List<CachedEvent>();
     private bool firebaseReady = false;
 
-    public void Initialize()
+    [Inject]
+    public void Construct()
     {
         LoadCache();
 

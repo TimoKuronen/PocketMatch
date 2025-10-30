@@ -233,10 +233,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentReference:
-    TypeName: BootstrapLifetimeScope
+    TypeName: 
   autoRun: 1
-  autoInjectGameObjects:
-  - {fileID: 47432203270169870}
+  autoInjectGameObjects: []
 --- !u!4 &906170691
 Transform:
   m_ObjectHideFlags: 0
@@ -697,11 +696,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
---- !u!1 &47432203270169870 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1409419441953587478, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
-  m_PrefabInstance: {fileID: 47432203270169869}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Timo Kuronen
-  productName: PocketMatch
+  productName: RuneMatch
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -141,7 +141,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.1
+  bundleVersion: 0.15
   preloadedAssets:
   - {fileID: -944628639613478452, guid: 200b91e87355c2640b961407a6d2017a, type: 3}
   - {fileID: 11400000, guid: fad160781da172741a369291dd4e5330, type: 2}

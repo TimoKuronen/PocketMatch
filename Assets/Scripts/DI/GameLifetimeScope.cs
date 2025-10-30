@@ -8,6 +8,6 @@ public class GameLifetimeScope : LifetimeScope
         builder.Register<IGameSessionService, GameSessionService>(Lifetime.Scoped);
         builder.Register<ILevelManager, LevelManager>(Lifetime.Scoped);
 
-        builder.RegisterComponentInHierarchy<UI_MainMenu>();
+        builder.RegisterComponentInHierarchy<UI_GameMenu>();
     }
 }

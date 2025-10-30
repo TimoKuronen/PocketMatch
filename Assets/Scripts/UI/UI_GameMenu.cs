@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using VContainer;
 
-public class UIManager : UIMenu
+public class UI_GameMenu : UIMenu
 {
     [SerializeField] private GameObject winPanel;
     [SerializeField] private GameObject losePanel;
@@ -31,6 +31,7 @@ public class UIManager : UIMenu
         IGameSessionService gameSessionService,
         IScoreService scoreService)
     {
+        Debug.Log("UI_GameMenu Construct called with services " + levelManager + ", " + adsService + ", " + gameSessionService + ", " + scoreService);
         this.levelManager = levelManager;
         this.adsService = adsService;
         this.gameSessionService = gameSessionService;
@@ -173,7 +174,7 @@ public class UIManager : UIMenu
         movesText.gameObject.SetActive(false);
     }
 
-    private void OnDestroy()
+    public void Dispose()
     {
         levelManager.OnVictoryConditionsUpdated -= OnVictoryConditionsUpdated;
         levelManager.OnLevelWon -= OnLevelWon;

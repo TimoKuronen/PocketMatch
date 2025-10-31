@@ -133,14 +133,16 @@ public class UI_GameMenu : UIMenu
 
     private IEnumerator HandleLevelLoadingWithAd()
     {
-//#if UNITY_EDITOR
+#if UNITY_EDITOR
 
         StartCoroutine(Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene));
-//#endif
+#else
         Debug.Log("Waiting for ad to complete...");
         yield return new WaitUntil(() => adsService.InterstitialAdCompleted);
         Loader.Load(Loader.GameScene.PlayScene);
+#endif
         Debug.Log("Ad completed, loading next level...");
+        yield return null;
     }
 
     private void OnLevelWon()

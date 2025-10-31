@@ -5,7 +5,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using VContainer;
 
-public class GameSessionService : IGameSessionService, IDisposable
+public class GameSessionService : IGameSessionService
 {
     private const string defaultAddress = "Assets/Addressables/Levels/MapData_";
     private ISaveService saveService;
@@ -70,8 +70,5 @@ public class GameSessionService : IGameSessionService, IDisposable
             Debug.LogError("Failed to load MapData: " + e);
         }
     }
-    public void Dispose() 
-    {
-        Debug.Log("[GameSessionService] Disposed: " + GetHashCode());
-    }
+    public void Dispose() { }
 }

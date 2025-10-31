@@ -214,10 +214,6 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
         {
             ToggleLoseEvent();
         }
-        if (Keyboard.current.uKey.wasPressedThisFrame)
-        {
-            Debug.Log(Loader.isLoading);
-        }
 #endif
     }
 }

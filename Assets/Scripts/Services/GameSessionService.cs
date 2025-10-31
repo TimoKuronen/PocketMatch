@@ -70,5 +70,8 @@ public class GameSessionService : IGameSessionService, IDisposable
             Debug.LogError("Failed to load MapData: " + e);
         }
     }
-    public void Dispose() { }
+    public void Dispose() 
+    {
+        Debug.Log("[GameSessionService] Disposed: " + GetHashCode());
+    }
 }

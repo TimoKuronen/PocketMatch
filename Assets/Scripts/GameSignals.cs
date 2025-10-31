@@ -12,4 +12,10 @@ public static class GameSignals
         OnSessionLoaded?.Invoke();
         Debug.Log("GameSignals: Session marked as loaded.");
     }
+
+    public static void ResetSessionLoaded()
+    {
+        IsSessionLoaded = false;
+        Debug.Log("GameSignals: Session loaded state reset.");
+    }
 }

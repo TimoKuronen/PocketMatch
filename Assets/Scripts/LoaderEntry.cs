@@ -4,7 +4,13 @@ public class LoaderEntry : MonoBehaviour
 {
     private void Awake()
     {
+        Debug.Log("[LoaderEntry] Awake - Starting scene load");
         // Start the next scene load immediately
-        StartCoroutine(Loader.ContinueLoadFromLoader());
+        Loader.ContinueFromLoader();
+    }
+
+    private void OnDestroy()
+    {
+        Debug.LogWarning("[LoaderEntry] DESTROYED! (Scene unload or object destroyed)");
     }
 }

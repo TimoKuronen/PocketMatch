@@ -167,4 +167,9 @@ public class DebugGrid : MonoBehaviour
 
         return ".";
     }
+
+    private void OnDestroy()
+    {
+        GridController.Instance.BoardUpdated -= OnBoardUpdated;
+    }
 }

@@ -13,6 +13,7 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.Register<IScoreService, ScoreService>(Lifetime.Singleton);
 
         builder.Register<FirebaseInitializer>(Lifetime.Singleton);
+        builder.Register<GameSettingsService>(Lifetime.Singleton);
     }
 
     private new void Awake()

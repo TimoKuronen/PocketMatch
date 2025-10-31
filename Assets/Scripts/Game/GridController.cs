@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using VContainer;
 
 public class GridController : MonoBehaviour
 {
@@ -43,6 +45,10 @@ public class GridController : MonoBehaviour
     public event Action<TileData[,]> BoardUpdated;
     public event Action<TileData> PowerTileCreated;
 
+    private IGameSessionService gameSessionService;
+    private IAnalyticsService analyticsService;
+    private ILevelManager levelManager;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -54,9 +60,29 @@ public class GridController : MonoBehaviour
         Instance = this;
     }
 
+    [Inject]
+    public void Construct(IGameSessionService gameSessionService, IAnalyticsService analyticsService, ILevelManager levelManager)
+    {
+        this.gameSessionService = gameSessionService;
+        this.analyticsService = analyticsService;
+        this.levelManager = levelManager;
+    }
+
+    private void Update()
+    {
+        if (Keyboard.current.dKey.wasPressedThisFrame)
+        {
+            Debug.Log(GameSignals.IsSessionLoaded);
+        }
+    }
+
     private IEnumerator Start()
     {
-        //yield return new WaitUntil(() => Services.Get<IGameSessionService>().IsLevelDataLoaded);
+        Debug.Log("GridController waiting..."); 
+
+        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
+
+        Debug.Log("GridController starting with map data: " + gameSessionService.CurrentMapData);
 
         commandInvoker = new CommandInvoker(this);
         MatchFinder = new MatchFinder(width, height);
@@ -68,7 +94,7 @@ public class GridController : MonoBehaviour
             tileContainer
         );
 
-        //mapData = Services.Get<IGameSessionService>().CurrentMapData;
+        mapData = gameSessionService.CurrentMapData;
 
         GenerateGrid(allowInitialMatches);
         CenterCameraOnGrid();
@@ -319,12 +345,12 @@ public class GridController : MonoBehaviour
 
         if (cycleCount > 2)
         {
-            //Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
-            //Services.Get<IAnalyticsManager>().LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
-            //{
-            //    { "level_name", Services.Get<ILevelManager>().LocalMapData.GetLevelName() },
-            //    { "moves_spent", cycleCount-2 }
-            //});
+            Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
+            analyticsService.LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
+            {
+                { "level_name", levelManager.LocalMapData.GetLevelName() },
+                { "moves_spent", cycleCount-2 }
+            });
         }
 
         var moves = boardStateEvaluator.CountPotentialMoves();

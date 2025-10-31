@@ -3,8 +3,9 @@ using System;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using VContainer;
 
-public class GameSessionService : IGameSessionService
+public class GameSessionService : IGameSessionService, IDisposable
 {
     private const string defaultAddress = "Assets/Addressables/Levels/MapData_";
     private ISaveService saveService;
@@ -13,8 +14,12 @@ public class GameSessionService : IGameSessionService
 
     private int totalLevels;
 
-    public async void Initialize()
+    [Inject]
+    public async void Construct(ISaveService saveService)
     {
+        Debug.Log("GameSessionService Construct called with service " + saveService);
+        this.saveService = saveService;
+
         await LoadTotalLevelsAsync();
         await LoadCurrentLevelDataAsync();
     }
@@ -57,11 +62,12 @@ public class GameSessionService : IGameSessionService
 
             IsLevelCapReached = levelIndex >= totalLevels;
             Debug.Log($"Level cap reached: {IsLevelCapReached}");
+
+            GameSignals.MarkSessionLoaded();
         }
         catch (Exception e)
         {
             Debug.LogError("Failed to load MapData: " + e);
-            GameSignals.MarkSessionLoaded();
         }
     }
     public void Dispose() { }

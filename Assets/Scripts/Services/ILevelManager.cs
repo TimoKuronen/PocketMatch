@@ -3,7 +3,7 @@ using VContainer.Unity;
 
 public interface ILevelManager : ITickable
 {
-    int MovesRemaining { get; }
+    static int MovesRemaining { get; }
     Action<LevelManager> OnVictoryConditionsUpdated { get; set; }
     MapData LocalMapData { get; }
     Action OnLevelWon { get; set; }

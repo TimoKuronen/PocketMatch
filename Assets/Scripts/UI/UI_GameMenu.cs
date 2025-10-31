@@ -31,7 +31,6 @@ public class UI_GameMenu : UIMenu
         IGameSessionService gameSessionService,
         IScoreService scoreService)
     {
-        Debug.Log("UI_GameMenu Construct called with services " + levelManager + ", " + adsService + ", " + gameSessionService + ", " + scoreService);
         this.levelManager = levelManager;
         this.adsService = adsService;
         this.gameSessionService = gameSessionService;
@@ -84,7 +83,7 @@ public class UI_GameMenu : UIMenu
 
     private void OnVictoryConditionsUpdated(LevelManager levelManager)
     {
-        movesText.text = "Moves: " + levelManager.MovesRemaining.ToString();
+        movesText.text = "Moves: " + LevelManager.MovesRemaining.ToString();
 
         foreach (var item in victoryConditions)
         {

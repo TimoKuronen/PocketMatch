@@ -523,9 +523,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentReference:
-    TypeName: 
+    TypeName: BootstrapLifetimeScope
   autoRun: 1
-  autoInjectGameObjects: []
+  autoInjectGameObjects:
+  - {fileID: 1259283711}
 --- !u!4 &864492683
 Transform:
   m_ObjectHideFlags: 0
@@ -545,6 +546,11 @@ Transform:
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2871410926854447571, guid: b0dcc2119b5c84c44a46a7c10f2fa796, type: 3}
   m_PrefabInstance: {fileID: 1989764578}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1259283711 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4022155451497631031, guid: 2fe45137fc6387442872fab6efb67e22, type: 3}
+  m_PrefabInstance: {fileID: 3843777068911489489}
   m_PrefabAsset: {fileID: 0}
 --- !u!224 &1356153396 stripped
 RectTransform:

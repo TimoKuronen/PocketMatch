@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using VContainer;
 
 public class GridAudioPlayer : MonoBehaviour
 {
@@ -19,6 +20,13 @@ public class GridAudioPlayer : MonoBehaviour
     private IAudioService audioService;
     private ILevelManager levelManager;
 
+    [Inject]
+    public void Construct(IAudioService audioService, ILevelManager levelManager)
+    {
+        this.audioService = audioService;
+        this.levelManager = levelManager;
+    }
+
     private IEnumerator Start()
     {
         yield return new WaitUntil(() => GridController.Instance.IsBoardInitialized);
@@ -32,6 +40,7 @@ public class GridAudioPlayer : MonoBehaviour
         GridController.Instance.TileMoved += PlayTileMoveAudio;
         GridController.Instance.PowerTileCreated += PlayPowerTileCreationAudio;
         GridController.Instance.GridContext.OnSpecialTileTriggered += PlaySpecialTileAudio;
+
         levelManager.OnLevelWon += PlayLevelWonAudio;
         levelManager.OnLevelLost += PlayLevelLostAudio;
     }
@@ -61,7 +70,6 @@ public class GridAudioPlayer : MonoBehaviour
     {
         audioService.Play(powerTileCreationAudio, audioSource);
     }
-
 
     private void PlayTileMoveAudio()
     {
@@ -107,6 +115,7 @@ public class GridAudioPlayer : MonoBehaviour
         GridController.Instance.TileMoved -= PlayTileMoveAudio;
         GridController.Instance.PowerTileCreated -= PlayPowerTileCreationAudio;
         GridController.Instance.GridContext.OnSpecialTileTriggered -= PlaySpecialTileAudio;
+
         levelManager.OnLevelWon -= PlayLevelWonAudio;
         levelManager.OnLevelLost -= PlayLevelLostAudio;
     }

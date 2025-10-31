@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 public static class GameSignals
 {
@@ -9,5 +10,6 @@ public static class GameSignals
     {
         IsSessionLoaded = true;
         OnSessionLoaded?.Invoke();
+        Debug.Log("GameSignals: Session marked as loaded.");
     }
 }

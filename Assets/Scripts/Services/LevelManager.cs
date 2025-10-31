@@ -3,10 +3,11 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
+using VContainer.Unity;
 
-public class LevelManager : ILevelManager
+public class LevelManager : ILevelManager, IDisposable, ITickable
 {
-    public int MovesRemaining { get; private set; }
+    public static int MovesRemaining { get; private set; }
     public MapData LocalMapData { get; private set; }
     public VictoryConditions VictoryConditions { get; private set; }
     public Action<LevelManager> OnVictoryConditionsUpdated { get; set; }

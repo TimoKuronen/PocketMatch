@@ -7,13 +7,9 @@ public class ScoreService : IScoreService
     private EventScoring eventScoring;
     private int collectedScore;
 
-    private ILevelManager levelManager;
-
     [Inject]
-    public void Construct(ILevelManager levelManager)
+    public void Construct()
     {
-        this.levelManager = levelManager;
-
         CoroutineMonoBehavior.Instance.StartCoroutine(SubscribeToEvents());
 
         eventScoring = new EventScoring();
@@ -47,7 +43,7 @@ public class ScoreService : IScoreService
 
     public int GetTotalScore()
     {
-        collectedScore += levelManager.MovesRemaining * eventScoring.pointsPerUnusedMovement;
+        collectedScore += LevelManager.MovesRemaining * eventScoring.pointsPerUnusedMovement;
 
         return collectedScore;
     }

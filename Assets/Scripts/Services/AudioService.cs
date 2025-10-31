@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using VContainer;
 
 public class AudioService : IAudioService
 {
@@ -10,7 +11,8 @@ public class AudioService : IAudioService
 
     private Dictionary<SoundType, List<PlayingSound>> activeSounds;
 
-    public void Initialize()
+    [Inject]
+    public void Construct()
     {
         activeSounds = new Dictionary<SoundType, List<PlayingSound>>();
     }

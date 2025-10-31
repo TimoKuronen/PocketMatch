@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using VContainer;
 
 public class GameSettingsService
 {
-    public void Initialize()
+    [Inject]
+    public void Construct()
     {
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;

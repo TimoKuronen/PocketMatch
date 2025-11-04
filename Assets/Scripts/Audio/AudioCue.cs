@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "AudioCue", menuName = "Limekicker/AudioCue", order = 1)]
+[CreateAssetMenu(fileName = "AudioCue", menuName = "ScriptableObjects/AudioCue", order = 1)]
 public class AudioCue : ScriptableObject
 {
     public bool loop;

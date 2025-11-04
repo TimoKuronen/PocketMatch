@@ -15,6 +15,7 @@ public class UI_GameMenu : UIMenu
     [SerializeField] private Transform victoryConditionsContainer;
     [SerializeField] private TextMeshProUGUI movesText;
     [SerializeField] private TextMeshProUGUI coinCountText;
+    [SerializeField] private TextMeshProUGUI puzzleIndexText;
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
@@ -23,18 +24,21 @@ public class UI_GameMenu : UIMenu
     private IAdsService adsService;
     private IGameSessionService gameSessionService;
     private IScoreService scoreService;
+    private ISaveService saveService;
 
     [Inject]    
     public void Construct(
         ILevelManager levelManager, 
         IAdsService adsService, 
         IGameSessionService gameSessionService,
-        IScoreService scoreService)
+        IScoreService scoreService,
+        ISaveService saveService)
     {
         this.levelManager = levelManager;
         this.adsService = adsService;
         this.gameSessionService = gameSessionService;
         this.scoreService = scoreService;
+        this.saveService = saveService;
     }
 
     private IEnumerator Start()
@@ -42,6 +46,9 @@ public class UI_GameMenu : UIMenu
         yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
 
         mapData = gameSessionService.CurrentMapData;
+
+        string levelIndex = (saveService.PlayerData.nextLevelIndex+1).ToString();
+        puzzleIndexText.text = "Puzzle #" + levelIndex;
 
         levelManager.OnVictoryConditionsUpdated += OnVictoryConditionsUpdated;
         levelManager.OnLevelWon += OnLevelWon;
@@ -135,7 +142,7 @@ public class UI_GameMenu : UIMenu
     {
 #if UNITY_EDITOR
 
-        StartCoroutine(Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene));
+        Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
 #else
         Debug.Log("Waiting for ad to complete...");
         yield return new WaitUntil(() => adsService.InterstitialAdCompleted);

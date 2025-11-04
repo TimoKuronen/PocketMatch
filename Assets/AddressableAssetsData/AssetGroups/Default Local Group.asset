@@ -33,6 +33,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - Levels
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69e359efa9d5d2e42877f6443184e636
+    m_Address: Assets/Addressables/Levels/MapData_0004.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Levels
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7811e86d7a8c3844b932acf2033f2179, type: 2}
   m_SchemaSet:

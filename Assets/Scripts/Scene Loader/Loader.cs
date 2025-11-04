@@ -19,6 +19,7 @@ public static class Loader
     private static bool isLoading;
     private static GameScene? targetScene;
     private static LoaderHost host;
+    private static IAdsService pendingAdService;
 
 #if UNITY_EDITOR
     private static string editorStartingScene => EditorBootstrapper.CurrentSceneName;
@@ -40,7 +41,7 @@ public static class Loader
 
     internal static void ContinueFromLoader()
     {
-        Run(ContinueLoadFromLoader());
+        Run(ContinueLoadFromLoaderWithOptionalAd());
     }
 
     private static IEnumerator ContinueLoadFromLoader()
@@ -59,28 +60,56 @@ public static class Loader
         yield return LoadSceneAsync(targetScene.Value, 0f);
     }
 
+    private static IEnumerator ContinueLoadFromLoaderWithOptionalAd()
+    {
+#if UNITY_EDITOR
+        if (!targetScene.HasValue)
+        {
+            if (!Enum.TryParse(editorStartingScene, out GameScene parsed))
+                parsed = GameScene.MainMenu;
+            targetScene = parsed == GameScene.Loader ? GameScene.MainMenu : parsed;
+        }
+#else
+    if (!targetScene.HasValue)
+        targetScene = GameScene.MainMenu;
+#endif
+
+        // If an ad service is pending, show ad before scene load
+        if (pendingAdService != null)
+        {
+            pendingAdService.ShowInterstitialAd();
+
+            float timeout = 3f;
+            float timer = 0f;
+
+            while (!pendingAdService.InterstitialAdCompleted && timer < timeout)
+            {
+                timer += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            if (!pendingAdService.InterstitialAdCompleted)
+                pendingAdService.ForceMarkAdComplete();
+
+            pendingAdService = null;
+        }
+
+        yield return LoadSceneAsync(targetScene.Value, 0f);
+    }
+
     public static void Restart()
     {
         Load(GetCurrentScene(), 0.1f);
     }
 
-    public static IEnumerator ShowInterstitialThenContinue(IAdsService adsService, GameScene sceneToLoad)
+    public static void ShowInterstitialThenContinue(IAdsService adsService, GameScene nextScene)
     {
-        adsService.ShowInterstitialAd();
+        if (isLoading)
+            return;
 
-        float timeout = 3f;
-        float timer = 0f;
+        pendingAdService = adsService;
 
-        while (!adsService.InterstitialAdCompleted && timer < timeout)
-        {
-            timer += Time.unscaledDeltaTime;
-            yield return null;
-        }
-
-        if (!adsService.InterstitialAdCompleted)
-            adsService.ForceMarkAdComplete();
-
-        Load(sceneToLoad);
+        Load(nextScene);
     }
 
     #endregion

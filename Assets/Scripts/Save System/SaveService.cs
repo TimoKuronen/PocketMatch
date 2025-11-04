@@ -24,6 +24,7 @@ public class SaveService : ISaveService
     {
         PlayerData = LoadFile<PlayerData>(saveFile) ?? new PlayerData();
         Settings = LoadFile<SettingsData>(settingsFile) ?? new SettingsData();
+        Debug.Log("player data loaded " + PlayerData);
 
         if (PlayerData.meta.saveVersion < CurrentVersion)
         {

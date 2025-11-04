@@ -288,7 +288,7 @@ public class GridController : MonoBehaviour
             // --- 4. If any refillable cells are still empty, keep looping ---
             if (HasEmptyNormalSlots())
             {
-                Debug.Log("Still has empty slots after refill, continuing cycle...");
+                //Debug.Log("Still has empty slots after refill, continuing cycle...");
                 changed = true;
                 cycleCount++;
                 continue; // don’t check matches until board is physically stable

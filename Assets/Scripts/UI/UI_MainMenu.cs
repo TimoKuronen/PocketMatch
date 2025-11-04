@@ -51,7 +51,7 @@ public class UI_MainMenu : UIMenu
 
     private IEnumerator HandleLevelLoadingWithAd()
     {
-        StartCoroutine(Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene));
+        Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
 
         Debug.Log("Waiting for ad to complete...");
 

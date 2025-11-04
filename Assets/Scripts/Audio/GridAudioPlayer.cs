@@ -15,6 +15,7 @@ public class GridAudioPlayer : MonoBehaviour
     [SerializeField] private AudioCue powerTileCreationAudio;
     [SerializeField] private AudioCue levelWonAudio;
     [SerializeField] private AudioCue levelLostAudio;
+    [SerializeField] private AudioCue shuffleAudio;
 
     private AudioSource audioSource;
     private IAudioService audioService;
@@ -40,6 +41,7 @@ public class GridAudioPlayer : MonoBehaviour
         GridController.Instance.TileMoved += PlayTileMoveAudio;
         GridController.Instance.PowerTileCreated += PlayPowerTileCreationAudio;
         GridController.Instance.GridContext.OnSpecialTileTriggered += PlaySpecialTileAudio;
+        GridController.Instance.OnBoardShuffle += PlayShuffleAudio;
 
         levelManager.OnLevelWon += PlayLevelWonAudio;
         levelManager.OnLevelLost += PlayLevelLostAudio;
@@ -106,6 +108,11 @@ public class GridAudioPlayer : MonoBehaviour
         audioService.Play(levelWonAudio, audioSource);
     }
 
+    private void PlayShuffleAudio()
+    {
+        audioService.Play(shuffleAudio, audioSource);
+    }
+
     private void OnDestroy()
     {
         GridController.Instance.TileDrop -= PlayHitAudio;
@@ -115,6 +122,7 @@ public class GridAudioPlayer : MonoBehaviour
         GridController.Instance.TileMoved -= PlayTileMoveAudio;
         GridController.Instance.PowerTileCreated -= PlayPowerTileCreationAudio;
         GridController.Instance.GridContext.OnSpecialTileTriggered -= PlaySpecialTileAudio;
+        GridController.Instance.OnBoardShuffle -= PlayShuffleAudio;
 
         levelManager.OnLevelWon -= PlayLevelWonAudio;
         levelManager.OnLevelLost -= PlayLevelLostAudio;

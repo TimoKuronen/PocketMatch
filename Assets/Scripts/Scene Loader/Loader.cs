@@ -44,59 +44,6 @@ public static class Loader
         Run(ContinueLoadFromLoaderWithOptionalAd());
     }
 
-    private static IEnumerator ContinueLoadFromLoader()
-    {
-#if UNITY_EDITOR
-        if (!targetScene.HasValue)
-        {
-            if (!Enum.TryParse(editorStartingScene, out GameScene parsed))
-                parsed = GameScene.MainMenu;
-            targetScene = parsed == GameScene.Loader ? GameScene.MainMenu : parsed;
-        }
-#else
-        if (!targetScene.HasValue)
-            targetScene = GameScene.MainMenu;
-#endif
-        yield return LoadSceneAsync(targetScene.Value, 0f);
-    }
-
-    private static IEnumerator ContinueLoadFromLoaderWithOptionalAd()
-    {
-#if UNITY_EDITOR
-        if (!targetScene.HasValue)
-        {
-            if (!Enum.TryParse(editorStartingScene, out GameScene parsed))
-                parsed = GameScene.MainMenu;
-            targetScene = parsed == GameScene.Loader ? GameScene.MainMenu : parsed;
-        }
-#else
-    if (!targetScene.HasValue)
-        targetScene = GameScene.MainMenu;
-#endif
-
-        // If an ad service is pending, show ad before scene load
-        if (pendingAdService != null)
-        {
-            pendingAdService.ShowInterstitialAd();
-
-            float timeout = 3f;
-            float timer = 0f;
-
-            while (!pendingAdService.InterstitialAdCompleted && timer < timeout)
-            {
-                timer += Time.unscaledDeltaTime;
-                yield return null;
-            }
-
-            if (!pendingAdService.InterstitialAdCompleted)
-                pendingAdService.ForceMarkAdComplete();
-
-            pendingAdService = null;
-        }
-
-        yield return LoadSceneAsync(targetScene.Value, 0f);
-    }
-
     public static void Restart()
     {
         Load(GetCurrentScene(), 0.1f);
@@ -154,6 +101,59 @@ public static class Loader
             loadingAsyncOperation = null;
             isLoading = false;
         }
+    }
+
+    private static IEnumerator ContinueLoadFromLoader()
+    {
+#if UNITY_EDITOR
+        if (!targetScene.HasValue)
+        {
+            if (!Enum.TryParse(editorStartingScene, out GameScene parsed))
+                parsed = GameScene.MainMenu;
+            targetScene = parsed == GameScene.Loader ? GameScene.MainMenu : parsed;
+        }
+#else
+        if (!targetScene.HasValue)
+            targetScene = GameScene.MainMenu;
+#endif
+        yield return LoadSceneAsync(targetScene.Value, 0f);
+    }
+
+    private static IEnumerator ContinueLoadFromLoaderWithOptionalAd()
+    {
+#if UNITY_EDITOR
+        if (!targetScene.HasValue)
+        {
+            if (!Enum.TryParse(editorStartingScene, out GameScene parsed))
+                parsed = GameScene.MainMenu;
+            targetScene = parsed == GameScene.Loader ? GameScene.MainMenu : parsed;
+        }
+#else
+    if (!targetScene.HasValue)
+        targetScene = GameScene.MainMenu;
+#endif
+
+        // If an ad service is pending, show ad before scene load
+        if (pendingAdService != null)
+        {
+            pendingAdService.ShowInterstitialAd();
+
+            float timeout = 3f;
+            float timer = 0f;
+
+            while (!pendingAdService.InterstitialAdCompleted && timer < timeout)
+            {
+                timer += Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            if (!pendingAdService.InterstitialAdCompleted)
+                pendingAdService.ForceMarkAdComplete();
+
+            pendingAdService = null;
+        }
+
+        yield return LoadSceneAsync(targetScene.Value, 0f);
     }
 
     #endregion

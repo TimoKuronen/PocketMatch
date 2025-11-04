@@ -11,6 +11,6 @@ public class LoaderEntry : MonoBehaviour
 
     private void OnDestroy()
     {
-        Debug.LogWarning("[LoaderEntry] DESTROYED! (Scene unload or object destroyed)");
+        //Debug.LogWarning("[LoaderEntry] DESTROYED! (Scene unload or object destroyed)");
     }
 }

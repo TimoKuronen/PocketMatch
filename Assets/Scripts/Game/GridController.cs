@@ -44,6 +44,7 @@ public class GridController : MonoBehaviour
     public event Action<TileData> TileDestroyed;
     public event Action<TileData[,]> BoardUpdated;
     public event Action<TileData> PowerTileCreated;
+    public event Action OnBoardShuffle;
 
     private IGameSessionService gameSessionService;
     private IAnalyticsService analyticsService;
@@ -78,7 +79,7 @@ public class GridController : MonoBehaviour
 
     private IEnumerator Start()
     {
-        Debug.Log("GridController waiting..."); 
+       // Debug.Log("GridController waiting..."); 
 
         yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
 
@@ -357,6 +358,8 @@ public class GridController : MonoBehaviour
         if (moves.TotalMoves == 0)
         {
             Debug.Log($"No moves left! (Swaps: {moves.SwapMoveCount}, Power: {moves.PowerTileMoveCount})");
+
+            OnBoardShuffle?.Invoke();
             boardStateEvaluator.ShuffleBoard();
         }
     }

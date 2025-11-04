@@ -7,7 +7,7 @@ using VContainer;
 
 public class AudioService : IAudioService
 {
-    private int maxSimultaneousUISounds = 10;
+    private int maxSimultaneousUISounds = 5;
 
     private Dictionary<SoundType, List<PlayingSound>> activeSounds;
 
@@ -87,7 +87,7 @@ public class AudioService : IAudioService
         return soundType switch
         {
             SoundType.UI => maxSimultaneousUISounds,
-            _ => 1,
+            _ => maxSimultaneousUISounds,
         };
     }
 

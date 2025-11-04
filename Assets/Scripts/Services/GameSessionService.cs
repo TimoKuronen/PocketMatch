@@ -5,70 +5,92 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using VContainer;
 
-public class GameSessionService : IGameSessionService
+public class GameSessionService : IGameSessionService, IDisposable
 {
     private const string defaultAddress = "Assets/Addressables/Levels/MapData_";
+
     private ISaveService saveService;
+    private AsyncOperationHandle<MapData>? currentHandle;
+    private int totalLevels;
+
     public MapData CurrentMapData { get; private set; }
     public bool IsLevelCapReached { get; private set; }
 
-    private int totalLevels;
-
     [Inject]
-    public async void Construct(ISaveService saveService)
+    public void Construct(ISaveService saveService)
     {
-        Debug.Log("GameSessionService Construct called with service " + saveService);
         this.saveService = saveService;
+        InitializeAsync().Forget();
+    }
 
-        await LoadTotalLevelsAsync();
-        await LoadCurrentLevelDataAsync();
+    private async UniTaskVoid InitializeAsync()
+    {
+        try
+        {
+            await LoadTotalLevelsAsync();
+            await LoadCurrentLevelDataAsync();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[GameSessionService] Initialization failed: {e}");
+        }
     }
 
     public async UniTask LoadTotalLevelsAsync()
     {
-        try
-        {
-            var handle = Addressables.LoadResourceLocationsAsync("Levels", typeof(MapData));
+        var handle = Addressables.LoadResourceLocationsAsync("Levels", typeof(MapData));
+        await handle.Task;
 
-            await handle.Task;
-
-            if (handle.Status == AsyncOperationStatus.Succeeded)
-            {
-                totalLevels = handle.Result.Count;
-                Debug.Log($"Total levels found: {totalLevels}");
-            }
-            else
-            {
-                Debug.LogError("Failed to load level locations.");
-            }
-        }
-        catch (Exception e)
+        if (handle.Status == AsyncOperationStatus.Succeeded)
         {
-            Debug.LogError("Failed to load level locations: " + e);
+            totalLevels = handle.Result.Count;
+            Debug.Log($"[GameSessionService] Total levels found: {totalLevels}");
         }
+        else
+        {
+            Debug.LogError("[GameSessionService] Failed to load level locations.");
+        }
+
+        Addressables.Release(handle);
     }
 
     public async UniTask LoadCurrentLevelDataAsync()
     {
+        // release any previously loaded level to avoid memory buildup
+        if (currentHandle.HasValue)
+        {
+            Addressables.Release(currentHandle.Value);
+            currentHandle = null;
+        }
+
         int levelIndex = saveService.PlayerData.nextLevelIndex + 1;
         string levelStr = levelIndex.ToString().PadLeft(4, '0');
-        string address = defaultAddress + levelStr + ".asset";
+        string address = $"{defaultAddress}{levelStr}.asset";
 
         try
         {
-            var handle = Addressables.LoadAssetAsync<MapData>(address);
-            CurrentMapData = await handle.Task;
-            Debug.Log("MapData loaded: " + CurrentMapData.name);
+            currentHandle = Addressables.LoadAssetAsync<MapData>(address);
+            CurrentMapData = await currentHandle.Value.Task;
+
+            Debug.Log($"[GameSessionService] MapData loaded: {CurrentMapData.name}");
 
             IsLevelCapReached = levelIndex >= totalLevels;
-            Debug.Log($"Level cap reached: {IsLevelCapReached}");
+            Debug.Log($"[GameSessionService] Level cap reached: {IsLevelCapReached}");
 
             GameSignals.MarkSessionLoaded();
         }
         catch (Exception e)
         {
-            Debug.LogError("Failed to load MapData: " + e);
+            Debug.LogError($"[GameSessionService] Failed to load MapData ({address}): {e}");
         }
     }
-    public void Dispose() { }
+
+    public void Dispose()
+    {
+        if (currentHandle.HasValue)
+        {
+            Addressables.Release(currentHandle.Value);
+            currentHandle = null;
+        }
+    }
 }

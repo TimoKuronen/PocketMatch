@@ -79,6 +79,7 @@ MonoBehaviour:
   powerTileCreationAudio: {fileID: 11400000, guid: 1dc60bd84f0e7e442baaf1959f9b86ea, type: 2}
   levelWonAudio: {fileID: 11400000, guid: 22159a713e049aa4185341112f4b47a9, type: 2}
   levelLostAudio: {fileID: 11400000, guid: 94e45f10c0233f24c9bf0d7b62e3fe71, type: 2}
+  shuffleAudio: {fileID: 11400000, guid: 69cdca356ad62fa448a6d874a61d7d5f, type: 2}
 --- !u!82 &-97883846079608384
 AudioSource:
   m_ObjectHideFlags: 0

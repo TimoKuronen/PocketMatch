@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using VContainer;
 
@@ -14,10 +15,28 @@ public class SaveService : ISaveService
     public PlayerData PlayerData { get; private set; }
     public SettingsData Settings { get; private set; }
 
+    private CloudSaveService cloud;
+
     [Inject]
     public void Contstruct()
     {
+        cloud = new CloudSaveService();
         Load();
+    }
+
+    public async Task SyncToCloudAsync()
+    {
+        await cloud.UploadAsync(PlayerData);
+    }
+
+    public async Task SyncFromCloudAsync()
+    {
+        var cloudData = await cloud.DownloadAsync();
+        if (cloudData != null)
+        {
+            PlayerData = cloudData;
+            Save(); // overwrite local
+        }
     }
 
     public void Load()
@@ -32,10 +51,23 @@ public class SaveService : ISaveService
         }
     }
 
-    public void Save()
+    public async void Save()
     {
         PlayerData.meta.lastSaveTime = DateTime.UtcNow.ToString("o");
         WriteFile(saveFile, PlayerData);
+
+        // optional cloud sync
+        if (Application.internetReachability != NetworkReachability.NotReachable)
+        {
+            try
+            {
+                await UploadCloudAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Cloud save failed, fallback to local only: {e.Message}");
+            }
+        }
     }
 
     public void SaveSettings()
@@ -123,6 +155,27 @@ public class SaveService : ISaveService
     public void Dispose()
     {
         //Debug.Log("Disposing SaveManager and saving data.");
+    }
+
+    public async Task UploadCloudAsync()
+    {
+        if (cloud == null)
+            return;
+
+        await cloud.UploadAsync(PlayerData);
+    }
+
+    public async Task DownloadCloudAsync()
+    {
+        if (cloud == null)
+            return;
+
+        var cloudData = await cloud.DownloadAsync();
+        if (cloudData != null)
+        {
+            PlayerData = cloudData;
+            Save(); // overwrite local
+        }
     }
 
     private const int CurrentVersion = 1;

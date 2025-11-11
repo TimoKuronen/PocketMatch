@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 public interface ISaveService
 {
     PlayerData PlayerData { get; }
@@ -7,5 +9,7 @@ public interface ISaveService
     void Save();
     void SaveSettings();
     void ResetToDefaults();
-}
 
+    Task UploadCloudAsync();
+    Task DownloadCloudAsync();
+}

@@ -539,6 +539,10 @@ PrefabInstance:
       propertyPath: m_HorizontalAlignment
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3932735251863914472, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3977134724919506449, guid: 436a7ea9bb60efb429a7f5c472ec4982, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

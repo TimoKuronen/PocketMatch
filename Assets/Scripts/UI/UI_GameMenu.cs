@@ -57,6 +57,11 @@ public class UI_GameMenu : UIMenu
         LoadVictoryConditions();
     }
 
+    public void CheatWinButtonPressed()
+    {
+        OnLevelWon();
+    }
+
     private void LoadVictoryConditions()
     {
         movesText.text = "Moves: " + mapData.VictoryConditions.MoveLimit.ToString();

@@ -214,6 +214,7 @@ public class AdsService : IAdsService, IDisposable
         bannerAd.OnAdClicked -= OnBannerClicked;
         bannerAd = null;
     }
+
     private void LogEventSafe(string eventName)
     {
         try
@@ -237,12 +238,11 @@ public class AdsService : IAdsService, IDisposable
         Debug.Log("[AdsManager] Disposed.");
     }
 
-#if UNITY_EDITOR
     public void ForceMarkAdComplete()
     {
+#if UNITY_EDITOR
         InterstitialAdCompleted = true;
-    }
 #endif
-
+    }
     #endregion
 }

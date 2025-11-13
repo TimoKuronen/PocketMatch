@@ -11,7 +11,5 @@ public class GameLifetimeScope : LifetimeScope
             .As<ITickable>();
 
         builder.RegisterComponentInHierarchy<UI_GameMenu>();
-
-        Debug.Log("GameLifetimeScope Configure called");
     }
 }

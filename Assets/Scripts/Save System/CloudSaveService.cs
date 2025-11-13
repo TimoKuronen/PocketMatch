@@ -46,6 +46,7 @@ public class CloudSaveService
         if (snapshot.Exists)
         {
             string json = snapshot.GetValue<string>("json");
+            Debug.Log("Cloud save downloaded");
             return JsonUtility.FromJson<PlayerData>(json);
         }
 

@@ -20,8 +20,6 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
     private IAnalyticsService analyticsService;
     private IScoreService scoreService;
 
-    private bool gameInProgress = true;
-
     [Inject]
     public void Construct(
         ISaveService saveService, 
@@ -165,8 +163,6 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
             return;
         }
 
-        gameInProgress = false;
-
         saveService.PlayerData.nextLevelIndex++;
         saveService.PlayerData.coins += scoreService.GetTotalScore();
         saveService.Save();
@@ -184,8 +180,6 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
 
     private void ToggleLoseEvent()
     {
-        gameInProgress = false;
-
         analyticsService.LogEvent(AnalyticsEvents.LevelFailed, new System.Collections.Generic.Dictionary<string, object>
         {
             { "level_name", LocalMapData.name },

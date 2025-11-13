@@ -12,6 +12,8 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.Register<IInputService, InputService>(Lifetime.Singleton);
         builder.Register<IScoreService, ScoreService>(Lifetime.Singleton);
 
+        builder.RegisterComponentInHierarchy<CloudSaveBootstrap>();
+
         builder.Register<FirebaseInitializer>(Lifetime.Singleton);
         builder.Register<GameSettingsService>(Lifetime.Singleton);
     }

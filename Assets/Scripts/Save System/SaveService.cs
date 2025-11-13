@@ -6,83 +6,150 @@ using System.Threading.Tasks;
 using UnityEngine;
 using VContainer;
 
-public class SaveService : ISaveService
+public class SaveService : ISaveService, IDisposable
 {
     private readonly string saveFile = Path.Combine(Application.persistentDataPath, "save.dat");
     private readonly string settingsFile = Path.Combine(Application.persistentDataPath, "settings.dat");
     private readonly string encryptionKey = "kg8hv4j08jiikloijvbjmnhuj8945dxz";
 
     public PlayerData PlayerData { get; private set; }
-    public SettingsData Settings { get; private set; }
 
     private CloudSaveService cloud;
+    private bool cloudInitialized = false;
 
+    // ------------------------------
+    // CONSTRUCTOR (VContainer Inject)
+    // ------------------------------
     [Inject]
-    public void Contstruct()
+    public void Construct()
     {
         cloud = new CloudSaveService();
-        Load();
+
+        Load(); // Load local immediately (never wait for cloud)
+        Debug.Log("[SaveService] Local save loaded");
     }
 
-    public async Task SyncToCloudAsync()
+    // ---------------------------------------
+    // Called externally by CloudSaveBootstrap
+    // ---------------------------------------
+    public async Task InitializeCloudAsync()
     {
+        try
+        {
+            await cloud.InitializeAsync();
+            cloudInitialized = true;
+            Debug.Log("[SaveService] Cloud initialized successfully");
+
+            // Attempt cloud load automatically
+            if (Application.internetReachability != NetworkReachability.NotReachable)
+            {
+                await TryLoadFromCloud();
+            }
+            else
+            {
+                Debug.Log("[SaveService] Offline – skipping cloud load");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("[SaveService] Cloud initialization failed: " + e);
+        }
+    }
+
+    // ------------------
+    // CLOUD LOAD LOGIC
+    // ------------------
+    private async Task TryLoadFromCloud()
+    {
+        if (!cloudInitialized) return;
+
+        try
+        {
+            var cloudData = await cloud.DownloadAsync();
+
+            if (cloudData != null)
+            {
+                PlayerData = cloudData;
+                SaveLocalOnly();    // sync cloud -> local
+                Debug.Log("[SaveService] Cloud save applied over local");
+            }
+            else
+            {
+                Debug.Log("[SaveService] No cloud save found – using local save");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("[SaveService] Cloud load failed: " + e);
+        }
+    }
+
+    // -----------------
+    // CLOUD PUBLIC API
+    // -----------------
+    public async Task UploadCloudAsync()
+    {
+        if (!cloudInitialized) return;
+
         await cloud.UploadAsync(PlayerData);
     }
 
-    public async Task SyncFromCloudAsync()
+    public async Task DownloadCloudAsync()
     {
+        if (!cloudInitialized) return;
+
         var cloudData = await cloud.DownloadAsync();
         if (cloudData != null)
         {
             PlayerData = cloudData;
-            Save(); // overwrite local
+            SaveLocalOnly();
         }
     }
 
+    // -----------------
+    // Local Load/Save
+    // -----------------
     public void Load()
     {
         PlayerData = LoadFile<PlayerData>(saveFile) ?? new PlayerData();
-        Settings = LoadFile<SettingsData>(settingsFile) ?? new SettingsData();
-        Debug.Log("player data loaded " + PlayerData);
-
-        if (PlayerData.meta.saveVersion < CurrentVersion)
-        {
-            PlayerData = DataMigrator.Migrate(PlayerData, PlayerData.meta.saveVersion, CurrentVersion);
-        }
     }
 
+    // Called by gameplay (e.g. completing level)
     public async void Save()
     {
         PlayerData.meta.lastSaveTime = DateTime.UtcNow.ToString("o");
-        WriteFile(saveFile, PlayerData);
 
-        // optional cloud sync
-        if (Application.internetReachability != NetworkReachability.NotReachable)
+        SaveLocalOnly();
+
+        if (cloudInitialized &&
+            Application.internetReachability != NetworkReachability.NotReachable)
         {
             try
             {
-                await UploadCloudAsync();
+                await cloud.UploadAsync(PlayerData);
+                Debug.Log("[SaveService] Cloud save uploaded");
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"Cloud save failed, fallback to local only: {e.Message}");
+                Debug.LogWarning("[SaveService] Cloud upload failed – local save still OK: " + e);
             }
         }
     }
 
-    public void SaveSettings()
+    private void SaveLocalOnly()
     {
-        WriteFile(settingsFile, Settings);
+        WriteFile(saveFile, PlayerData);
     }
 
     public void ResetToDefaults()
     {
         PlayerData = new PlayerData();
-        Settings = new SettingsData();
-        Save();
-        SaveSettings();
+        SaveLocalOnly();
     }
 
+    // ------------------
+    // LOCAL FILE HELPERS
+    // ------------------
     private T LoadFile<T>(string path) where T : class
     {
         try
@@ -152,44 +219,7 @@ public class SaveService : ISaveService
         return sr.ReadToEnd();
     }
 
-    public void Dispose()
-    {
-        //Debug.Log("Disposing SaveManager and saving data.");
-    }
-
-    public async Task UploadCloudAsync()
-    {
-        if (cloud == null)
-            return;
-
-        await cloud.UploadAsync(PlayerData);
-    }
-
-    public async Task DownloadCloudAsync()
-    {
-        if (cloud == null)
-            return;
-
-        var cloudData = await cloud.DownloadAsync();
-        if (cloudData != null)
-        {
-            PlayerData = cloudData;
-            Save(); // overwrite local
-        }
-    }
+    public void Dispose() { }
 
     private const int CurrentVersion = 1;
-}
-
-[Serializable]
-public class SaveData
-{
-    public int NextLevelIndex = 0;
-}
-
-[Serializable]
-public class SettingsData
-{
-    public float masterVolume = 1f;
-    public string language = "en";
 }

@@ -261,7 +261,7 @@ public class GridController : MonoBehaviour
 
     public IEnumerator MatchCycle()
     {
-        Debug.Log("Starting match cycle...");
+        //Debug.Log("Starting match cycle...");
         IsProcessingTiles = true;
         int cycleCount = 0;
 
@@ -346,7 +346,7 @@ public class GridController : MonoBehaviour
 
         if (cycleCount > 2)
         {
-            Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
+            //Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
             analyticsService.LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
             {
                 { "level_name", levelManager.LocalMapData.GetLevelName() },

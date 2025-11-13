@@ -66,7 +66,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     private void HandleDoubleTap()
     {
-        Debug.Log("Double Tap Detected");
+        //Debug.Log("Double Tap Detected");
 
         isDragging = false;
 
@@ -77,10 +77,10 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     {
         if (!IsInputAllowed())
         {
-            Debug.Log($"Input not allowed during drag because " +
-                $"{isDragging} or " +
-                $"{GridController.Instance.IsProcessingTiles} or " +
-                $"{tileView.Data.State == TileState.Normal}");
+            //Debug.Log($"Input not allowed during drag because " +
+            //    $"{isDragging} or " +
+            //    $"{GridController.Instance.IsProcessingTiles} or " +
+            //    $"{tileView.Data.State == TileState.Normal}");
             return;
         }
 

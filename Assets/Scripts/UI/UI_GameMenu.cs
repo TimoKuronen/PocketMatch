@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -25,6 +26,8 @@ public class UI_GameMenu : UIMenu
     private IGameSessionService gameSessionService;
     private IScoreService scoreService;
     private ISaveService saveService;
+
+    public static event Action OnCheatButtonClicked;
 
     [Inject]    
     public void Construct(
@@ -59,7 +62,7 @@ public class UI_GameMenu : UIMenu
 
     public void CheatWinButtonPressed()
     {
-        OnLevelWon();
+        OnCheatButtonClicked?.Invoke();
     }
 
     private void LoadVictoryConditions()
@@ -116,45 +119,19 @@ public class UI_GameMenu : UIMenu
         }
     }
 
-    /// <summary>
-    /// Called via UI Button
-    /// </summary>
     public void MenuButtonPressed()
     {
-        Debug.Log("Menu button pressed");
         Loader.Load(Loader.GameScene.MainMenu);
     }
 
-    /// <summary>
-    /// Called via UI Button
-    /// </summary>
     public void RestartButtonPressed()
     {
-        Debug.Log("Restart button pressed");
         Loader.Restart();
     }
 
-    /// <summary>
-    /// Called via UI Button
-    /// </summary>
     public void NextLevelButtonPressed()
     {
-        Debug.Log("Next level button pressed");
-        StartCoroutine(HandleLevelLoadingWithAd());
-    }
-
-    private IEnumerator HandleLevelLoadingWithAd()
-    {
-#if UNITY_EDITOR
-
         Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
-#else
-        Debug.Log("Waiting for ad to complete...");
-        yield return new WaitUntil(() => adsService.InterstitialAdCompleted);
-        Loader.Load(Loader.GameScene.PlayScene);
-#endif
-        Debug.Log("Ad completed, loading next level...");
-        yield return null;
     }
 
     private void OnLevelWon()

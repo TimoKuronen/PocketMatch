@@ -1010,7 +1010,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4830882422604216299, guid: b0dcc2119b5c84c44a46a7c10f2fa796, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 300
+      value: 340
       objectReference: {fileID: 0}
     - target: {fileID: 4830882422604216299, guid: b0dcc2119b5c84c44a46a7c10f2fa796, type: 3}
       propertyPath: m_SizeDelta.y
@@ -1022,7 +1022,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4830882422604216299, guid: b0dcc2119b5c84c44a46a7c10f2fa796, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 95
+      value: 105
       objectReference: {fileID: 0}
     - target: {fileID: 5669261203582606569, guid: b0dcc2119b5c84c44a46a7c10f2fa796, type: 3}
       propertyPath: puzzleIndexText

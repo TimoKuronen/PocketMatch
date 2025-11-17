@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Unity.Services.LevelPlay;
 using UnityEngine;
 using VContainer;
@@ -11,37 +12,41 @@ public class AdsService : IAdsService, IDisposable
 
     private LevelPlayBannerAd bannerAd;
     private LevelPlayInterstitialAd interstitialAd;
+    private IAnalyticsService analyticsService;
+    private bool isBannerLoaded = false;
 
     public event Action OnInterstitialAdClosed;
+
+    public bool IsInitialized { get; private set; } = false;
+    public bool InterstitialAdReady => interstitialAd?.IsAdReady() ?? false;
     public bool InterstitialAdCompleted { get; private set; } = false;
 
-    private IAnalyticsService analyticsService;
-
     #region Initialization
+
     [Inject]
-    public void Contstruct(IAnalyticsService analyticsService)
+    public void Construct(IAnalyticsService analyticsService)
     {
-        Debug.Log("[AdsManager] Initializing LevelPlay SDK...");
+        this.analyticsService = analyticsService;
+        CoroutineMonoBehavior.Instance.StartCoroutine(DelayedInit());
+    }
 
-        LevelPlay.OnInitSuccess -= OnSdkInitSuccess;
-        LevelPlay.OnInitFailed -= OnSdkInitFailed;
-
+    private IEnumerator DelayedInit()
+    {
+        yield return null;
+        LevelPlay.ValidateIntegration();
         LevelPlay.OnInitSuccess += OnSdkInitSuccess;
         LevelPlay.OnInitFailed += OnSdkInitFailed;
-
-        LevelPlay.ValidateIntegration();
         LevelPlay.Init(AppKey);
     }
 
     private void OnSdkInitFailed(LevelPlayInitError error)
     {
-        Debug.LogError($"[AdsManager] SDK Initialization Failed: {error}");
+        Debug.LogError($"[AdsService] SDK Initialization Failed: {error}");
     }
 
     private void OnSdkInitSuccess(LevelPlayConfiguration configuration)
     {
-        //Debug.Log("[AdsManager] SDK Initialization Completed Successfully");
-
+        IsInitialized = true;
         CreateBannerAd();
         CreateInterstitialAd();
     }
@@ -52,15 +57,15 @@ public class AdsService : IAdsService, IDisposable
 
     private void CreateInterstitialAd()
     {
-        //Debug.Log("[AdsManager] Creating Interstitial Ad...");
-
-        CleanupInterstitialAd(); // Prevent duplicate subscriptions
+        CleanupInterstitialAd();
         interstitialAd = new LevelPlayInterstitialAd(InterstitialAdId);
 
         interstitialAd.OnAdLoaded += OnInterstitialLoaded;
-        interstitialAd.OnAdDisplayed += OnInterstitialDisplayed;
         interstitialAd.OnAdClosed += OnInterstitialClosed;
+        interstitialAd.OnAdDisplayed += OnInterstitialDisplayed;
         interstitialAd.OnAdClicked += OnInterstitialClicked;
+        interstitialAd.OnAdLoadFailed += OnInterstitialLoadFailed;
+        interstitialAd.OnAdDisplayFailed += OnInterstitialDisplayFailed;
 
         LoadInterstitialAd();
     }
@@ -69,53 +74,47 @@ public class AdsService : IAdsService, IDisposable
     {
         if (interstitialAd == null)
         {
-            Debug.LogWarning("[AdsManager] InterstitialAd is null, recreating...");
             CreateInterstitialAd();
             return;
         }
 
-        //Debug.Log("[AdsManager] Loading Interstitial Ad...");
         interstitialAd.LoadAd();
         InterstitialAdCompleted = false;
     }
 
-    private void OnInterstitialLoaded(LevelPlayAdInfo adInfo)
-    {
-        //Debug.Log("[AdsManager] Interstitial Ad Loaded");
-    }
+    private void OnInterstitialLoaded(LevelPlayAdInfo adInfo) { }
 
     private void OnInterstitialDisplayed(LevelPlayAdInfo adInfo)
     {
-        //Debug.Log("[AdsManager] Interstitial Ad Displayed");
         LogEventSafe("interstitial_ad_started");
     }
 
     private void OnInterstitialClosed(LevelPlayAdInfo adInfo)
     {
-        //Debug.Log("[AdsManager] Interstitial Ad Closed");
-
         InterstitialAdCompleted = true;
         LogEventSafe("interstitial_ad_completed");
-
         OnInterstitialAdClosed?.Invoke();
-
-        // Reload for next round
         LoadInterstitialAd();
     }
 
     private void OnInterstitialClicked(LevelPlayAdInfo adInfo)
     {
-        //Debug.Log("[AdsManager] Interstitial Ad Clicked");
         LogEventSafe("interstitial_ad_clicked");
     }
 
-    private void OnInterstitialLoadFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
+    private void OnInterstitialLoadFailed(LevelPlayAdError error)
     {
-        Debug.LogWarning($"[AdsManager] Interstitial load failed: {error}");
         CoroutineMonoBehavior.Instance.StartCoroutine(RetryLoadInterstitial(3f));
     }
 
-    private System.Collections.IEnumerator RetryLoadInterstitial(float delay)
+    private void OnInterstitialDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
+    {
+        Debug.LogError($"[AdsService] Interstitial display failed: {error}");
+        InterstitialAdCompleted = true;
+        OnInterstitialAdClosed?.Invoke();
+    }
+
+    private IEnumerator RetryLoadInterstitial(float delay)
     {
         yield return new WaitForSeconds(delay);
         LoadInterstitialAd();
@@ -123,22 +122,17 @@ public class AdsService : IAdsService, IDisposable
 
     public void ShowInterstitialAd()
     {
-        HideBannerAd();
-
-        if (interstitialAd == null)
-        {
-            Debug.LogWarning("[AdsManager] Interstitial Ad is not created yet.");
+        if (!IsInitialized || interstitialAd == null)
             return;
-        }
+
+        HideBannerAd();
 
         if (interstitialAd.IsAdReady())
         {
-            //Debug.Log("[AdsManager] Showing Interstitial Ad...");
             interstitialAd.ShowAd();
         }
         else
         {
-            //Debug.Log("[AdsManager] Interstitial not ready, reloading...");
             LoadInterstitialAd();
         }
     }
@@ -149,44 +143,73 @@ public class AdsService : IAdsService, IDisposable
 
     private void CreateBannerAd()
     {
-        //Debug.Log("[AdsManager] Creating Banner Ad...");
-
         CleanupBannerAd();
 
         var configBuilder = new LevelPlayBannerAd.Config.Builder()
             .SetSize(LevelPlayAdSize.BANNER)
             .SetPosition(LevelPlayBannerPosition.BottomCenter)
-            .SetDisplayOnLoad(true)
-            .SetRespectSafeArea(true)
+            .SetDisplayOnLoad(false)
+            .SetRespectSafeArea(false)
             .SetPlacementName("bannerPlacement");
 
         bannerAd = new LevelPlayBannerAd(BannerAdId, configBuilder.Build());
 
+        bannerAd.OnAdLoaded += OnBannerLoaded;
+        bannerAd.OnAdDisplayFailed += OnBannerDisplayFailed;
         bannerAd.OnAdClicked += OnBannerClicked;
+    }
+
+    private void OnBannerLoaded(LevelPlayAdInfo adInfo)
+    {
+        isBannerLoaded = true;
+        // Show the banner after it's loaded
+        if (bannerAd != null)
+        {
+            Debug.Log("[AdsService] trying to show banner ad");
+            bannerAd.ShowAd();
+        }
+    }
+
+    private void OnBannerDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
+    {
+        Debug.LogError($"[AdsService] Banner display failed: {error}");
+        isBannerLoaded = false;
     }
 
     private void OnBannerClicked(LevelPlayAdInfo adInfo)
     {
-        //Debug.Log("[AdsManager] Banner Ad Clicked");
         LogEventSafe("banner_ad_clicked");
     }
 
     public void ShowBannerAd()
     {
+        Debug.Log("[AdsService] trying to show banner ad step 1");
+        if (!IsInitialized)
+            return;
+
         if (bannerAd == null)
         {
-            Debug.LogError("[AdsManager] Banner Ad is not created yet.");
-            return;
+            CreateBannerAd();
         }
 
-        //Debug.Log("[AdsManager] Loading Banner Ad...");
-        bannerAd.LoadAd();
+        if (isBannerLoaded && bannerAd != null)
+        {
+            Debug.Log("[AdsService] trying to show banner ad step 2");
+            bannerAd.ShowAd();
+        }
+        else
+        {
+            Debug.Log("[AdsService] loading instead");
+            bannerAd?.LoadAd();
+        }
     }
 
     public void HideBannerAd()
     {
-        //Debug.Log("[AdsManager] Hiding Banner Ad...");
-        bannerAd?.HideAd();
+        if (!IsInitialized || bannerAd == null)
+            return;
+
+        bannerAd.HideAd();
     }
 
     #endregion
@@ -195,13 +218,14 @@ public class AdsService : IAdsService, IDisposable
 
     private void CleanupInterstitialAd()
     {
-        if (interstitialAd == null) 
+        if (interstitialAd == null)
             return;
 
         interstitialAd.OnAdLoaded -= OnInterstitialLoaded;
         interstitialAd.OnAdDisplayed -= OnInterstitialDisplayed;
         interstitialAd.OnAdClosed -= OnInterstitialClosed;
         interstitialAd.OnAdClicked -= OnInterstitialClicked;
+        interstitialAd.OnAdLoadFailed -= OnInterstitialLoadFailed;
 
         interstitialAd = null;
     }
@@ -211,6 +235,8 @@ public class AdsService : IAdsService, IDisposable
         if (bannerAd == null)
             return;
 
+        bannerAd.OnAdLoaded -= OnBannerLoaded;
+        bannerAd.OnAdDisplayFailed -= OnBannerDisplayFailed;
         bannerAd.OnAdClicked -= OnBannerClicked;
         bannerAd = null;
     }
@@ -223,7 +249,7 @@ public class AdsService : IAdsService, IDisposable
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"[AdsManager] Failed to log event {eventName}: {e.Message}");
+            Debug.LogWarning($"[AdsService] Failed to log event {eventName}: {e.Message}");
         }
     }
 
@@ -234,15 +260,12 @@ public class AdsService : IAdsService, IDisposable
 
         LevelPlay.OnInitSuccess -= OnSdkInitSuccess;
         LevelPlay.OnInitFailed -= OnSdkInitFailed;
-
-        Debug.Log("[AdsManager] Disposed.");
     }
 
     public void ForceMarkAdComplete()
     {
-#if UNITY_EDITOR
         InterstitialAdCompleted = true;
-#endif
     }
+
     #endregion
 }

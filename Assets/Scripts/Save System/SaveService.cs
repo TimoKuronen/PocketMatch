@@ -47,7 +47,7 @@ public class SaveService : ISaveService, IDisposable
             }
             else
             {
-                Debug.Log("[SaveService] Offline – skipping cloud load");
+                Debug.Log("[SaveService] Offline - skipping cloud load");
             }
         }
         catch (Exception e)
@@ -75,7 +75,7 @@ public class SaveService : ISaveService, IDisposable
             }
             else
             {
-                Debug.Log("[SaveService] No cloud save found – using local save");
+                Debug.Log("[SaveService] No cloud save found - using local save");
             }
         }
         catch (Exception e)
@@ -131,7 +131,7 @@ public class SaveService : ISaveService, IDisposable
             }
             catch (Exception e)
             {
-                Debug.LogWarning("[SaveService] Cloud upload failed – local save still OK: " + e);
+                Debug.LogWarning("[SaveService] Cloud upload failed - local save still OK: " + e);
             }
         }
     }
@@ -141,10 +141,17 @@ public class SaveService : ISaveService, IDisposable
         WriteFile(saveFile, PlayerData);
     }
 
-    public void ResetToDefaults()
+    public async void ResetToDefaults()
     {
         PlayerData = new PlayerData();
         SaveLocalOnly();
+
+        if (cloudInitialized &&
+            Application.internetReachability != NetworkReachability.NotReachable)
+        {
+            await cloud.UploadAsync(PlayerData); // overwrite cloud
+            Debug.Log("[SaveService] Cloud save reset to defaults.");
+        }
     }
 
     // ------------------

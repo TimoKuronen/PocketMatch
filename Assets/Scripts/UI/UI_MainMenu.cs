@@ -18,21 +18,23 @@ public class UI_MainMenu : UIMenu
     [Inject]
     public void Construct(ISaveService saveService, IAdsService adsService)
     {
-        Debug.Log("UI_MainMenu Construct called with services " + saveService + ", " + adsService);
         this.saveService = saveService;
         this.adsService = adsService;
     }
 
     private void Start()
     {
-        Debug.Log("UI_MainMenu Start called");
         levelPanel.SetActive(true);
         settingsPanel.SetActive(false);
-
         levelIndex = saveService.PlayerData.nextLevelIndex;
-
         LoadInitialValues();
+        StartCoroutine(ShowBannerWhenReady());
+    }
 
+    private IEnumerator ShowBannerWhenReady()
+    {
+        yield return new WaitUntil(() => adsService.IsInitialized);
+        yield return new WaitForSeconds(0.5f);
         adsService.ShowBannerAd();
     }
 
@@ -44,34 +46,16 @@ public class UI_MainMenu : UIMenu
 
     public void PlayButtonPressed()
     {
-        Debug.Log("Play Button pressed, loading level " + (levelIndex + 1));
         adsService.HideBannerAd();
         Loader.Load(Loader.GameScene.PlayScene);
     }
 
-    private IEnumerator HandleLevelLoadingWithAd()
-    {
-        Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
-
-        Debug.Log("Waiting for ad to complete...");
-
-        yield return new WaitUntil(() => adsService.InterstitialAdCompleted);
-
-        Loader.Load(Loader.GameScene.PlayScene);
-        Debug.Log("Ad completed, loading next level...");
-    }
-
-    public void SettingsButtonPressed()
-    {
-        Debug.Log("Settings Button pressed, not yet implemented");
-    }
+    public void SettingsButtonPressed() { }
 
     public void ResetSaveButtonPressed()
     {
         saveService.ResetToDefaults();
-
         levelIndex = saveService.PlayerData.nextLevelIndex;
-
         LoadInitialValues();
     }
 }

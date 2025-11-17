@@ -25,7 +25,7 @@ public static class Loader
     private static string editorStartingScene => EditorBootstrapper.CurrentSceneName;
 #endif
 
-    #region Public
+    #region Public API
 
     public static void Load(GameScene nextScene, float delay = 0f)
     {
@@ -33,7 +33,6 @@ public static class Loader
             return;
 
         targetScene = nextScene;
-
         GameSignals.ResetSessionLoaded();
 
         SceneManager.LoadScene(GameScene.Loader.ToString(), LoadSceneMode.Single);
@@ -55,13 +54,12 @@ public static class Loader
             return;
 
         pendingAdService = adsService;
-
         Load(nextScene);
     }
 
     #endregion
 
-    #region Core
+    #region Core Loading Logic
 
     private static IEnumerator LoadSceneAsync(GameScene targetScene, float delay)
     {
@@ -103,7 +101,7 @@ public static class Loader
         }
     }
 
-    private static IEnumerator ContinueLoadFromLoader()
+    private static IEnumerator ContinueLoadFromLoaderWithOptionalAd()
     {
 #if UNITY_EDITOR
         if (!targetScene.HasValue)
@@ -116,39 +114,39 @@ public static class Loader
         if (!targetScene.HasValue)
             targetScene = GameScene.MainMenu;
 #endif
-        yield return LoadSceneAsync(targetScene.Value, 0f);
-    }
 
-    private static IEnumerator ContinueLoadFromLoaderWithOptionalAd()
-    {
-#if UNITY_EDITOR
-        if (!targetScene.HasValue)
-        {
-            if (!Enum.TryParse(editorStartingScene, out GameScene parsed))
-                parsed = GameScene.MainMenu;
-            targetScene = parsed == GameScene.Loader ? GameScene.MainMenu : parsed;
-        }
-#else
-    if (!targetScene.HasValue)
-        targetScene = GameScene.MainMenu;
-#endif
-
-        // If an ad service is pending, show ad before scene load
         if (pendingAdService != null)
         {
-            pendingAdService.ShowInterstitialAd();
+            while (!pendingAdService.IsInitialized)
+                yield return null;
 
-            float timeout = 3f;
-            float timer = 0f;
+            float waitReadyTimer = 0f;
+            const float waitReadyTimeout = 6f;
 
-            while (!pendingAdService.InterstitialAdCompleted && timer < timeout)
+            while (!pendingAdService.InterstitialAdReady && waitReadyTimer < waitReadyTimeout)
             {
-                timer += Time.unscaledDeltaTime;
+                waitReadyTimer += Time.unscaledDeltaTime;
                 yield return null;
             }
 
-            if (!pendingAdService.InterstitialAdCompleted)
-                pendingAdService.ForceMarkAdComplete();
+            if (pendingAdService.InterstitialAdReady)
+            {
+                pendingAdService.ShowInterstitialAd();
+
+                float waitDoneTimer = 0f;
+                const float waitDoneTimeout = 10f;
+
+                while (!pendingAdService.InterstitialAdCompleted && waitDoneTimer < waitDoneTimeout)
+                {
+                    waitDoneTimer += Time.unscaledDeltaTime;
+                    yield return null;
+                }
+
+                if (!pendingAdService.InterstitialAdCompleted)
+                {
+                    pendingAdService.ForceMarkAdComplete();
+                }
+            }
 
             pendingAdService = null;
         }
@@ -175,7 +173,7 @@ public static class Loader
 
     #endregion
 
-    #region Internal Runner
+    #region Internal Coroutine Runner
 
     private class LoaderHost : MonoBehaviour { }
 

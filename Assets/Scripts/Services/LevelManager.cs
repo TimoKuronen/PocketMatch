@@ -81,6 +81,8 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
         GridController.Instance.BoardUpdated += CheckVictoryConditions;
         GridController.Instance.TileDestroyed += OnTileDestroyed;
         GridController.Instance.GridContext.OnDestroy += OnTileDestroyed;
+
+        UI_GameMenu.OnCheatButtonClicked += ToggleWinEvent;
     }
 
     private void OnTileDestroyed(TileData data)
@@ -195,6 +197,8 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
         GridController.Instance.BoardUpdated -= CheckVictoryConditions;
         GridController.Instance.TileDestroyed -= OnTileDestroyed;
         GridController.Instance.GridContext.OnDestroy -= OnTileDestroyed;
+
+        UI_GameMenu.OnCheatButtonClicked -= ToggleWinEvent;
     }
 
     public void Tick()

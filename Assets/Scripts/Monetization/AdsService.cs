@@ -155,6 +155,7 @@ public class AdsService : IAdsService, IDisposable
         bannerAd = new LevelPlayBannerAd(BannerAdId, configBuilder.Build());
 
         bannerAd.OnAdLoaded += OnBannerLoaded;
+        bannerAd.OnAdLoadFailed += OnBannerLoadFailed;
         bannerAd.OnAdDisplayFailed += OnBannerDisplayFailed;
         bannerAd.OnAdClicked += OnBannerClicked;
     }
@@ -162,12 +163,25 @@ public class AdsService : IAdsService, IDisposable
     private void OnBannerLoaded(LevelPlayAdInfo adInfo)
     {
         isBannerLoaded = true;
+
+        Debug.Log("[AdsService] BannerAd loaded");
+
         // Show the banner after it's loaded
         if (bannerAd != null)
         {
             Debug.Log("[AdsService] trying to show banner ad");
             bannerAd.ShowAd();
         }
+        else Debug.Log("[AdsService] BannerAd null");
+    }
+
+    private void OnBannerLoadFailed(LevelPlayAdError error)
+    {
+        isBannerLoaded = false;
+        Debug.LogError($"[AdsService] Banner load failed: {error}");
+        
+        // Retry loading after a delay
+        CoroutineMonoBehavior.Instance.StartCoroutine(RetryLoadBanner(3f));
     }
 
     private void OnBannerDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
@@ -200,7 +214,25 @@ public class AdsService : IAdsService, IDisposable
         else
         {
             Debug.Log("[AdsService] loading instead");
-            bannerAd?.LoadAd();
+            if (bannerAd != null)
+            {
+                Debug.Log("[AdsService] Calling LoadAd() on banner");
+                bannerAd.LoadAd();
+            }
+            else
+            {
+                Debug.LogError("[AdsService] BannerAd is null, cannot load");
+            }
+        }
+    }
+
+    private IEnumerator RetryLoadBanner(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (bannerAd != null && IsInitialized)
+        {
+            Debug.Log("[AdsService] Retrying banner load");
+            bannerAd.LoadAd();
         }
     }
 
@@ -236,6 +268,7 @@ public class AdsService : IAdsService, IDisposable
             return;
 
         bannerAd.OnAdLoaded -= OnBannerLoaded;
+        bannerAd.OnAdLoadFailed -= OnBannerLoadFailed;
         bannerAd.OnAdDisplayFailed -= OnBannerDisplayFailed;
         bannerAd.OnAdClicked -= OnBannerClicked;
         bannerAd = null;

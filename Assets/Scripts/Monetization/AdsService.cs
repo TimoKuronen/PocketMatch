@@ -14,6 +14,8 @@ public class AdsService : IAdsService, IDisposable
     private LevelPlayInterstitialAd interstitialAd;
     private IAnalyticsService analyticsService;
     private bool isBannerLoaded = false;
+    private int bannerRetryCount = 0;
+    private const int MaxBannerRetries = 3;
 
     public event Action OnInterstitialAdClosed;
 
@@ -163,6 +165,7 @@ public class AdsService : IAdsService, IDisposable
     private void OnBannerLoaded(LevelPlayAdInfo adInfo)
     {
         isBannerLoaded = true;
+        bannerRetryCount = 0;
 
         Debug.Log("[AdsService] BannerAd loaded");
 
@@ -178,10 +181,32 @@ public class AdsService : IAdsService, IDisposable
     private void OnBannerLoadFailed(LevelPlayAdError error)
     {
         isBannerLoaded = false;
-        Debug.LogError($"[AdsService] Banner load failed: {error}");
         
-        // Retry loading after a delay
-        CoroutineMonoBehavior.Instance.StartCoroutine(RetryLoadBanner(3f));
+        string errorString = error.ToString();
+        
+        // Check if it's a "No fill" error (error code 509)
+        // No fill means no ad is available - don't spam retries
+        if (errorString.Contains("509") || errorString.Contains("No fill") || errorString.Contains("no fill"))
+        {
+            Debug.LogWarning($"[AdsService] Banner load failed (No fill): {error}. Will retry when ShowBannerAd is called again.");
+            bannerRetryCount = 0; // Reset retry count for natural retries
+            return;
+        }
+        
+        // For other errors (network issues, etc.), retry with exponential backoff
+        bannerRetryCount++;
+        
+        if (bannerRetryCount <= MaxBannerRetries)
+        {
+            Debug.LogError($"[AdsService] Banner load failed: {error}. Retry attempt {bannerRetryCount}/{MaxBannerRetries}");
+            float delay = 3f * bannerRetryCount; // Exponential backoff: 3s, 6s, 9s
+            CoroutineMonoBehavior.Instance.StartCoroutine(RetryLoadBanner(delay));
+        }
+        else
+        {
+            Debug.LogError($"[AdsService] Banner load failed after {MaxBannerRetries} retries: {error}. Stopping auto-retry.");
+            bannerRetryCount = 0;
+        }
     }
 
     private void OnBannerDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
@@ -197,9 +222,11 @@ public class AdsService : IAdsService, IDisposable
 
     public void ShowBannerAd()
     {
-        Debug.Log("[AdsService] trying to show banner ad step 1");
         if (!IsInitialized)
             return;
+
+        // Reset retry count when ShowBannerAd is called (user action or natural retry)
+        bannerRetryCount = 0;
 
         if (bannerAd == null)
         {
@@ -208,7 +235,6 @@ public class AdsService : IAdsService, IDisposable
 
         if (isBannerLoaded && bannerAd != null)
         {
-            Debug.Log("[AdsService] trying to show banner ad step 2");
             bannerAd.ShowAd();
         }
         else

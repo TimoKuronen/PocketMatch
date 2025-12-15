@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7055c8326477fa46b973489e703192c, type: 3}
+  m_Name: GridControllerSettings
+  m_EditorClassIdentifier: 
+  width: 6
+  height: 8
+  tileSize: 1
+  normalTilePrefab: {fileID: 1747666802176816276, guid: a2685d7cab03aea42a28bd0a9a0840af, type: 3}
+  blockedTilePrefab: {fileID: 4545452978988066638, guid: 0642d980d3f1f224abd3fa7d330a4321, type: 3}
+  breakableTilePrefab: {fileID: 8613264246384731429, guid: 4d4668722f5d73940a5ecaf193c02676, type: 3}
+  tileFramePrefab: {fileID: 901421959083162220, guid: 92c937bf21495c24986d5cb1cb4ffbd4, type: 3}
+  allowInitialMatches: 0

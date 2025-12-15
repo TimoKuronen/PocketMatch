@@ -6,10 +6,12 @@ public class ScoreService : IScoreService
 {
     private EventScoring eventScoring;
     private int collectedScore;
+    private IGridController gridController;
 
     [Inject]
-    public void Construct()
+    public void Construct(IGridController gridController)
     {
+        this.gridController = gridController;
         CoroutineMonoBehavior.Instance.StartCoroutine(SubscribeToEvents());
 
         eventScoring = new EventScoring();
@@ -19,7 +21,7 @@ public class ScoreService : IScoreService
     {
         yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
 
-        GridController.Instance.PowerTileCreated += OnPowerTileCreated;
+        gridController.PowerTileCreated += OnPowerTileCreated;
     }
 
     private void OnPowerTileCreated(TileData tilePowerType)
@@ -50,7 +52,10 @@ public class ScoreService : IScoreService
 
     public void Dispose()
     {
-        GridController.Instance.PowerTileCreated -= OnPowerTileCreated;
+        if (gridController != null)
+        {
+            gridController.PowerTileCreated -= OnPowerTileCreated;
+        }
     }
 }
 

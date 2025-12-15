@@ -34,7 +34,11 @@ public class EditorShortcuts : EditorWindow
     {
         if (GUILayout.Button("Shuffle"))
         {
-            GridController.Instance.BoardEvaluator.ShuffleBoard();
+            var gridController = FindFirstObjectByType<GridController>();
+            if (gridController != null)
+            {
+                gridController.BoardEvaluator.ShuffleBoard();
+            }
         }
 
         EditorGUILayout.Space();

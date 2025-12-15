@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using VContainer;
 
 public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
@@ -8,11 +9,18 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     private Vector2 startPointerPos;
     private bool isDragging;
+    private IGridController gridController;
 
     [Header("Double Tap Settings")]
     [SerializeField] private float doubleTapTimeThreshold = 0.5f;
     private int tapCount = 0;
     private float lastTapTime;
+
+    // Manually injected by TilePoolManager for runtime-instantiated prefabs
+    public void Construct(IGridController gridController)
+    {
+        this.gridController = gridController;
+    }
 
     void OnEnable()
     {
@@ -26,7 +34,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
         {
             Debug.Log($"Input not allowed because " +
                 $"{isDragging} or " +
-                $"{GridController.Instance.IsProcessingTiles} or " +
+                $"{gridController.IsProcessingTiles} or " +
                 $"{tileView.Data.State == TileState.Normal}");
             return;
         }
@@ -35,7 +43,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
         /// Destroying single tiles for debugging purposes
         if (eventData.button == PointerEventData.InputButton.Right)
         {
-            GridController.Instance.DestroyTargetTile(tileView.Data.GridPosition);
+            gridController.DestroyTargetTile(tileView.Data.GridPosition);
             return;
         }
 #endif
@@ -70,7 +78,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
         isDragging = false;
 
-        GridController.Instance.AttemptPowerTrigger(tileView);
+        gridController.AttemptPowerTrigger(tileView);
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -98,7 +106,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
         else
             dir = dragDelta.y > 0 ? Vector2Int.up : Vector2Int.down;
 
-        GridController.Instance.TrySwapTiles(tileView.Data.GridPosition, dir);
+        gridController.TrySwapTiles(tileView.Data.GridPosition, dir);
 
         isDragging = false; // prevent multiple swaps
     }
@@ -110,7 +118,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     private bool IsInputAllowed()
     {
-        return !GridController.Instance.IsProcessingTiles && tileView.Data.State == TileState.Normal;
+        return gridController != null && !gridController.IsProcessingTiles && tileView.Data.State == TileState.Normal;
     }
 }
 

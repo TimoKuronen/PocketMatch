@@ -47,15 +47,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63d48068596da30418be8bae5283c6cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 6
-  height: 8
-  normalTilePrefab: {fileID: 1747666802176816276, guid: a2685d7cab03aea42a28bd0a9a0840af, type: 3}
-  blockedTilePrefab: {fileID: 4545452978988066638, guid: 0642d980d3f1f224abd3fa7d330a4321, type: 3}
-  breakableTilePrefab: {fileID: 8613264246384731429, guid: 4d4668722f5d73940a5ecaf193c02676, type: 3}
+  settings: {fileID: 11400000, guid: 23fddc01ffb5cb74590bbbdf02e2cfc3, type: 2}
   tileContainer: {fileID: 0}
-  tileFramePrefab: {fileID: 901421959083162220, guid: 92c937bf21495c24986d5cb1cb4ffbd4, type: 3}
-  tileSize: 1
-  allowInitialMatches: 0
 --- !u!114 &7581541996355293963
 MonoBehaviour:
   m_ObjectHideFlags: 0

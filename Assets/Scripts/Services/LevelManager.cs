@@ -19,18 +19,21 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
     private IGameSessionService gameSessionService;
     private IAnalyticsService analyticsService;
     private IScoreService scoreService;
+    private IGridController gridController;
 
     [Inject]
     public void Construct(
         ISaveService saveService, 
         IGameSessionService gameSessionService, 
         IAnalyticsService analyticsService,
-        IScoreService scoreService)
+        IScoreService scoreService,
+        IGridController gridController)
     {
         this.saveService = saveService;
         this.gameSessionService = gameSessionService;
         this.analyticsService = analyticsService;
         this.scoreService = scoreService;
+        this.gridController = gridController;
 
         CoroutineMonoBehavior.Instance.StartCoroutine(SetLevelData());
         CoroutineMonoBehavior.Instance.StartCoroutine(GameTimer());
@@ -53,7 +56,7 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
         Debug.Log($"LevelManager {LocalMapData.name} initialized with MoveLimit: {MovesRemaining}");
         VictoryConditions = LocalMapData.VictoryConditions;
 
-        yield return new WaitUntil(() => GridController.Instance != null && GridController.Instance.IsBoardInitialized);
+        yield return new WaitUntil(() => gridController != null && gridController.IsBoardInitialized);
 
         SubscribeToEvents();
 
@@ -77,10 +80,10 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
 
     private void SubscribeToEvents()
     {
-        GridController.Instance.ActionTaken += OnActionTaken;
-        GridController.Instance.BoardUpdated += CheckVictoryConditions;
-        GridController.Instance.TileDestroyed += OnTileDestroyed;
-        GridController.Instance.GridContext.OnDestroy += OnTileDestroyed;
+        gridController.ActionTaken += OnActionTaken;
+        gridController.BoardUpdated += CheckVictoryConditions;
+        gridController.TileDestroyed += OnTileDestroyed;
+        gridController.GridContext.OnDestroy += OnTileDestroyed;
 
         UI_GameMenu.OnCheatButtonClicked += ToggleWinEvent;
     }
@@ -193,10 +196,13 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
 
     public void Dispose()
     {
-        GridController.Instance.ActionTaken -= OnActionTaken;
-        GridController.Instance.BoardUpdated -= CheckVictoryConditions;
-        GridController.Instance.TileDestroyed -= OnTileDestroyed;
-        GridController.Instance.GridContext.OnDestroy -= OnTileDestroyed;
+        if (gridController != null)
+        {
+            gridController.ActionTaken -= OnActionTaken;
+            gridController.BoardUpdated -= CheckVictoryConditions;
+            gridController.TileDestroyed -= OnTileDestroyed;
+            gridController.GridContext.OnDestroy -= OnTileDestroyed;
+        }
 
         UI_GameMenu.OnCheatButtonClicked -= ToggleWinEvent;
     }

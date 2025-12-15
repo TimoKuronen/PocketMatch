@@ -10,7 +10,7 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.Register<IAdsService, AdsService>(Lifetime.Singleton);
         builder.Register<IAnalyticsService, AnalyticsService>(Lifetime.Singleton);
         builder.Register<IInputService, InputService>(Lifetime.Singleton);
-        builder.Register<IScoreService, ScoreService>(Lifetime.Singleton);
+        // ScoreService moved to GameLifetimeScope because it depends on IGridController
 
         builder.RegisterComponentInHierarchy<CloudSaveBootstrap>();
 

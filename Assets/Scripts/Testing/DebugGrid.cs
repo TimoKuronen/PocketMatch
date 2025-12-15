@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using VContainer;
 
 public class DebugGrid : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class DebugGrid : MonoBehaviour
     private DebugTile[,] tileStateBoard;
 
     private TileData[,] gridData;
+    private IGridController gridController;
 
     private int width = 6;
     private int height = 8;
@@ -16,11 +18,17 @@ public class DebugGrid : MonoBehaviour
     [SerializeField] private float tileSize = 1f;
     [SerializeField] private Vector3 gridOffset;
 
+    [Inject]
+    public void Construct(IGridController gridController)
+    {
+        this.gridController = gridController;
+    }
+
     private IEnumerator Start()
     {
         yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
 
-        GridController.Instance.BoardUpdated += OnBoardUpdated;
+        gridController.BoardUpdated += OnBoardUpdated;
         CreateDebugBoards();
     }
 
@@ -170,6 +178,9 @@ public class DebugGrid : MonoBehaviour
 
     private void OnDestroy()
     {
-        GridController.Instance.BoardUpdated -= OnBoardUpdated;
+        if (gridController != null)
+        {
+            gridController.BoardUpdated -= OnBoardUpdated;
+        }
     }
 }

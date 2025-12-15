@@ -20,28 +20,30 @@ public class GridAudioPlayer : MonoBehaviour
     private AudioSource audioSource;
     private IAudioService audioService;
     private ILevelManager levelManager;
+    private IGridController gridController;
 
     [Inject]
-    public void Construct(IAudioService audioService, ILevelManager levelManager)
+    public void Construct(IAudioService audioService, ILevelManager levelManager, IGridController gridController)
     {
         this.audioService = audioService;
         this.levelManager = levelManager;
+        this.gridController = gridController;
     }
 
     private IEnumerator Start()
     {
-        yield return new WaitUntil(() => GridController.Instance.IsBoardInitialized);
+        yield return new WaitUntil(() => gridController != null && gridController.IsBoardInitialized);
 
         audioSource = GetComponent<AudioSource>();
 
-        GridController.Instance.TileDrop += PlayHitAudio;
-        GridController.Instance.TileSwapped += PlayMatchAudio;
-        GridController.Instance.TileSwapError += PlaySwitchErrorAudio;
-        GridController.Instance.TileDestroyed += PlayDestroyAudio;
-        GridController.Instance.TileMoved += PlayTileMoveAudio;
-        GridController.Instance.PowerTileCreated += PlayPowerTileCreationAudio;
-        GridController.Instance.GridContext.OnSpecialTileTriggered += PlaySpecialTileAudio;
-        GridController.Instance.OnBoardShuffle += PlayShuffleAudio;
+        gridController.TileDrop += PlayHitAudio;
+        gridController.TileSwapped += PlayMatchAudio;
+        gridController.TileSwapError += PlaySwitchErrorAudio;
+        gridController.TileDestroyed += PlayDestroyAudio;
+        gridController.TileMoved += PlayTileMoveAudio;
+        gridController.PowerTileCreated += PlayPowerTileCreationAudio;
+        gridController.GridContext.OnSpecialTileTriggered += PlaySpecialTileAudio;
+        gridController.OnBoardShuffle += PlayShuffleAudio;
 
         levelManager.OnLevelWon += PlayLevelWonAudio;
         levelManager.OnLevelLost += PlayLevelLostAudio;
@@ -115,16 +117,22 @@ public class GridAudioPlayer : MonoBehaviour
 
     private void OnDestroy()
     {
-        GridController.Instance.TileDrop -= PlayHitAudio;
-        GridController.Instance.TileSwapped -= PlayMatchAudio;
-        GridController.Instance.TileSwapError -= PlaySwitchErrorAudio;
-        GridController.Instance.TileDestroyed -= PlayDestroyAudio;
-        GridController.Instance.TileMoved -= PlayTileMoveAudio;
-        GridController.Instance.PowerTileCreated -= PlayPowerTileCreationAudio;
-        GridController.Instance.GridContext.OnSpecialTileTriggered -= PlaySpecialTileAudio;
-        GridController.Instance.OnBoardShuffle -= PlayShuffleAudio;
+        if (gridController != null)
+        {
+            gridController.TileDrop -= PlayHitAudio;
+            gridController.TileSwapped -= PlayMatchAudio;
+            gridController.TileSwapError -= PlaySwitchErrorAudio;
+            gridController.TileDestroyed -= PlayDestroyAudio;
+            gridController.TileMoved -= PlayTileMoveAudio;
+            gridController.PowerTileCreated -= PlayPowerTileCreationAudio;
+            gridController.GridContext.OnSpecialTileTriggered -= PlaySpecialTileAudio;
+            gridController.OnBoardShuffle -= PlayShuffleAudio;
+        }
 
-        levelManager.OnLevelWon -= PlayLevelWonAudio;
-        levelManager.OnLevelLost -= PlayLevelLostAudio;
+        if (levelManager != null)
+        {
+            levelManager.OnLevelWon -= PlayLevelWonAudio;
+            levelManager.OnLevelLost -= PlayLevelLostAudio;
+        }
     }
 }

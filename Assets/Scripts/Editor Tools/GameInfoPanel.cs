@@ -23,8 +23,12 @@ public class GameInfoPanel : EditorWindow
         if (subscribedToEvents || !Loader.IsGameScene())
             return;
 
-        GridController.Instance.ActionTaken += OnBoardChanged;
-        subscribedToEvents = true;
+        var gridController = FindFirstObjectByType<GridController>();
+        if (gridController != null)
+        {
+            gridController.ActionTaken += OnBoardChanged;
+            subscribedToEvents = true;
+        }
     }
 
     private void OnGUI()
@@ -84,12 +88,13 @@ public class GameInfoPanel : EditorWindow
         EditorGUILayout.TextField(Time.timeScale.ToString());
         EditorGUILayout.EndHorizontal();
 
-        if (GridController.Instance.MatchFinder == null)
+        var gridController = FindFirstObjectByType<GridController>();
+        if (gridController == null || gridController.MatchFinder == null)
         {
             return;
         }
 
-        string matchesLeft = GridController.Instance.BoardEvaluator.CountPotentialMoves().TotalMoves.ToString();
+        string matchesLeft = gridController.BoardEvaluator.CountPotentialMoves().TotalMoves.ToString();
 
         EditorGUILayout.BeginHorizontal();
         GUILayout.Label("Matches left: ");
@@ -101,7 +106,11 @@ public class GameInfoPanel : EditorWindow
     {
         if (subscribedToEvents)
         {
-            GridController.Instance.ActionTaken -= OnBoardChanged;
+            var gridController = FindFirstObjectByType<GridController>();
+            if (gridController != null)
+            {
+                gridController.ActionTaken -= OnBoardChanged;
+            }
             subscribedToEvents = false;
         }
     }

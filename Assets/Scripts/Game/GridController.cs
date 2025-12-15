@@ -7,22 +7,11 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 
-public class GridController : MonoBehaviour
+public class GridController : MonoBehaviour, IGridController
 {
-    public static GridController Instance { get; private set; }
-
-    [Header("Grid Settings")]
-    [SerializeField] private int width = 6;
-    [SerializeField] private int height = 8;
-    [SerializeField] private TileView normalTilePrefab;
-    [SerializeField] private TileView blockedTilePrefab;
-    [SerializeField] private TileView breakableTilePrefab;
+    [Header("Settings")]
+    [SerializeField] private GridControllerSettings settings;
     [SerializeField] private RectTransform tileContainer;
-    [SerializeField] private RectTransform tileFramePrefab;
-    [SerializeField] private float tileSize = 1f;
-
-    [Header("Initial Debugging Settings")]
-    [SerializeField] private bool allowInitialMatches = false;
 
     private TileData[,] gridData;
     private TileView[,] gridViews;
@@ -48,25 +37,18 @@ public class GridController : MonoBehaviour
 
     private IGameSessionService gameSessionService;
     private IAnalyticsService analyticsService;
-    private ILevelManager levelManager;
 
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-    }
+    // Cached settings values
+    private int width;
+    private int height;
+    private float tileSize;
+    private bool allowInitialMatches;
 
     [Inject]
-    public void Construct(IGameSessionService gameSessionService, IAnalyticsService analyticsService, ILevelManager levelManager)
+    public void Construct(IGameSessionService gameSessionService, IAnalyticsService analyticsService)
     {
         this.gameSessionService = gameSessionService;
         this.analyticsService = analyticsService;
-        this.levelManager = levelManager;
     }
 
     private void Update()
@@ -79,6 +61,18 @@ public class GridController : MonoBehaviour
 
     private IEnumerator Start()
     {
+        if (settings == null)
+        {
+            Debug.LogError("GridControllerSettings is not assigned!");
+            yield break;
+        }
+
+        // Cache settings values
+        width = settings.width;
+        height = settings.height;
+        tileSize = settings.tileSize;
+        allowInitialMatches = settings.allowInitialMatches;
+
        // Debug.Log("GridController waiting..."); 
 
         yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
@@ -89,10 +83,11 @@ public class GridController : MonoBehaviour
         MatchFinder = new MatchFinder(width, height);
 
         tilePoolManager = new TilePoolManager(
-            normalTilePrefab,
-            blockedTilePrefab,
-            breakableTilePrefab,
-            tileContainer
+            settings.normalTilePrefab,
+            settings.blockedTilePrefab,
+            settings.breakableTilePrefab,
+            tileContainer,
+            this
         );
 
         mapData = gameSessionService.CurrentMapData;
@@ -292,7 +287,7 @@ public class GridController : MonoBehaviour
                 //Debug.Log("Still has empty slots after refill, continuing cycle...");
                 changed = true;
                 cycleCount++;
-                continue; // don’t check matches until board is physically stable
+                continue; // donï¿½t check matches until board is physically stable
             }
 
             // --- 5. Find matches ---
@@ -349,7 +344,7 @@ public class GridController : MonoBehaviour
             //Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
             analyticsService.LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
             {
-                { "level_name", levelManager.LocalMapData.GetLevelName() },
+                { "level_name", mapData?.GetLevelName() ?? "Unknown" },
                 { "moves_spent", cycleCount-2 }
             });
         }
@@ -492,11 +487,14 @@ public class GridController : MonoBehaviour
             } while (hasMatches);
         }
 
-        // Use RectTransform size for tile size
-        tileSize = normalTilePrefab.GetComponent<RectTransform>().sizeDelta.x;
+        // Use RectTransform size for tile size if not set in ScriptableObject
+        if (tileSize <= 0)
+        {
+            tileSize = settings.normalTilePrefab.GetComponent<RectTransform>().sizeDelta.x;
+        }
 
-        LevelBuilder.SpawnGridViews(gridData, gridViews, tilePoolManager, tileContainer);
-        LevelBuilder.SpawnGridFrames(width, height, tileFramePrefab, tileContainer);
+        LevelBuilder.SpawnGridViews(gridData, gridViews, tilePoolManager, tileContainer, this);
+        LevelBuilder.SpawnGridFrames(width, height, settings.tileFramePrefab, tileContainer, this);
     }
 
     public Vector2 GridToUIPos(Vector2Int gridPos)

@@ -11,9 +11,9 @@ public class BoardStateEvaluator
     private int width;
     private int height;
 
-    private GridController gridController;
+    private IGridController gridController;
 
-    public BoardStateEvaluator(TileData[,] gridData, TileView[,] gridViews, int width, int height, GridController controller)
+    public BoardStateEvaluator(TileData[,] gridData, TileView[,] gridViews, int width, int height, IGridController controller)
     {
         this.gridData = gridData;
         this.gridViews = gridViews;

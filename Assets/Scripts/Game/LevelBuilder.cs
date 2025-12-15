@@ -42,7 +42,8 @@ public static class LevelBuilder
         TileData[,] grid,
         TileView[,] gridViews,
         TilePoolManager tilePoolManager,
-        Transform parent)
+        Transform parent,
+        IGridController gridController)
     {
         int width = grid.GetLength(0);
         int height = grid.GetLength(1);
@@ -60,7 +61,7 @@ public static class LevelBuilder
 
                 RectTransform rect = view.GetComponent<RectTransform>();
                 rect.localScale = Vector3.one;
-                rect.anchoredPosition = GridController.Instance.GridToUIPos(new Vector2Int(x, y));
+                rect.anchoredPosition = gridController.GridToUIPos(new Vector2Int(x, y));
 
                 view.Init(data);
                 view.gameObject.name = $"Tile_{x}_{y}";
@@ -69,7 +70,7 @@ public static class LevelBuilder
         }
     }
 
-    public static void SpawnGridFrames(int width, int height, RectTransform framePrefab, Transform parent)
+    public static void SpawnGridFrames(int width, int height, RectTransform framePrefab, Transform parent, IGridController gridController)
     {
         for (int x = 0; x < width; x++)
         {
@@ -77,7 +78,7 @@ public static class LevelBuilder
             {
                 RectTransform rect = GameObject.Instantiate(framePrefab, Vector3.zero, Quaternion.identity, parent);
                 rect.localScale = Vector3.one;
-                rect.anchoredPosition = GridController.Instance.GridToUIPos(new Vector2Int(x, y));
+                rect.anchoredPosition = gridController.GridToUIPos(new Vector2Int(x, y));
             }
         }
     }

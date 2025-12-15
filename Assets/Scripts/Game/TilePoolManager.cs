@@ -6,11 +6,18 @@ public class TilePoolManager
     private readonly ObjectPool<TileView> normalPool;
     private readonly ObjectPool<TileView> blockedPool;
     private readonly ObjectPool<TileView> breakablePool;
+    private readonly IGridController gridController;
 
-    public TilePoolManager(TileView normalPrefab, TileView blockedPrefab, TileView breakablePrefab, Transform parent)
+    public TilePoolManager(TileView normalPrefab, TileView blockedPrefab, TileView breakablePrefab, Transform parent, IGridController gridController)
     {
+        this.gridController = gridController;
+        
         normalPool = new ObjectPool<TileView>(
-            () => GameObject.Instantiate(normalPrefab, parent),
+            () => {
+                var view = GameObject.Instantiate(normalPrefab, parent);
+                InjectGridController(view.gameObject);
+                return view;
+            },
             t => t.gameObject.SetActive(true),
             t => t.gameObject.SetActive(false),
             t =>
@@ -21,7 +28,11 @@ public class TilePoolManager
             false, 100);
 
         blockedPool = new ObjectPool<TileView>(
-            () => GameObject.Instantiate(blockedPrefab, parent),
+            () => {
+                var view = GameObject.Instantiate(blockedPrefab, parent);
+                InjectGridController(view.gameObject);
+                return view;
+            },
             t => t.gameObject.SetActive(true),
             t => t.gameObject.SetActive(false),
             t =>
@@ -32,7 +43,11 @@ public class TilePoolManager
             false, 50);
 
         breakablePool = new ObjectPool<TileView>(
-            () => GameObject.Instantiate(breakablePrefab, parent),
+            () => {
+                var view = GameObject.Instantiate(breakablePrefab, parent);
+                InjectGridController(view.gameObject);
+                return view;
+            },
             t => t.gameObject.SetActive(true),
             t => t.gameObject.SetActive(false),
             t =>
@@ -41,6 +56,15 @@ public class TilePoolManager
                     GameObject.Destroy(t.gameObject);
             },
             false, 50);
+    }
+
+    private void InjectGridController(GameObject tileObject)
+    {
+        var inputHandler = tileObject.GetComponent<TileInputHandler>();
+        if (inputHandler != null)
+        {
+            inputHandler.Construct(gridController);
+        }
     }
 
     public TileView GetForState(TileState state)

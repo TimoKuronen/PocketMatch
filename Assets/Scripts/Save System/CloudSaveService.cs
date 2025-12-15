@@ -1,56 +1,82 @@
+using Firebase;
+using Firebase.Auth;
+using Firebase.Firestore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Firebase.Firestore;
-//using Firebase.Auth;
 using UnityEngine;
 
 public class CloudSaveService
 {
     private FirebaseFirestore db;
-  //  private FirebaseAuth auth;
+    private FirebaseAuth auth;
     private string playerId;
 
     public async Task InitializeAsync()
     {
+        var status = await FirebaseApp.CheckAndFixDependenciesAsync();
+        if (status != DependencyStatus.Available)
+        {
+            Debug.LogError($"[CloudSave] Firebase dependency error: {status}");
+            throw new System.Exception("Firebase dependencies not available");
+        }
+
         db = FirebaseFirestore.DefaultInstance;
-        playerId = SystemInfo.deviceUniqueIdentifier;
+        auth = FirebaseAuth.DefaultInstance;
 
-        //db = FirebaseFirestore.DefaultInstance;
-        //auth = FirebaseAuth.DefaultInstance;
+        if (auth.CurrentUser == null)
+        {
+            var result = await auth.SignInAnonymouslyAsync();
+            Debug.Log($"[CloudSave] Signed in anonymously: {result.User.UserId}");
+        }
 
-        //if (auth.CurrentUser == null)
-        //{
-        //    var result = await auth.SignInAnonymouslyAsync();
-        //    Debug.Log($"Signed in anonymously: {result.User.UserId}");
-        //}
-
-        //playerId = auth.CurrentUser.UserId;
+        playerId = auth.CurrentUser.UserId;
+        Debug.Log($"[CloudSave] Using UID: {playerId}");
     }
 
     public async Task UploadAsync(PlayerData data)
     {
+        if (string.IsNullOrEmpty(playerId))
+        {
+            Debug.LogWarning("[CloudSave] Upload skipped - not authenticated");
+            return;
+        }
+
         string json = JsonUtility.ToJson(data);
+
         var dict = new Dictionary<string, object>
         {
             { "json", json },
             { "timestamp", FieldValue.ServerTimestamp }
         };
 
-        await db.Collection("players").Document(playerId).SetAsync(dict);
-        Debug.Log("Cloud save uploaded");
+        await db.Collection("users")
+            .Document(playerId)
+            .SetAsync(dict);
+
+        Debug.Log("[CloudSave] Cloud save uploaded");
     }
 
     public async Task<PlayerData> DownloadAsync()
     {
-        var snapshot = await db.Collection("players").Document(playerId).GetSnapshotAsync();
-        if (snapshot.Exists)
+        if (string.IsNullOrEmpty(playerId))
         {
-            string json = snapshot.GetValue<string>("json");
-            Debug.Log("Cloud save downloaded");
-            return JsonUtility.FromJson<PlayerData>(json);
+            Debug.LogWarning("[CloudSave] Download skipped - not authenticated");
+            return null;
         }
 
-        Debug.Log("No cloud save found for player.");
-        return null;
+        var snapshot = await db.Collection("users")
+            .Document(playerId)
+            .GetSnapshotAsync();
+
+        if (!snapshot.Exists)
+        {
+            Debug.Log("[CloudSave] No cloud save found");
+            return null;
+        }
+
+        string json = snapshot.GetValue<string>("json");
+        Debug.Log("[CloudSave] Cloud save downloaded");
+
+        return JsonUtility.FromJson<PlayerData>(json);
     }
 }

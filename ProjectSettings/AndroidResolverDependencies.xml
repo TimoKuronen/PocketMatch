@@ -5,6 +5,8 @@
     <package>com.google.firebase:firebase-analytics:23.0.0</package>
     <package>com.google.firebase:firebase-analytics-unity:13.5.0</package>
     <package>com.google.firebase:firebase-app-unity:13.5.0</package>
+    <package>com.google.firebase:firebase-auth:24.0.1</package>
+    <package>com.google.firebase:firebase-auth-unity:13.5.0</package>
     <package>com.google.firebase:firebase-common:22.0.1</package>
     <package>com.google.firebase:firebase-firestore:26.0.2</package>
     <package>com.google.firebase:firebase-firestore-unity:13.5.0</package>
@@ -17,6 +19,8 @@
     <file>Assets/GeneratedLocalRepo/Firebase/m2repository/com/google/firebase/firebase-analytics-unity/13.5.0/firebase-analytics-unity-13.5.0.pom</file>
     <file>Assets/GeneratedLocalRepo/Firebase/m2repository/com/google/firebase/firebase-app-unity/13.5.0/firebase-app-unity-13.5.0.aar</file>
     <file>Assets/GeneratedLocalRepo/Firebase/m2repository/com/google/firebase/firebase-app-unity/13.5.0/firebase-app-unity-13.5.0.pom</file>
+    <file>Assets/GeneratedLocalRepo/Firebase/m2repository/com/google/firebase/firebase-auth-unity/13.5.0/firebase-auth-unity-13.5.0.aar</file>
+    <file>Assets/GeneratedLocalRepo/Firebase/m2repository/com/google/firebase/firebase-auth-unity/13.5.0/firebase-auth-unity-13.5.0.pom</file>
     <file>Assets/GeneratedLocalRepo/Firebase/m2repository/com/google/firebase/firebase-firestore-unity/13.5.0/firebase-firestore-unity-13.5.0.aar</file>
     <file>Assets/GeneratedLocalRepo/Firebase/m2repository/com/google/firebase/firebase-firestore-unity/13.5.0/firebase-firestore-unity-13.5.0.pom</file>
   </files>

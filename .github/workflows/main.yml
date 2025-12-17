@@ -1,0 +1,61 @@
+name: Build Android
+
+# 1. Trigger: Run this when we push to main
+on:
+  push:
+    branches:
+      - master
+  # Allows you to run this manually from the Actions tab
+  workflow_dispatch: 
+
+# 2. Setup the Environment
+env:
+  UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+  UNITY_VERSION: 6000.0.58f2 # CHANGE THIS to your exact version
+
+jobs:
+  buildAndroid:
+    name: Build for Android
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step A: Get your project code onto the runner
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          lfs: true # Important for big game assets!
+
+      # Step B: Free up disk space (Optional but recommended for Unity)
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          
+      # Step C: Cache Library folder (Speeds up subsequent builds)
+      - name: Cache Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-
+
+      # Step D: The GameCI Builder
+      - name: Run Unity Build
+        uses: game-ci/unity-builder@v4
+        with:
+          targetPlatform: Android
+          unityVersion: ${{ env.UNITY_VERSION }}
+          # This tells the builder to output an APK (instead of AAB) for easy testing
+          androidAppBundle: false
+          androidKeystoreName: user.keystore
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
+
+      # Step E: Save the result so you can download it
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AndroidBuild
+          path: build/Android

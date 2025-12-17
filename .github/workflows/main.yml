@@ -56,10 +56,6 @@ jobs:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
           androidExportType: androidPackage
-          androidKeystoreName: user.keystore
-          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
-          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
-          androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
           allowDirtyBuild: true
 
       # F) Upload artifact

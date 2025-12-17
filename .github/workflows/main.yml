@@ -47,7 +47,7 @@ jobs:
           unityLicence: ${{ secrets.UNITY_LICENSE }}
           targetPlatform: Android
           buildMethod: CIResolveDependencies.Resolve
-          androidExportType: none
+          androidAppBundle: false
 
       # E) Build APK (DEBUG SIGNING)
       - name: Build Android APK

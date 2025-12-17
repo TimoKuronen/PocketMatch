@@ -23,8 +23,8 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
 
     [Inject]
     public void Construct(
-        ISaveService saveService, 
-        IGameSessionService gameSessionService, 
+        ISaveService saveService,
+        IGameSessionService gameSessionService,
         IAnalyticsService analyticsService,
         IScoreService scoreService,
         IGridController gridController)

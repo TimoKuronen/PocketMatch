@@ -11,9 +11,10 @@ public class TilePoolManager
     public TilePoolManager(TileView normalPrefab, TileView blockedPrefab, TileView breakablePrefab, Transform parent, IGridController gridController)
     {
         this.gridController = gridController;
-        
+
         normalPool = new ObjectPool<TileView>(
-            () => {
+            () =>
+            {
                 var view = GameObject.Instantiate(normalPrefab, parent);
                 InjectGridController(view.gameObject);
                 return view;
@@ -28,7 +29,8 @@ public class TilePoolManager
             false, 100);
 
         blockedPool = new ObjectPool<TileView>(
-            () => {
+            () =>
+            {
                 var view = GameObject.Instantiate(blockedPrefab, parent);
                 InjectGridController(view.gameObject);
                 return view;
@@ -43,7 +45,8 @@ public class TilePoolManager
             false, 50);
 
         breakablePool = new ObjectPool<TileView>(
-            () => {
+            () =>
+            {
                 var view = GameObject.Instantiate(breakablePrefab, parent);
                 InjectGridController(view.gameObject);
                 return view;

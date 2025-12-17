@@ -181,9 +181,9 @@ public class AdsService : IAdsService, IDisposable
     private void OnBannerLoadFailed(LevelPlayAdError error)
     {
         isBannerLoaded = false;
-        
+
         string errorString = error.ToString();
-        
+
         // Check if it's a "No fill" error (error code 509)
         // No fill means no ad is available - don't spam retries
         if (errorString.Contains("509") || errorString.Contains("No fill") || errorString.Contains("no fill"))
@@ -192,10 +192,10 @@ public class AdsService : IAdsService, IDisposable
             bannerRetryCount = 0; // Reset retry count for natural retries
             return;
         }
-        
+
         // For other errors (network issues, etc.), retry with exponential backoff
         bannerRetryCount++;
-        
+
         if (bannerRetryCount <= MaxBannerRetries)
         {
             Debug.LogError($"[AdsService] Banner load failed: {error}. Retry attempt {bannerRetryCount}/{MaxBannerRetries}");

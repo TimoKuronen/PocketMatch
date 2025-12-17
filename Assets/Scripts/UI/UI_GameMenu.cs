@@ -29,10 +29,10 @@ public class UI_GameMenu : UIMenu
 
     public static event Action OnCheatButtonClicked;
 
-    [Inject]    
+    [Inject]
     public void Construct(
-        ILevelManager levelManager, 
-        IAdsService adsService, 
+        ILevelManager levelManager,
+        IAdsService adsService,
         IGameSessionService gameSessionService,
         IScoreService scoreService,
         ISaveService saveService)
@@ -50,7 +50,7 @@ public class UI_GameMenu : UIMenu
 
         mapData = gameSessionService.CurrentMapData;
 
-        string levelIndex = (saveService.PlayerData.nextLevelIndex+1).ToString();
+        string levelIndex = (saveService.PlayerData.nextLevelIndex + 1).ToString();
         puzzleIndexText.text = "Puzzle #" + levelIndex;
 
         levelManager.OnVictoryConditionsUpdated += OnVictoryConditionsUpdated;

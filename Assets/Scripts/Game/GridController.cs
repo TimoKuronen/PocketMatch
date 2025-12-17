@@ -73,7 +73,7 @@ public class GridController : MonoBehaviour, IGridController
         tileSize = settings.tileSize;
         allowInitialMatches = settings.allowInitialMatches;
 
-       // Debug.Log("GridController waiting..."); 
+        // Debug.Log("GridController waiting..."); 
 
         yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
 

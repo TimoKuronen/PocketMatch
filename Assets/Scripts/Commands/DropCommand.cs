@@ -55,7 +55,7 @@ public class DropCommand : ICommand
                         continue;
                     }
 
-                    // 2) Try diagonal slides (left then right) — only if target cannot be filled vertically
+                    // 2) Try diagonal slides (left then right) ï¿½ only if target cannot be filled vertically
                     // LEFT
                     int leftTx = x - 1;
                     int leftTy = y - 1;
@@ -125,7 +125,7 @@ public class DropCommand : ICommand
         {
             var above = gridData[x, yy];
 
-            // empty space — not a source tile; continue scanning
+            // empty space ï¿½ not a source tile; continue scanning
             if (above == null || above.State == TileState.Empty)
                 continue;
 
@@ -165,7 +165,7 @@ public class DropCommand : ICommand
                 if (pathClear)
                     return true;
 
-                // If not pathClear, continue scanning upwards — maybe a different tile can drop
+                // If not pathClear, continue scanning upwards ï¿½ maybe a different tile can drop
                 continue;
             }
 

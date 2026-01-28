@@ -1,4 +1,5 @@
 using DG.Tweening;
+using NUnit.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -537,6 +538,29 @@ public class GridController : MonoBehaviour, IGridController
         List<Vector2Int> flatMatches = new();
         var tileA = gridData[origin.x, origin.y];
         flatMatches.Add(origin);
+
+        TileSwapped?.Invoke();
+
+        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed));
+        commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
+        commandInvoker.ExecuteAll();
+
+        StartCoroutine(MatchCycle());
+    }
+
+    [Test]
+    public void DestroyThreeTiles()
+    {
+        GenerateGrid(false);
+
+        List<Vector2Int> flatMatches = new();
+
+        for (int x = 0; x < 3; x++)
+        {
+            var tileData = gridData[x, 0];
+
+            flatMatches.Add(new Vector2Int(x, 0));
+        }
 
         TileSwapped?.Invoke();
 

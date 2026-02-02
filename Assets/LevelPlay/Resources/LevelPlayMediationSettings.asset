@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b8bcc18c722afc44be7d6b87da13b70, type: 3}
   m_Name: LevelPlayMediationSettings
   m_EditorClassIdentifier: 
-  AndroidAppKey: 
+  AndroidAppKey: 23b074f85
   IOSAppKey: 
   EnableIronsourceSDKInitAPI: 0
   DeclareAD_IDPermission: 0

@@ -34,16 +34,93 @@ public class AdsService : IAdsService, IDisposable
 
     private IEnumerator DelayedInit()
     {
-        yield return null;
+        // Wait a bit longer to ensure Unity Services are ready
+        yield return new WaitForSeconds(0.5f);
+        
+        // Check network connectivity before initializing
+        if (Application.internetReachability == NetworkReachability.NotReachable)
+        {
+            Debug.LogWarning("[AdsService] No internet connection. Retrying initialization in 3 seconds...");
+            yield return new WaitForSeconds(3f);
+            if (Application.internetReachability == NetworkReachability.NotReachable)
+            {
+                Debug.LogError("[AdsService] Still no internet connection. Cannot initialize ads.");
+                yield break;
+            }
+        }
+
+        Debug.Log($"[AdsService] Initializing LevelPlay SDK with AppKey: {AppKey} on platform: {Application.platform}");
+        Debug.Log($"[AdsService] Bundle ID: {Application.identifier}");
+        Debug.Log($"[AdsService] App Version: {Application.version}");
+        
+        // Verify bundle ID matches what's configured in LevelPlay dashboard
+        string expectedBundleId = "com.TimoKuronen.PocketMatch";
+        if (Application.identifier != expectedBundleId)
+        {
+            Debug.LogWarning($"[AdsService] Bundle ID mismatch! Expected: {expectedBundleId}, Got: {Application.identifier}");
+            Debug.LogWarning("[AdsService] Make sure your LevelPlay dashboard is configured with the correct bundle ID!");
+        }
+        
         LevelPlay.ValidateIntegration();
         LevelPlay.OnInitSuccess += OnSdkInitSuccess;
         LevelPlay.OnInitFailed += OnSdkInitFailed;
-        LevelPlay.Init(AppKey);
+        
+        try
+        {
+            LevelPlay.Init(AppKey);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[AdsService] Exception during LevelPlay.Init: {e}");
+        }
     }
 
     private void OnSdkInitFailed(LevelPlayInitError error)
     {
         Debug.LogError($"[AdsService] SDK Initialization Failed: {error}");
+        Debug.LogError($"[AdsService] Error Details: {error.ToString()}");
+        Debug.LogError($"[AdsService] AppKey used: {AppKey}");
+        Debug.LogError($"[AdsService] Platform: {Application.platform}");
+        Debug.LogError($"[AdsService] Internet Reachability: {Application.internetReachability}");
+        
+        // Error 2110 (Bad Request - 400) usually means invalid AppKey or configuration issue
+        // Check if AppKey might be incorrect
+        string errorString = error.ToString();
+        if (errorString.Contains("2110") || errorString.Contains("400") || errorString.Contains("Bad Request"))
+        {
+            Debug.LogError("[AdsService] CRITICAL: Invalid AppKey or configuration issue detected!");
+            Debug.LogError("[AdsService] Please verify:");
+            Debug.LogError("  1. AppKey is correct in LevelPlay dashboard");
+            Debug.LogError("  2. AppKey matches your platform (Android/iOS)");
+            Debug.LogError("  3. App is properly configured in LevelPlay dashboard");
+            Debug.LogError("  4. Network connectivity is working");
+        }
+        
+        // Retry initialization after a delay (but only once to avoid spam)
+        if (!IsInitialized)
+        {
+            CoroutineMonoBehavior.Instance.StartCoroutine(RetryInit(5f));
+        }
+    }
+    
+    private IEnumerator RetryInit(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        
+        if (!IsInitialized && Application.internetReachability != NetworkReachability.NotReachable)
+        {
+            Debug.Log("[AdsService] Retrying SDK initialization...");
+            LevelPlay.OnInitSuccess += OnSdkInitSuccess;
+            LevelPlay.OnInitFailed += OnSdkInitFailed;
+            try
+            {
+                LevelPlay.Init(AppKey);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[AdsService] Exception during retry Init: {e}");
+            }
+        }
     }
 
     private void OnSdkInitSuccess(LevelPlayConfiguration configuration)

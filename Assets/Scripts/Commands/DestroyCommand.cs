@@ -13,6 +13,8 @@ public class DestroyCommand : ICommand
     private readonly Action<TileData> TileDestroyed;
     private readonly GridContext context;
 
+    private float destroyDuration = 0.2f;
+
     public DestroyCommand(
         List<Vector2Int> positions,
         TileView[,] views,
@@ -53,11 +55,11 @@ public class DestroyCommand : ICommand
             if (view != null && view.Data.State != TileState.Blocked)
             {
                 view.transform.DOKill();
-                view.transform.DOScale(Vector3.zero, 0.2f).SetEase(Ease.InBack);
+                view.transform.DOScale(Vector3.zero, destroyDuration).SetEase(Ease.InBack);
             }
         }
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(destroyDuration);
 
         // --- Phase 3: actually destroy tiles and update data ---
         foreach (var pos in matchPositions)

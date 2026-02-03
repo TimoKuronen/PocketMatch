@@ -224,8 +224,9 @@ public class GridController : MonoBehaviour, IGridController
         // Debug.Log("Tweens done!");
 
         // now that grid is cleared, run Drop and Refill
-        commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
-        commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop));
+        commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData));
+        //commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
+        //commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop));
         commandInvoker.ExecuteAll();
 
         //  Debug.Log("# 2 Waiting for commandInvoker to empty...");
@@ -267,12 +268,14 @@ public class GridController : MonoBehaviour, IGridController
             changed = false;
 
             // --- 1. Drop existing tiles ---
-            yield return new DropCommand(gridData, gridViews, width, height, GridToUIPos).Execute();
+            //yield return new DropCommand(gridData, gridViews, width, height, GridToUIPos).Execute();
 
             // Debug.Log("Board after drop:");
 
             // --- 2. Refill empty cells ---
-            yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop).Execute();
+            //yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop).Execute();
+
+            yield return new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData).Execute();
 
             //Debug.Log("Board after refill:");
 
@@ -540,8 +543,9 @@ public class GridController : MonoBehaviour, IGridController
 
         TileSwapped?.Invoke();
 
-        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed));
-        commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
+        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext));
+        //commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed));
+        //commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
         commandInvoker.ExecuteAll();
 
         StartCoroutine(MatchCycle());

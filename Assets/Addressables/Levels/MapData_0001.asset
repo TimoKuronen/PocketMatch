@@ -21,6 +21,30 @@ MonoBehaviour:
     hitPoints: 1
   - tilePower: 0
     isDestroyable: 0
+    isBlocked: 1
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
   - tilePower: 0
@@ -87,7 +111,7 @@ MonoBehaviour:
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
-  - tilePower: 0
+  - tilePower: 3
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
@@ -107,55 +131,7 @@ MonoBehaviour:
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
-    isDestroyable: 0
-    isBlocked: 0
-    hitPoints: 1
-  - tilePower: 0
+  - tilePower: 2
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
@@ -202,6 +178,30 @@ MonoBehaviour:
   - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 0
+    hitPoints: 1
+  - tilePower: 0
+    isDestroyable: 0
+    isBlocked: 1
     hitPoints: 1
   - tilePower: 0
     isDestroyable: 0

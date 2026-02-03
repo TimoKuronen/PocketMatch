@@ -224,12 +224,15 @@ public class AdsService : IAdsService, IDisposable
     {
         CleanupBannerAd();
 
+        Debug.Log($"[AdsService] Creating banner ad with placement ID: {BannerAdId}");
+        Debug.Log($"[AdsService] Bundle ID: {Application.identifier}");
+        Debug.Log($"[AdsService] Platform: {Application.platform}");
+
         var configBuilder = new LevelPlayBannerAd.Config.Builder()
             .SetSize(LevelPlayAdSize.BANNER)
             .SetPosition(LevelPlayBannerPosition.BottomCenter)
             .SetDisplayOnLoad(false)
-            .SetRespectSafeArea(false)
-            .SetPlacementName("bannerPlacement");
+            .SetRespectSafeArea(false);
 
         bannerAd = new LevelPlayBannerAd(BannerAdId, configBuilder.Build());
 
@@ -260,6 +263,24 @@ public class AdsService : IAdsService, IDisposable
         isBannerLoaded = false;
 
         string errorString = error.ToString();
+
+        // Check for Error 626 - Invalid ad unit id
+        if (errorString.Contains("626") || errorString.Contains("Invalid ad unit id"))
+        {
+            Debug.LogError($"[AdsService] CRITICAL: Invalid ad unit ID error (626)!");
+            Debug.LogError($"[AdsService] Placement ID used: {BannerAdId}");
+            Debug.LogError($"[AdsService] Bundle ID: {Application.identifier}");
+            Debug.LogError($"[AdsService] Platform: {Application.platform}");
+            Debug.LogError($"[AdsService] Please verify in LevelPlay dashboard:");
+            Debug.LogError($"[AdsService]   1. Placement '{BannerAdId}' exists and is ACTIVE");
+            Debug.LogError($"[AdsService]   2. Placement is configured for BANNER ad type (not interstitial)");
+            Debug.LogError($"[AdsService]   3. Placement is linked to app with bundle ID: {Application.identifier}");
+            Debug.LogError($"[AdsService]   4. Placement is enabled for ANDROID platform");
+            Debug.LogError($"[AdsService]   5. App status is Published/Active in LevelPlay");
+            // Don't retry for invalid ad unit ID - it won't work
+            bannerRetryCount = 0;
+            return;
+        }
 
         // Check if it's a "No fill" error (error code 509)
         // No fill means no ad is available - don't spam retries

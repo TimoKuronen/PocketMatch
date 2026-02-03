@@ -10,7 +10,6 @@ public class DropCommand : ICommand
     private readonly TileView[,] gridViews;
     private readonly int width, height;
     private readonly Func<Vector2Int, Vector2> GridToUIPos;
-
     private const float dropDuration = 0.25f;
 
     public DropCommand(TileData[,] data, TileView[,] views, int w, int h, Func<Vector2Int, Vector2> toUI)
@@ -24,173 +23,114 @@ public class DropCommand : ICommand
 
     public IEnumerator Execute()
     {
-        bool moved;
-        List<Tweener> tweens = new();
-
+        bool movedAtLeastOne;
         do
         {
-            moved = false;
-            tweens.Clear();
+            List<Tweener> tweens = new();
+            movedAtLeastOne = false;
 
-            // bottom-up: y = 1 .. height-1
+            // 1. VERTICAL PASS (Top-Down to ensure flow)
             for (int y = 1; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    if (!IsCandidateToMove(x, y))
-                        continue;
-
-                    Vector2Int currentPos = new Vector2Int(x, y);
-
-                    // 1) Try straight down first
-                    // SHOULD PRIORITIZE THESE BUT DIAGONAL SLIDES OVERPOWER - FIX!
-                    int fallTo = y;
-                    while (fallTo > 0 && IsCellEmpty(x, fallTo - 1))
-                        fallTo--;
-
-                    if (fallTo != y)
-                    {
-                        MoveTile(currentPos, new Vector2Int(x, fallTo), tweens);
-                        moved = true;
-                        continue;
-                    }
-
-                    // 2) Try diagonal slides (left then right) � only if target cannot be filled vertically
-                    // LEFT
-                    int leftTx = x - 1;
-                    int leftTy = y - 1;
-                    if (InBounds(leftTx, leftTy) && IsCellEmpty(leftTx, leftTy))
-                    {
-                        // check the target column/path: if no normal tile can drop into left target, allow slide
-                        if (!HasDroppableAbove(leftTx, leftTy))
-                        {
-                            MoveTile(currentPos, new Vector2Int(leftTx, leftTy), tweens);
-                            moved = true;
-                            continue;
-                        }
-                    }
-
-                    // RIGHT
-                    int rightTx = x + 1;
-                    int rightTy = y - 1;
-                    if (InBounds(rightTx, rightTy) && IsCellEmpty(rightTx, rightTy))
-                    {
-                        if (!HasDroppableAbove(rightTx, rightTy))
-                        {
-                            MoveTile(currentPos, new Vector2Int(rightTx, rightTy), tweens);
-                            moved = true;
-                            continue;
-                        }
-                    }
+                    if (TryVerticalDrop(x, y, tweens)) movedAtLeastOne = true;
                 }
             }
 
-            if (moved)
+            // 2. DIAGONAL PASS (Only if no vertical moves happened in this iteration)
+            if (!movedAtLeastOne)
+            {
+                // Process top-to-bottom to prevent "chain stealing"
+                for (int y = 1; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        if (TryDiagonalSlide(x, y, tweens))
+                        {
+                            movedAtLeastOne = true;
+                            break; // Do one slide at a time to maintain control
+                        }
+                    }
+                    if (movedAtLeastOne) break;
+                }
+            }
+
+            if (movedAtLeastOne)
                 yield return DOTween.Sequence().AppendInterval(dropDuration).WaitForCompletion();
 
-        } while (moved && tweens.Count > 0);
+        } while (movedAtLeastOne);
     }
 
-    /// <summary>
-    /// A tile is candidate to move if it's a Normal tile, or a Destroyable that has been destroyed.
-    /// Intact Destroyables and Blocked cells do not move.
-    /// </summary>
-    private bool IsCandidateToMove(int x, int y)
+    private bool TryVerticalDrop(int x, int y, List<Tweener> tweens)
     {
-        if (!InBounds(x, y))
-            return false;
-
-        var d = gridData[x, y];
-
-        if (d == null)
-            return false;
-        if (d.State == TileState.Normal)
+        if (!IsCandidateToMove(x, y)) return false;
+        
+        int fallTo = y - 1;
+        if (InBounds(x, fallTo) && IsCellEmpty(x, fallTo))
+        {
+            MoveTile(new Vector2Int(x, y), new Vector2Int(x, fallTo), tweens);
             return true;
-        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed)
-            return true;
-
+        }
         return false;
     }
 
-    /// <summary>
-    /// Check whether any normal tile above (in same column) can drop vertically into (x,y).
-    /// Used to avoid diagonal sliding when a vertical droppable exists.
-    /// </summary>
-    private bool HasDroppableAbove(int x, int y)
+    private bool TryDiagonalSlide(int x, int y, List<Tweener> tweens)
     {
-        if (!InBounds(x, y))
-            return false;
+        if (!IsCandidateToMove(x, y)) return false;
 
+        // Check Left then Right
+        int[] directions = { -1, 1 };
+        foreach (int dx in directions)
+        {
+            int tx = x + dx;
+            int ty = y - 1;
+
+            if (InBounds(tx, ty) && IsCellEmpty(tx, ty))
+            {
+                // CRITICAL: Only slide if the column ABOVE the target is BLOCKED.
+                // If it's empty, we wait for a vertical drop/spawn.
+                if (IsPathToSpawnerBlocked(tx, ty))
+                {
+                    MoveTile(new Vector2Int(x, y), new Vector2Int(tx, ty), tweens);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private bool IsPathToSpawnerBlocked(int x, int y)
+    {
+        // Scan from the cell up to the top.
+        // If we hit a "Blocked" tile, the column cannot be filled vertically.
+        // If we reach the top without hitting a wall, it's NOT blocked.
         for (int yy = y + 1; yy < height; yy++)
         {
-            var above = gridData[x, yy];
-
-            // empty space � not a source tile; continue scanning
-            if (above == null || above.State == TileState.Empty)
-                continue;
-
-            // If we hit an intact blocker, the path is blocked and nothing above can reach target
-            if (above.State == TileState.Blocked)
-                return false;
-            if (above.State == TileState.Destroyable && above is DestroyableTileData dd && !dd.IsDestroyed)
-                return false;
-
-            // If we found a normal tile, check the vertical path between that tile and the target.
-            if (above.State == TileState.Normal)
+            var tile = gridData[x, yy];
+            if (tile != null)
             {
-                bool pathClear = true;
-                for (int checkY = yy - 1; checkY >= y; checkY--)
-                {
-                    var mid = gridData[x, checkY];
-
-                    // If there's a normal tile or an intact blocker in the path, it's not clear
-                    if (mid != null && mid.State == TileState.Normal)
-                    {
-                        pathClear = false;
-                        break;
-                    }
-                    if (mid != null && mid.State == TileState.Blocked)
-                    {
-                        pathClear = false;
-                        break;
-                    }
-                    if (mid is DestroyableTileData mdd && !mdd.IsDestroyed)
-                    {
-                        pathClear = false;
-                        break;
-                    }
-                    // if mid is null or Empty or destroyed destroyable -> that's fine, continue
-                }
-
-                if (pathClear)
-                    return true;
-
-                // If not pathClear, continue scanning upwards � maybe a different tile can drop
-                continue;
+                if (tile.State == TileState.Blocked) return true;
+                if (tile is DestroyableTileData dd && !dd.IsDestroyed) return true;
+                // If there's a normal tile, it will eventually fall down, so the path isn't "blocked"
+                if (tile.State == TileState.Normal) return false;
             }
-
-            // If it's any other state, just continue scanning
         }
+        return false; // Path to spawner is clear (or just empty)
+    }
 
-        // No suitable normal tile above with a clear vertical path
-        return false;
+    private bool IsCandidateToMove(int x, int y)
+    {
+        if (!InBounds(x, y)) return false;
+        var d = gridData[x, y];
+        return d != null && (d.State == TileState.Normal || (d is DestroyableTileData dd && dd.IsDestroyed));
     }
 
     private bool IsCellEmpty(int x, int y)
     {
-        if (!InBounds(x, y))
-            return false;
-
+        if (!InBounds(x, y)) return false;
         var d = gridData[x, y];
-
-        if (d == null)
-            return true;
-        if (d.State == TileState.Empty)
-            return true;
-        if (d.State == TileState.Destroyable && d is DestroyableTileData dd && dd.IsDestroyed)
-            return true;
-
-        return false;
+        return d == null || d.State == TileState.Empty || (d is DestroyableTileData dd && dd.IsDestroyed);
     }
 
     private bool InBounds(int x, int y) => x >= 0 && x < width && y >= 0 && y < height;
@@ -200,23 +140,13 @@ public class DropCommand : ICommand
         var data = gridData[from.x, from.y];
         var view = gridViews[from.x, from.y];
 
-        if (view == null || data == null)
-        {
-            Debug.LogError(data + " is null when trying to move to position " + from.ToString());
-            Debug.LogError(view + " is null");
-            Debug.Break();
-        }
         gridData[to.x, to.y] = data;
         gridViews[to.x, to.y] = view;
-
         gridData[from.x, from.y] = new TileData(TileType.Red, from, TilePower.None, TileState.Empty);
         gridViews[from.x, from.y] = null;
 
         data.GridPosition = to;
         view.Data.GridPosition = to;
-
-        RectTransform rect = (RectTransform)view.transform;
-        rect.DOKill();
-        tweens.Add(rect.DOAnchorPos(GridToUIPos(to), dropDuration).SetEase(Ease.OutCubic));
+        tweens.Add(((RectTransform)view.transform).DOAnchorPos(GridToUIPos(to), dropDuration).SetEase(Ease.OutCubic));
     }
 }

@@ -4,11 +4,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using VContainer;
 
 public class GridController : MonoBehaviour, IGridController
 {
+    #region Fields & Properties
+
     [Header("Settings")]
     [SerializeField] private GridControllerSettings settings;
     [SerializeField] private RectTransform tileContainer;
@@ -19,11 +20,23 @@ public class GridController : MonoBehaviour, IGridController
     private MapData mapData;
     private TilePoolManager tilePoolManager;
     private BoardStateEvaluator boardStateEvaluator;
+    private IGameSessionService gameSessionService;
+    private IAnalyticsService analyticsService;
+
+    private int width;
+    private int height;
+    private float tileSize;
+    private bool allowInitialMatches;
+
     public bool IsBoardInitialized { get; private set; } = false;
     public bool IsProcessingTiles { get; private set; }
     public MatchFinder MatchFinder { get; private set; }
     public GridContext GridContext { get; private set; }
     public BoardStateEvaluator BoardEvaluator => boardStateEvaluator;
+
+    #endregion
+
+    #region Events
 
     public event Action ActionTaken;
     public event Action TileMoved;
@@ -35,28 +48,15 @@ public class GridController : MonoBehaviour, IGridController
     public event Action<TileData> PowerTileCreated;
     public event Action OnBoardShuffle;
 
-    private IGameSessionService gameSessionService;
-    private IAnalyticsService analyticsService;
+    #endregion
 
-    // Cached settings values
-    private int width;
-    private int height;
-    private float tileSize;
-    private bool allowInitialMatches;
+    #region Unity Lifecycle
 
     [Inject]
     public void Construct(IGameSessionService gameSessionService, IAnalyticsService analyticsService)
     {
         this.gameSessionService = gameSessionService;
         this.analyticsService = analyticsService;
-    }
-
-    private void Update()
-    {
-        if (Keyboard.current.dKey.wasPressedThisFrame)
-        {
-            Debug.Log(GameSignals.IsSessionLoaded);
-        }
     }
 
     private IEnumerator Start()
@@ -67,13 +67,10 @@ public class GridController : MonoBehaviour, IGridController
             yield break;
         }
 
-        // Cache settings values
         width = settings.width;
         height = settings.height;
         tileSize = settings.tileSize;
         allowInitialMatches = settings.allowInitialMatches;
-
-        // Debug.Log("GridController waiting..."); 
 
         yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
 
@@ -110,10 +107,16 @@ public class GridController : MonoBehaviour, IGridController
         yield return new WaitForSeconds(0.5f);
 
         BoardUpdated?.Invoke(gridData);
-
         IsBoardInitialized = true;
     }
 
+    #endregion
+
+    #region Public Methods
+
+    /// <summary>
+    /// Attempts to swap two adjacent tiles and checks for valid matches.
+    /// </summary>
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
     {
         Vector2Int target = origin + dir;
@@ -142,58 +145,9 @@ public class GridController : MonoBehaviour, IGridController
         StartCoroutine(CheckSwapMatch(origin, target, tileA, tileB, viewA, viewB, origPosA, origPosB));
     }
 
-    private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector2 origPosA, Vector2 origPosB)
-    {
-        IsProcessingTiles = true;
-        TileMoved?.Invoke();
-
-        // Wait briefly for the swap animation to complete visually
-        yield return new WaitForSeconds(0.2f);
-
-        // Create a temp copy to test for matches
-        var tempGridData = gridData.Clone() as TileData[,];
-        tempGridData[origin.x, origin.y] = tileB;
-        tempGridData[target.x, target.y] = tileA;
-
-        // --- Handle power tiles immediately ---
-        if (tileA.Power != TilePower.None || tileB.Power != TilePower.None)
-        {
-            SwapTilesInData(origin, target, tileA, tileB);
-
-            if (tileA.Power != TilePower.None)
-                StartCoroutine(TriggerPowerEvent(tileA, tileB.Type));
-
-            if (tileB.Power != TilePower.None)
-                StartCoroutine(TriggerPowerEvent(tileB, tileA.Type));
-
-            yield break;
-        }
-
-        // --- Check for valid matches after the swap ---
-        var matches = MatchFinder.GetMatchGroups(tempGridData);
-        if (matches.Count > 0)
-        {
-            SwapTilesInData(origin, target, tileA, tileB);
-            StartCoroutine(MatchCycle());
-            ActionTaken?.Invoke();
-        }
-        else
-        {
-            TileSwapError?.Invoke();
-
-            // swap them back to their original positions
-            var revertCommand = new SwapCommand(viewA, viewB, origPosB, origPosA, 0.25f, Ease.OutBack);
-
-            yield return revertCommand.Execute();
-
-            IsProcessingTiles = false;
-        }
-    }
-
     /// <summary>
-    /// Input based trigger for tile power.
+    /// Manually triggers a power tile's effect.
     /// </summary>
-    /// <param name="tileView"></param>
     public void AttemptPowerTrigger(TileView tileView)
     {
         if (tileView == null || tileView.Data == null || tileView.Data.Power == TilePower.None)
@@ -204,106 +158,56 @@ public class GridController : MonoBehaviour, IGridController
         }
 
         ActionTaken?.Invoke();
-
         StartCoroutine(TriggerPowerEvent(tileView.Data, TileType.None));
     }
 
-    private IEnumerator TriggerPowerEvent(TileData tileData, TileType matchedWithTile)
-    {
-        GridContext.TriggerTilePower(tileData.GridPosition, matchedWithTile);
-        commandInvoker.ExecuteAll();
-
-        //Debug.Log($"Triggering power for tile at {tileData.GridPosition} with power {tileData.Power}");
-
-        // Wait until all destroy commands from power are complete
-        //  Debug.Log("# 1 Waiting for commandInvoker to empty...");
-        yield return new WaitUntil(() => commandInvoker.IsEmpty());
-        // Debug.Log("CommandInvoker empty!");
-        //  Debug.Log("# 1 Waiting for tweens to finish...");
-        yield return new WaitUntil(() => !AnyTileTweening());
-        // Debug.Log("Tweens done!");
-
-        // now that grid is cleared, run Drop and Refill
-        commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData));
-        //commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
-        //commandInvoker.AddCommand(new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop));
-        commandInvoker.ExecuteAll();
-
-        //  Debug.Log("# 2 Waiting for commandInvoker to empty...");
-        yield return new WaitUntil(() => commandInvoker.IsEmpty());
-        // Debug.Log("CommandInvoker empty!");
-        // Debug.Log("# 2 Waiting for tweens to finish...");
-        yield return new WaitUntil(() => !AnyTileTweening());
-        //Debug.Log("Tweens done!");
-
-        // Finally continue match cycle
-        StartCoroutine(MatchCycle());
-    }
-
+    /// <summary>
+    /// Swaps tile data and views between two grid positions.
+    /// </summary>
     public void SwapTilesInData(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB)
     {
         gridData[origin.x, origin.y] = tileB;
         gridData[target.x, target.y] = tileA;
-
-        tileA.GridPosition = target;
-        tileB.GridPosition = origin;
 
         var viewA = gridViews[origin.x, origin.y];
         var viewB = gridViews[target.x, target.y];
 
         gridViews[origin.x, origin.y] = viewB;
         gridViews[target.x, target.y] = viewA;
+
+        GridHelperMethods.UpdateTilePosition(tileA, viewA, target);
+        GridHelperMethods.UpdateTilePosition(tileB, viewB, origin);
     }
 
+    /// <summary>
+    /// Main match resolution cycle that handles gravity, refilling, matching, and cascading effects.
+    /// </summary>
     public IEnumerator MatchCycle()
     {
-        //Debug.Log("Starting match cycle...");
         IsProcessingTiles = true;
         int cycleCount = 0;
-
         bool changed;
 
         do
         {
             changed = false;
 
-            // --- 1. Drop existing tiles ---
-            //yield return new DropCommand(gridData, gridViews, width, height, GridToUIPos).Execute();
-
-            // Debug.Log("Board after drop:");
-
-            // --- 2. Refill empty cells ---
-            //yield return new RefillCommand(gridData, gridViews, width, height, CreateTileAt, GridToUIPos, TileDrop).Execute();
-
             yield return new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData).Execute();
-
-            //Debug.Log("Board after refill:");
-
-            // --- 3. Wait for animations ---
-            //Debug.Log("Waiting for tweens to finish...");
             yield return new WaitUntil(() => !AnyTileTweening());
-            //Debug.Log("Tweens done!");
 
-            // --- 4. If any refillable cells are still empty, keep looping ---
             if (HasEmptyNormalSlots())
             {
-                //Debug.Log("Still has empty slots after refill, continuing cycle...");
                 changed = true;
                 cycleCount++;
-                continue; // don�t check matches until board is physically stable
+                continue;
             }
 
-            // --- 5. Find matches ---
             var matchGroups = MatchFinder.GetMatchGroups(gridData);
             if (matchGroups.Count > 0)
             {
                 changed = true;
 
-                // Debug.Log($"Found more match groups.");
-                // Adjacent destroyables
                 var destroyedNeighbours = AdjacentDamageProcessor.GetAdjacentDestroyables(matchGroups, gridData);
-
-                // Track power tile creation
                 var powerTilePositions = new HashSet<Vector2Int>();
 
                 var createPowerTileCommand = new CreatePowerTileCommand(
@@ -317,25 +221,21 @@ public class GridController : MonoBehaviour, IGridController
                     }
                 );
 
-                // Execute power tile creation immediately
                 yield return createPowerTileCommand.Execute();
 
-                // Filter matches (exclude power tile positions)
                 var flatMatches = matchGroups
-                  .SelectMany(g => g) // Flatten all match groups into a single sequence of tile positions
-                  .Distinct() // Remove any duplicate tile positions
-                  .Where(pos => !powerTilePositions.Contains(pos)) // Exclude positions of power tiles we just created
-                  .Concat(destroyedNeighbours) // Add tiles that should be destroyed due to adjacency or other effects
-                  .Distinct() // Remove duplicates again (some neighbours may already be in matches)
-                  .ToList(); // Materialize into a List<Vector2Int>
+                    .SelectMany(g => g)
+                    .Distinct()
+                    .Where(pos => !powerTilePositions.Contains(pos))
+                    .Concat(destroyedNeighbours)
+                    .Distinct()
+                    .ToList();
 
-                // Destroy tiles
                 TileSwapped?.Invoke();
                 yield return new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext).Execute();
             }
 
             cycleCount++;
-            //Debug.Log($"Match cycle iteration {cycleCount} complete.");
 
         } while (changed);
 
@@ -344,10 +244,9 @@ public class GridController : MonoBehaviour, IGridController
 
         if (cycleCount > 2)
         {
-            //Debug.Log($"Extra automated matches occurred: {cycleCount - 2} extra cycles.");
             analyticsService.LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
             {
-                { "level_name", mapData?.GetLevelName() ?? "Unknown" },
+                { "level_name", mapData.GetLevelName() ?? "Unknown" },
                 { "moves_spent", cycleCount-2 }
             });
         }
@@ -356,15 +255,131 @@ public class GridController : MonoBehaviour, IGridController
         if (moves.TotalMoves == 0)
         {
             Debug.Log($"No moves left! (Swaps: {moves.SwapMoveCount}, Power: {moves.PowerTileMoveCount})");
-
             OnBoardShuffle?.Invoke();
             boardStateEvaluator.ShuffleBoard();
         }
     }
 
     /// <summary>
-    /// Checks if there are any empty cells that could be refilled (normal slots only).
+    /// Converts grid coordinates to UI anchored position.
     /// </summary>
+    public Vector2 GridToUIPos(Vector2Int gridPos)
+    {
+        float boardWidth = width * tileSize;
+        float boardHeight = height * tileSize;
+
+        float offsetX = -tileContainer.pivot.x * tileContainer.rect.width + (tileContainer.rect.width - boardWidth) / 2f;
+        float offsetY = -tileContainer.pivot.y * tileContainer.rect.height + (tileContainer.rect.height - boardHeight) / 2f;
+
+        float x = gridPos.x * tileSize + offsetX + tileSize / 2f;
+        float y = gridPos.y * tileSize + offsetY + tileSize / 2f;
+
+        return new Vector2(x, y);
+    }
+
+    /// <summary>
+    /// Debug method to destroy a single tile and trigger match cycle.
+    /// </summary>
+    public void DestroyTargetTile(Vector2Int origin)
+    {
+        List<Vector2Int> flatMatches = new();
+        flatMatches.Add(origin);
+
+        TileSwapped?.Invoke();
+
+        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext));
+        commandInvoker.ExecuteAll();
+
+        StartCoroutine(MatchCycle());
+    }
+
+    #endregion
+
+    #region Private Methods - Tile Operations
+
+    private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector2 origPosA, Vector2 origPosB)
+    {
+        IsProcessingTiles = true;
+        TileMoved?.Invoke();
+
+        yield return new WaitForSeconds(0.2f);
+
+        var tempGridData = gridData.Clone() as TileData[,];
+        tempGridData[origin.x, origin.y] = tileB;
+        tempGridData[target.x, target.y] = tileA;
+
+        if (tileA.Power != TilePower.None || tileB.Power != TilePower.None)
+        {
+            SwapTilesInData(origin, target, tileA, tileB);
+
+            if (tileA.Power != TilePower.None)
+                StartCoroutine(TriggerPowerEvent(tileA, tileB.Type));
+
+            if (tileB.Power != TilePower.None)
+                StartCoroutine(TriggerPowerEvent(tileB, tileA.Type));
+
+            yield break;
+        }
+
+        var matches = MatchFinder.GetMatchGroups(tempGridData);
+        if (matches.Count > 0)
+        {
+            SwapTilesInData(origin, target, tileA, tileB);
+            StartCoroutine(MatchCycle());
+            ActionTaken?.Invoke();
+        }
+        else
+        {
+            TileSwapError?.Invoke();
+            var revertCommand = new SwapCommand(viewA, viewB, origPosB, origPosA, Ease.OutBack);
+            yield return revertCommand.Execute();
+            IsProcessingTiles = false;
+        }
+    }
+
+    private IEnumerator TriggerPowerEvent(TileData tileData, TileType matchedWithTile)
+    {
+        GridContext.TriggerTilePower(tileData.GridPosition, matchedWithTile);
+        commandInvoker.ExecuteAll();
+
+        yield return new WaitUntil(() => commandInvoker.IsEmpty());
+        yield return new WaitUntil(() => !AnyTileTweening());
+
+        commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData));
+        commandInvoker.ExecuteAll();
+
+        yield return new WaitUntil(() => commandInvoker.IsEmpty());
+        yield return new WaitUntil(() => !AnyTileTweening());
+
+        StartCoroutine(MatchCycle());
+    }
+
+    private TileView CreateTileAt(int x, int y)
+    {
+        var data = gridData[x, y];
+        if (data == null)
+        {
+            Debug.LogError($"Attempted to create tile at ({x}, {y}) but gridData is null.");
+            return null;
+        }
+
+        data.State = TileState.Normal;
+        data.Type = GridHelperMethods.GetRandomTileType(mapData);
+
+        var view = tilePoolManager.GetForState(TileState.Normal);
+        view.ViewKind = TileState.Normal;
+        view.transform.localScale = Vector3.one;
+        view.Init(data);
+        view.gameObject.name = $"Tile_{x}_{y}";
+
+        gridViews[x, y] = view;
+        return view;
+    }
+
+    #endregion
+
+    #region Private Methods - Grid State
+
     private bool HasEmptyNormalSlots()
     {
         for (int x = 0; x < width; x++)
@@ -372,9 +387,7 @@ public class GridController : MonoBehaviour, IGridController
             for (int y = 0; y < height; y++)
             {
                 var data = gridData[x, y];
-                if (data == null)
-                    return true; // refillable hole
-                if (data.State == TileState.Empty)
+                if (data == null || data.State == TileState.Empty)
                     return true;
             }
         }
@@ -395,38 +408,62 @@ public class GridController : MonoBehaviour, IGridController
         return false;
     }
 
-    private TileView CreateTileAt(int x, int y)
+    #endregion
+
+    #region Private Methods - Grid Generation
+
+    private void GenerateGrid(bool allowMatches)
     {
-        var data = gridData[x, y];
-        if (data == null)
+        ClearBoard();
+
+        gridData = LevelBuilder.BuildLevelFromMapData(mapData);
+        gridViews = new TileView[gridData.GetLength(0), gridData.GetLength(1)];
+
+        for (int x = 0; x < gridData.GetLength(0); x++)
         {
-            Debug.Log($"Attempted to create tile at ({x}, {y}) but gridData is null.");
-
-            for (int i = 0; i < gridData.GetLength(0); i++)
+            for (int y = 0; y < gridData.GetLength(1); y++)
             {
-                for (int z = 0; z < gridData.GetLength(1); z++)
-                {
-                    if (data == null)
-                    {
-                        Debug.Log($"Tile is null or blocked");
-                    }
-                    else Debug.Log($"Tile is normal");
-                }
+                var data = gridData[x, y];
+                if (data == null || data.State != TileState.Normal)
+                    continue;
+                data.Type = GridHelperMethods.GetRandomTileType(mapData);
             }
-            return null;
         }
-        data.State = TileState.Normal;
-        data.Type = GetRandomTileType();
 
-        var view = tilePoolManager.GetForState(TileState.Normal);
-        view.ViewKind = TileState.Normal;
-        view.transform.localScale = Vector3.one;
-        view.Init(data);
-        view.gameObject.name = $"Tile_{x}_{y}\"";
+        if (!allowMatches)
+        {
+            bool hasMatches;
+            int safeguard = 100;
 
-        gridViews[x, y] = view;
+            do
+            {
+                for (int x = 0; x < gridData.GetLength(0); x++)
+                {
+                    for (int y = 0; y < gridData.GetLength(1); y++)
+                    {
+                        var data = gridData[x, y];
+                        if (data == null || data.State != TileState.Normal) continue;
+                        data.Type = GridHelperMethods.GetRandomTileType(mapData);
+                    }
+                }
 
-        return view;
+                hasMatches = MatchFinder.GetMatchGroups(gridData).Count > 0;
+                safeguard--;
+                if (safeguard <= 0)
+                {
+                    Debug.LogWarning("Safeguard hit: could not generate grid without matches.");
+                    break;
+                }
+            } while (hasMatches);
+        }
+
+        if (tileSize <= 0)
+        {
+            tileSize = settings.normalTilePrefab.GetComponent<RectTransform>().sizeDelta.x;
+        }
+
+        LevelBuilder.SpawnGridViews(gridData, gridViews, tilePoolManager, tileContainer, this);
+        LevelBuilder.SpawnGridFrames(width, height, settings.tileFramePrefab, tileContainer, this);
     }
 
     private void ClearBoard()
@@ -444,77 +481,6 @@ public class GridController : MonoBehaviour, IGridController
         gridViews = null;
     }
 
-    private void GenerateGrid(bool allowMatches)
-    {
-        ClearBoard();
-
-        gridData = LevelBuilder.BuildLevelFromMapData(mapData);
-        gridViews = new TileView[gridData.GetLength(0), gridData.GetLength(1)];
-
-        // Randomize normal tiles
-        for (int x = 0; x < gridData.GetLength(0); x++)
-        {
-            for (int y = 0; y < gridData.GetLength(1); y++)
-            {
-                var data = gridData[x, y];
-                if (data == null || data.State != TileState.Normal)
-                    continue;
-                data.Type = GetRandomTileType();
-            }
-        }
-
-        if (!allowMatches)
-        {
-            bool hasMatches;
-            int safeguard = 100;
-
-            do
-            {
-                for (int x = 0; x < gridData.GetLength(0); x++)
-                {
-                    for (int y = 0; y < gridData.GetLength(1); y++)
-                    {
-                        var data = gridData[x, y];
-                        if (data == null || data.State != TileState.Normal) continue;
-                        data.Type = GetRandomTileType();
-                    }
-                }
-
-                hasMatches = MatchFinder.GetMatchGroups(gridData).Count > 0;
-                safeguard--;
-                if (safeguard <= 0)
-                {
-                    Debug.LogWarning("Safeguard hit: could not generate grid without matches.");
-                    break;
-                }
-            } while (hasMatches);
-        }
-
-        // Use RectTransform size for tile size if not set in ScriptableObject
-        if (tileSize <= 0)
-        {
-            tileSize = settings.normalTilePrefab.GetComponent<RectTransform>().sizeDelta.x;
-        }
-
-        LevelBuilder.SpawnGridViews(gridData, gridViews, tilePoolManager, tileContainer, this);
-        LevelBuilder.SpawnGridFrames(width, height, settings.tileFramePrefab, tileContainer, this);
-    }
-
-    public Vector2 GridToUIPos(Vector2Int gridPos)
-    {
-        float boardWidth = width * tileSize;
-        float boardHeight = height * tileSize;
-
-        // Pivot-corrected offset
-        float offsetX = -tileContainer.pivot.x * tileContainer.rect.width + (tileContainer.rect.width - boardWidth) / 2f;
-        float offsetY = -tileContainer.pivot.y * tileContainer.rect.height + (tileContainer.rect.height - boardHeight) / 2f;
-
-        float x = gridPos.x * tileSize + offsetX + tileSize / 2f;
-        float y = gridPos.y * tileSize + offsetY + tileSize / 2f;
-
-        return new Vector2(x, y);
-    }
-
     private void CenterCameraOnGrid()
     {
         float gridWidth = width * tileSize;
@@ -526,28 +492,5 @@ public class GridController : MonoBehaviour, IGridController
         Camera.main.orthographicSize = Mathf.Max(gridWidth, gridHeight) - 1;
     }
 
-    private TileType GetRandomTileType()
-    {
-        return mapData.AllowedTileColors[UnityEngine.Random.Range(0, mapData.AllowedTileColors.Length)];
-    }
-
-    /// <summary>
-    /// Used for debugging to destroy individual tiles without matches
-    /// </summary>
-    /// <param name="origin"></param>
-    public void DestroyTargetTile(Vector2Int origin)
-    {
-        List<Vector2Int> flatMatches = new();
-        var tileA = gridData[origin.x, origin.y];
-        flatMatches.Add(origin);
-
-        TileSwapped?.Invoke();
-
-        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext));
-        //commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed));
-        //commandInvoker.AddCommand(new DropCommand(gridData, gridViews, width, height, GridToUIPos));
-        commandInvoker.ExecuteAll();
-
-        StartCoroutine(MatchCycle());
-    }
+    #endregion
 }

@@ -8,16 +8,15 @@ public class SwapCommand : ICommand
     private readonly TileView viewB;
     private readonly Vector2 targetPosA;
     private readonly Vector2 targetPosB;
-    private readonly float duration;
+    private readonly float duration = 0.15f;
     private readonly Ease ease;
 
-    public SwapCommand(TileView a, TileView b, Vector2 targetPosA, Vector2 targetPosB, float duration = 0.15f, Ease ease = Ease.InOutQuad)
+    public SwapCommand(TileView a, TileView b, Vector2 targetPosA, Vector2 targetPosB, Ease ease = Ease.InOutQuad)
     {
         viewA = a;
         viewB = b;
         this.targetPosA = targetPosA;
         this.targetPosB = targetPosB;
-        this.duration = duration;
         this.ease = ease;
     }
 
@@ -26,8 +25,8 @@ public class SwapCommand : ICommand
         if (viewA == null || viewB == null)
             yield break;
 
-        var rectA = (RectTransform)viewA.transform;
-        var rectB = (RectTransform)viewB.transform;
+        var rectA = GridHelperMethods.GetRectTransform(viewA);
+        var rectB = GridHelperMethods.GetRectTransform(viewB);
 
         rectA.DOKill();
         rectB.DOKill();

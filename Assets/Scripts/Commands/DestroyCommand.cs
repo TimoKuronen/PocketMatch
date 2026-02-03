@@ -80,14 +80,13 @@ public class DestroyCommand : ICommand
             if (data.State == TileState.Destroyable && data is DestroyableTileData destroyable)
             {
                 if (!destroyable.IsDestroyed)
-                    continue; // not destroyed yet, skip this one
+                    continue;
 
-                gridData[pos.x, pos.y] = new TileData(TileType.Red, pos, TilePower.None, TileState.Empty);
+                gridData[pos.x, pos.y] = GridHelperMethods.CreateEmptyTile(pos);
             }
             else if (data.State == TileState.Normal)
             {
-                // Normal tiles become empty too
-                gridData[pos.x, pos.y] = new TileData(TileType.Red, pos, TilePower.None, TileState.Empty);
+                gridData[pos.x, pos.y] = GridHelperMethods.CreateEmptyTile(pos);
             }
 
             // Release the visual

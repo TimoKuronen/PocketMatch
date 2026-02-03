@@ -4,7 +4,6 @@ using UnityEngine.UI;
 public class TileView : MonoBehaviour
 {
     [SerializeField] private Image image;
-    [SerializeField] private ColorPalette colorPalette;
     [SerializeField] private TileIconCollection icons;
 
     public TileState ViewKind { get; set; }
@@ -36,7 +35,7 @@ public class TileView : MonoBehaviour
 
     private void UpdateColorOnDamage(int healthLeft)
     {
-        image.color = colorPalette.DamagedColor;
+        image.color = Color.grey;
     }
 
     private void OnDisable()

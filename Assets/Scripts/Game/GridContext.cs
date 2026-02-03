@@ -33,7 +33,7 @@ public class GridContext
 
     public bool IsInside(Vector2Int pos)
     {
-        return pos.x >= 0 && pos.x < Width && pos.y >= 0 && pos.y < Height;
+        return GridHelperMethods.IsInBounds(Width, Height, pos);
     }
 
     public void TriggerPower(TileData tile, TileType matchedWithTile)

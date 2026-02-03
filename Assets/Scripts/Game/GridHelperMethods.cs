@@ -89,7 +89,7 @@ public static class GridHelperMethods
     public static void UpdateTilePosition(TileData data, TileView view, Vector2Int newPosition)
     {
         data.GridPosition = newPosition;
-        if (view?.Data != null)
+        if (view.Data != null)
             view.Data.GridPosition = newPosition;
     }
 

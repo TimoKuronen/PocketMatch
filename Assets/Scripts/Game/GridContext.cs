@@ -50,18 +50,6 @@ public class GridContext
         tile.Power = TilePower.None;
     }
 
-    //public void TriggerPowersIn(IEnumerable<Vector2Int> positions)
-    //{
-    //    foreach (var pos in positions)
-    //    {
-    //        if (!IsInside(pos))
-    //            continue;
-
-    //        var data = Data[pos.x, pos.y];
-    //        TriggerPower(data);
-    //    }
-    //}
-
     public void TriggerTilePower(Vector2Int pos, TileType matchedWithTile)
     {
         if (!IsInside(pos))
@@ -101,8 +89,7 @@ public class GridContext
         if (toDestroy.Count > 0)
         {
             CommandInvoker.AddCommand(
-                new DestroyCommand(toDestroy, Views, Data, Pool, OnDestroy, this)
-            );
+                new DestroyCommand(toDestroy, Views, Data, Pool, OnDestroy, this));
         }
     }
 }

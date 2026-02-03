@@ -1,11 +1,11 @@
 using System;
-using VContainer.Unity;
 
-public interface ILevelManager : ITickable
+public interface ILevelManager
 {
-    static int MovesRemaining { get; }
-    Action<LevelManager> OnVictoryConditionsUpdated { get; set; }
+    int MovesRemaining { get; }
     MapData LocalMapData { get; }
+    VictoryConditions VictoryConditions { get; }
+    Action OnVictoryConditionsUpdated { get; set; }
     Action OnLevelWon { get; set; }
     Action OnLevelLost { get; set; }
 }

@@ -1,27 +1,40 @@
-using System.Collections;
-using UnityEngine;
+using System;
 using VContainer;
+using VContainer.Unity;
 
-public class ScoreService : IScoreService
+public class ScoreService : IScoreService, IStartable, IDisposable
 {
     private EventScoring eventScoring;
     private int collectedScore;
+    private int movesRemaining;
+    private int initialMoveLimit;
     private IGridController gridController;
 
     [Inject]
     public void Construct(IGridController gridController)
     {
         this.gridController = gridController;
-        CoroutineMonoBehavior.Instance.StartCoroutine(SubscribeToEvents());
-
         eventScoring = new EventScoring();
     }
 
-    private IEnumerator SubscribeToEvents()
+    public void Start()
     {
-        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
-
         gridController.PowerTileCreated += OnPowerTileCreated;
+        gridController.ActionTaken += OnActionTaken;
+        LevelEvents.OnLevelStarted += OnLevelStarted;
+    }
+
+    private void OnLevelStarted(object sender, LevelStartedEventArgs e)
+    {
+        // Reset score tracking for new level
+        collectedScore = 0;
+        initialMoveLimit = e.MoveLimit;
+        movesRemaining = e.MoveLimit;
+    }
+
+    private void OnActionTaken()
+    {
+        movesRemaining--;
     }
 
     private void OnPowerTileCreated(TileData tilePowerType)
@@ -45,9 +58,9 @@ public class ScoreService : IScoreService
 
     public int GetTotalScore()
     {
-        collectedScore += LevelManager.MovesRemaining * eventScoring.pointsPerUnusedMovement;
-
-        return collectedScore;
+        // Calculate bonus for unused moves
+        int bonusScore = movesRemaining * eventScoring.pointsPerUnusedMovement;
+        return collectedScore + bonusScore;
     }
 
     public void Dispose()
@@ -55,7 +68,9 @@ public class ScoreService : IScoreService
         if (gridController != null)
         {
             gridController.PowerTileCreated -= OnPowerTileCreated;
+            gridController.ActionTaken -= OnActionTaken;
         }
+        LevelEvents.OnLevelStarted -= OnLevelStarted;
     }
 }
 

@@ -7,12 +7,16 @@ public class GameLifetimeScope : LifetimeScope
     {
         builder.Register<IGameSessionService, GameSessionService>(Lifetime.Scoped);
         builder.Register<ILevelManager, LevelManager>(Lifetime.Scoped)
-            .As<ITickable>();
+            .As<IStartable>();
 
-        builder.Register<IScoreService, ScoreService>(Lifetime.Scoped);
+        builder.Register<IScoreService, ScoreService>(Lifetime.Scoped)
+            .As<IStartable>();
 
         builder.RegisterComponentInHierarchy<UI_GameMenu>();
+
         builder.RegisterComponentInHierarchy<GridController>()
             .As<IGridController>();
+        builder.RegisterComponentInHierarchy<GridAudioPlayer>()
+            .As<IStartable>();
     }
 }

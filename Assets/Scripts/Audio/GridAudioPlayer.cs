@@ -1,8 +1,9 @@
 using System.Collections;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
-public class GridAudioPlayer : MonoBehaviour
+public class GridAudioPlayer : MonoBehaviour, IStartable
 {
     [SerializeField] private AudioCue tileMoveAudio;
     [SerializeField] private AudioCue tileHitAudio;
@@ -30,12 +31,36 @@ public class GridAudioPlayer : MonoBehaviour
         this.gridController = gridController;
     }
 
-    private IEnumerator Start()
+    public void Start()
     {
-        yield return new WaitUntil(() => gridController != null && gridController.IsBoardInitialized);
-
         audioSource = GetComponent<AudioSource>();
 
+        // Subscribe to board initialization event instead of polling
+        if (gridController != null)
+        {
+            gridController.BoardUpdated += OnBoardInitialized;
+            
+            // If board is already initialized, subscribe to events immediately
+            if (gridController.IsBoardInitialized)
+            {
+                OnBoardInitialized(null);
+            }
+        }
+
+        // Level manager events can be subscribed immediately
+        if (levelManager != null)
+        {
+            levelManager.OnLevelWon += PlayLevelWonAudio;
+            levelManager.OnLevelLost += PlayLevelLostAudio;
+        }
+    }
+
+    private void OnBoardInitialized(TileData[,] boardData)
+    {
+        // Unsubscribe from initialization event
+        gridController.BoardUpdated -= OnBoardInitialized;
+
+        // Subscribe to grid controller events
         gridController.TileDrop += PlayHitAudio;
         gridController.TileSwapped += PlayMatchAudio;
         gridController.TileSwapError += PlaySwitchErrorAudio;
@@ -44,9 +69,6 @@ public class GridAudioPlayer : MonoBehaviour
         gridController.PowerTileCreated += PlayPowerTileCreationAudio;
         gridController.GridContext.OnSpecialTileTriggered += PlaySpecialTileAudio;
         gridController.OnBoardShuffle += PlayShuffleAudio;
-
-        levelManager.OnLevelWon += PlayLevelWonAudio;
-        levelManager.OnLevelLost += PlayLevelLostAudio;
     }
 
     private void PlaySpecialTileAudio(TileData data)

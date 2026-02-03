@@ -84,6 +84,10 @@ public class GravityCommand : ICommand
         } while (boardChanged);
     }
 
+    /// <summary>
+    /// Attempts to slide a tile diagonally down-left or down-right when its column is blocked from above.
+    /// Only slides if the target position is empty and permanently blocked from spawners.
+    /// </summary>
     private bool TryWaterfallSlide(int x, int y, List<Tweener> tweens)
     {
         int[] sideOffsets = { -1, 1 };
@@ -104,6 +108,10 @@ public class GravityCommand : ICommand
         return false;
     }
 
+    /// <summary>
+    /// Checks if the column above position (x,y) is permanently blocked, preventing tiles from spawning at the top.
+    /// Returns true if any blocked or intact destroyable tile exists above.
+    /// </summary>
     private bool IsPathToSpawnerBlocked(int x, int y)
     {
         for (int checkY = y + 1; checkY < height; checkY++)
@@ -115,6 +123,9 @@ public class GravityCommand : ICommand
         return false;
     }
 
+    /// <summary>
+    /// Spawns a new tile at the top of the column (x, height) and animates it down to position (x, y).
+    /// </summary>
     private void SpawnTile(int x, int y, List<Tweener> tweens)
     {
         if (gridData[x, y] == null)
@@ -130,6 +141,9 @@ public class GravityCommand : ICommand
         tweens.Add(rect.DOAnchorPos(GridToUIPos(new Vector2Int(x, y)), stepDuration).SetEase(Ease.OutCubic));
     }
 
+    /// <summary>
+    /// Moves tile data and view from one grid position to another, clears the old position, and animates the movement.
+    /// </summary>
     private void MoveTile(Vector2Int from, Vector2Int to, List<Tweener> tweens)
     {
         var data = gridData[from.x, from.y];

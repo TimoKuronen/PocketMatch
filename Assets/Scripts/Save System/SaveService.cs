@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
-public class SaveService : ISaveService, IDisposable
+public class SaveService : ISaveService, IStartable, IDisposable
 {
     private readonly string saveFile = Path.Combine(Application.persistentDataPath, "save.dat");
     private readonly string settingsFile = Path.Combine(Application.persistentDataPath, "settings.dat");
@@ -16,17 +17,26 @@ public class SaveService : ISaveService, IDisposable
 
     private CloudSaveService cloud;
     private bool cloudInitialized = false;
+    private IObjectResolver objectResolver;
 
     // ------------------------------
     // CONSTRUCTOR (VContainer Inject)
     // ------------------------------
     [Inject]
-    public void Construct()
+    public void Construct(IObjectResolver objectResolver)
     {
+        this.objectResolver = objectResolver;
+        
         cloud = new CloudSaveService();
 
         Load(); // Load local immediately (never wait for cloud)
         Debug.Log("[SaveService] Local save loaded");
+    }
+
+    public void Start()
+    {
+        // Subscribe to level completion events
+        LevelEvents.OnLevelCompleted += OnLevelCompleted;
     }
 
     // ---------------------------------------
@@ -226,7 +236,35 @@ public class SaveService : ISaveService, IDisposable
         return sr.ReadToEnd();
     }
 
-    public void Dispose() { }
+    private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
+    {
+        // Only update save data if level cap is not reached
+        if (!e.IsLevelCapReached)
+        {
+            // Resolve IScoreService from current scope (GameLifetimeScope) when handling event
+            // This works because the event is raised during gameplay when GameLifetimeScope is active
+            try
+            {
+                var scoreService = objectResolver.Resolve<IScoreService>();
+                PlayerData.nextLevelIndex++;
+                PlayerData.coins += scoreService.GetTotalScore();
+                Save();
+            }
+            catch (VContainerException ex)
+            {
+                Debug.LogWarning($"[SaveService] Could not resolve IScoreService: {ex.Message}. Score may not be saved.");
+            }
+        }
+        else
+        {
+            Debug.Log("[SaveService] Level cap reached, not incrementing level index.");
+        }
+    }
+
+    public void Dispose()
+    {
+        LevelEvents.OnLevelCompleted -= OnLevelCompleted;
+    }
 
     private const int CurrentVersion = 1;
 }

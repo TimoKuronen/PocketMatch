@@ -1,54 +1,54 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using VContainer;
 using VContainer.Unity;
 
-public class LevelManager : ILevelManager, IDisposable, ITickable
+public class LevelManager : ILevelManager, IDisposable, IStartable
 {
-    public static int MovesRemaining { get; private set; }
+    public int MovesRemaining { get; private set; }
     public MapData LocalMapData { get; private set; }
     public VictoryConditions VictoryConditions { get; private set; }
-    public Action<LevelManager> OnVictoryConditionsUpdated { get; set; }
+    public Action OnVictoryConditionsUpdated { get; set; }
     public Action OnLevelWon { get; set; }
     public Action OnLevelLost { get; set; }
     public int GameTimeInSeconds { get; private set; }
 
-    private ISaveService saveService;
     private IGameSessionService gameSessionService;
-    private IAnalyticsService analyticsService;
-    private IScoreService scoreService;
     private IGridController gridController;
 
     [Inject]
     public void Construct(
-        ISaveService saveService,
         IGameSessionService gameSessionService,
-        IAnalyticsService analyticsService,
-        IScoreService scoreService,
         IGridController gridController)
     {
-        this.saveService = saveService;
         this.gameSessionService = gameSessionService;
-        this.analyticsService = analyticsService;
-        this.scoreService = scoreService;
         this.gridController = gridController;
-
-        CoroutineMonoBehavior.Instance.StartCoroutine(SetLevelData());
-        CoroutineMonoBehavior.Instance.StartCoroutine(GameTimer());
     }
 
-    private IEnumerator SetLevelData()
+    public void Start()
     {
-        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
+        // Start game timer immediately (doesn't depend on session)
+        CoroutineMonoBehavior.Instance.StartCoroutine(GameTimer());
 
+        // Subscribe to session loaded event instead of polling
+        GameSignals.OnSessionLoaded += OnSessionLoaded;
+        
+        // If session is already loaded, initialize immediately
+        if (GameSignals.IsSessionLoaded)
+        {
+            OnSessionLoaded();
+        }
+    }
+
+    private void OnSessionLoaded()
+    {
         LocalMapData = MonoBehaviour.Instantiate(gameSessionService.CurrentMapData);
 
         if (LocalMapData == null)
         {
             Debug.LogError("MapData not assigned.");
-            yield break;
+            return;
         }
 
         MovesRemaining = LocalMapData.VictoryConditions.MoveLimit;
@@ -56,15 +56,22 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
         Debug.Log($"LevelManager {LocalMapData.name} initialized with MoveLimit: {MovesRemaining}");
         VictoryConditions = LocalMapData.VictoryConditions;
 
+        // Wait for grid controller to be initialized before subscribing to events
+        CoroutineMonoBehavior.Instance.StartCoroutine(WaitForGridInitialization());
+    }
+
+    private IEnumerator WaitForGridInitialization()
+    {
         yield return new WaitUntil(() => gridController != null && gridController.IsBoardInitialized);
 
         SubscribeToEvents();
 
-        analyticsService.LogEvent(AnalyticsEvents.LevelStarted, new System.Collections.Generic.Dictionary<string, object>
-        {
-            { "level_name", gameSessionService.CurrentMapData.name },
-            { "level_index", saveService.PlayerData.nextLevelIndex + 1 }
-        });
+        // Raise level started event - AnalyticsService and ScoreService will listen to this
+        // Level index will be retrieved by event handlers from SaveService
+        LevelEvents.RaiseLevelStarted(new LevelStartedEventArgs(
+            gameSessionService.CurrentMapData.name,
+            0, // Level index will be retrieved by event handlers
+            LocalMapData.VictoryConditions.MoveLimit));
     }
 
     private IEnumerator GameTimer()
@@ -109,7 +116,7 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
             }
         }
 
-        OnVictoryConditionsUpdated?.Invoke(this);
+        OnVictoryConditionsUpdated?.Invoke();
     }
 
     private void CheckVictoryConditions(TileData[,] obj)
@@ -156,46 +163,40 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
     private void OnActionTaken()
     {
         MovesRemaining--;
-        OnVictoryConditionsUpdated?.Invoke(this);
+        OnVictoryConditionsUpdated?.Invoke();
     }
 
     private void ToggleWinEvent()
     {
-        if (gameSessionService.IsLevelCapReached)
-        {
-            Debug.Log("Level cap reached, not incrementing level index.");
-            OnLevelWon?.Invoke();
-            return;
-        }
-
-        saveService.PlayerData.nextLevelIndex++;
-        saveService.PlayerData.coins += scoreService.GetTotalScore();
-        saveService.Save();
-
-        analyticsService.LogEvent(AnalyticsEvents.LevelCompleted, new System.Collections.Generic.Dictionary<string, object>
-        {
-            { "level_name", LocalMapData.name },
-            { "moves_spent", LocalMapData.VictoryConditions.MoveLimit - MovesRemaining },
-            { "total_score", scoreService.GetTotalScore() },
-            { "matchDuration", GameTimeInSeconds }
-        });
+        int movesSpent = LocalMapData.VictoryConditions.MoveLimit - MovesRemaining;
+        
+        // Raise level completed event - SaveService and AnalyticsService will listen to this
+        // Note: TotalScore will be retrieved by event handlers from IScoreService
+        LevelEvents.RaiseLevelCompleted(new LevelCompletedEventArgs(
+            LocalMapData.name,
+            MovesRemaining,
+            movesSpent,
+            0, // Score will be retrieved by event handlers from ScoreService
+            GameTimeInSeconds,
+            gameSessionService.IsLevelCapReached));
 
         OnLevelWon?.Invoke();
     }
 
     private void ToggleLoseEvent()
     {
-        analyticsService.LogEvent(AnalyticsEvents.LevelFailed, new System.Collections.Generic.Dictionary<string, object>
-        {
-            { "level_name", LocalMapData.name },
-            { "matchDuration", GameTimeInSeconds }
-        });
+        // Raise level failed event - AnalyticsService will listen to this
+        LevelEvents.RaiseLevelFailed(new LevelFailedEventArgs(
+            LocalMapData.name,
+            GameTimeInSeconds));
 
         OnLevelLost?.Invoke();
     }
 
     public void Dispose()
     {
+        GameSignals.OnSessionLoaded -= OnSessionLoaded;
+
         if (gridController != null)
         {
             gridController.ActionTaken -= OnActionTaken;
@@ -205,19 +206,5 @@ public class LevelManager : ILevelManager, IDisposable, ITickable
         }
 
         UI_GameMenu.OnCheatButtonClicked -= ToggleWinEvent;
-    }
-
-    public void Tick()
-    {
-#if UNITY_EDITOR
-        if (Keyboard.current.wKey.wasPressedThisFrame)
-        {
-            ToggleWinEvent();
-        }
-        if (Keyboard.current.lKey.wasPressedThisFrame)
-        {
-            ToggleLoseEvent();
-        }
-#endif
     }
 }

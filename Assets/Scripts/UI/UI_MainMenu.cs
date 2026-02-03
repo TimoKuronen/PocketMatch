@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using VContainer;
@@ -40,8 +41,15 @@ public class UI_MainMenu : UIMenu
 
     private void LoadInitialValues()
     {
-        coinCountText.text = "x " + saveService.PlayerData.coins.ToString();
-        levelText.text = "Level " + (levelIndex + 1).ToString();
+        var sb = new StringBuilder();
+        sb.Append("x ");
+        sb.Append(saveService.PlayerData.coins.ToString());
+        coinCountText.text = sb.ToString();
+
+        sb.Clear();
+        sb.Append("Level ");
+        sb.Append((levelIndex + 1).ToString());
+        levelText.text = sb.ToString();
     }
 
     public void PlayButtonPressed()

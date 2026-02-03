@@ -7,16 +7,22 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using VContainer;
+using VContainer.Unity;
 
-public class AnalyticsService : IAnalyticsService
+public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
 {
     private const string CacheFile = "analytics_cache.json";
     private List<CachedEvent> eventQueue = new List<CachedEvent>();
     private bool firebaseReady = false;
+    private ISaveService saveService;
+    private IObjectResolver objectResolver;
 
     [Inject]
-    public void Construct()
+    public void Construct(ISaveService saveService, IObjectResolver objectResolver)
     {
+        this.saveService = saveService;
+        this.objectResolver = objectResolver;
+        
         LoadCache();
 
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
@@ -36,6 +42,14 @@ public class AnalyticsService : IAnalyticsService
 
         Application.focusChanged += OnAppFocusChanged;
         Application.quitting += OnAppQuit;
+    }
+
+    public void Start()
+    {
+        // Subscribe to level events
+        LevelEvents.OnLevelStarted += OnLevelStarted;
+        LevelEvents.OnLevelCompleted += OnLevelCompleted;
+        LevelEvents.OnLevelFailed += OnLevelFailed;
     }
 
     public void LogEvent(string eventName, Dictionary<string, object> parameters = null)
@@ -142,8 +156,52 @@ public class AnalyticsService : IAnalyticsService
         SaveCache();
     }
 
+    private void OnLevelStarted(object sender, LevelStartedEventArgs e)
+    {
+        LogEvent(AnalyticsEvents.LevelStarted, new Dictionary<string, object>
+        {
+            { "level_name", e.LevelName },
+            { "level_index", saveService.PlayerData.nextLevelIndex + 1 }
+        });
+    }
+
+    private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
+    {
+        // Get total score from ScoreService - resolve lazily from GameLifetimeScope
+        int totalScore = 0;
+        try
+        {
+            var scoreService = objectResolver.Resolve<IScoreService>();
+            totalScore = scoreService.GetTotalScore();
+        }
+        catch (VContainerException ex)
+        {
+            Debug.LogWarning($"[AnalyticsService] Could not resolve IScoreService: {ex.Message}. Score will be 0.");
+        }
+        
+        LogEvent(AnalyticsEvents.LevelCompleted, new Dictionary<string, object>
+        {
+            { "level_name", e.LevelName },
+            { "moves_spent", e.MovesSpent },
+            { "total_score", totalScore },
+            { "matchDuration", e.GameTimeInSeconds }
+        });
+    }
+
+    private void OnLevelFailed(object sender, LevelFailedEventArgs e)
+    {
+        LogEvent(AnalyticsEvents.LevelFailed, new Dictionary<string, object>
+        {
+            { "level_name", e.LevelName },
+            { "matchDuration", e.GameTimeInSeconds }
+        });
+    }
+
     public void Dispose()
     {
+        LevelEvents.OnLevelStarted -= OnLevelStarted;
+        LevelEvents.OnLevelCompleted -= OnLevelCompleted;
+        LevelEvents.OnLevelFailed -= OnLevelFailed;
         SaveCache();
     }
 }

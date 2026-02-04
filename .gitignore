@@ -82,5 +82,8 @@ build/
 *.aar
 *.jar
 
+*.md
+*.md.meta
+
 /Assets/TextMesh Pro/Fonts/*
 !/Assets/TextMesh Pro/Fonts/.gitkeep

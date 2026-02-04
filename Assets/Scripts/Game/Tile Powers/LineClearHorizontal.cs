@@ -9,6 +9,6 @@ public class LineClearHorizontal : ITilePowerBehavior
                    .Select(x => new Vector2Int(x, origin.y))
                    .ToList();
 
-        context.DamageTiles(row, 1);
+        context.DamageTiles(row, 1, isFromPowerTile: true);
     }
 }

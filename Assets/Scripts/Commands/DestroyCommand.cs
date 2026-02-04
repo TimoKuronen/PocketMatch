@@ -21,7 +21,8 @@ public class DestroyCommand : ICommand
         TileData[,] data,
         TilePoolManager pool,
         Action<TileData> onDestroy,
-        GridContext context = null)
+        GridContext context = null,
+        bool isFromPowerTile = false)
     {
         matchPositions = positions;
         gridViews = views;
@@ -29,6 +30,9 @@ public class DestroyCommand : ICommand
         this.pool = pool;
         TileDestroyed = onDestroy;
         this.context = context;
+        
+        // Double duration if this destruction is from a power tile activation
+        destroyDuration = isFromPowerTile ? 0.4f : 0.2f;
     }
 
     public IEnumerator Execute()

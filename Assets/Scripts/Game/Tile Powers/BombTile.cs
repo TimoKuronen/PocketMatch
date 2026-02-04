@@ -16,7 +16,7 @@ public class BombTile : ITilePowerBehavior
             }
         }
 
-        context.DamageTiles(area, 1);
+        context.DamageTiles(area, 1, isFromPowerTile: true);
         BoardShaker.Instance.RequestShake(new BoardShakeData
         {
             Intensity = 4f,

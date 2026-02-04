@@ -12,6 +12,7 @@ public class GridContext
     public CommandInvoker CommandInvoker { get; }
     public Action<TileData> OnDestroy { get; set; }
     public Action<TileData> OnSpecialTileTriggered;
+    public IGridController GridController { get; set; }
 
     public GridContext(
         TileData[,] data,
@@ -59,7 +60,7 @@ public class GridContext
         TriggerPower(data, matchedWithTile);
     }
 
-    public void DamageTiles(IEnumerable<Vector2Int> positions, int damage)
+    public void DamageTiles(IEnumerable<Vector2Int> positions, int damage, bool isFromPowerTile = false)
     {
         var toDestroy = new List<Vector2Int>();
 
@@ -89,7 +90,38 @@ public class GridContext
         if (toDestroy.Count > 0)
         {
             CommandInvoker.AddCommand(
-                new DestroyCommand(toDestroy, Views, Data, Pool, OnDestroy, this));
+                new DestroyCommand(toDestroy, Views, Data, Pool, OnDestroy, this, isFromPowerTile));
         }
+    }
+
+    /// <summary>
+    /// Gets the world position for a grid position. Useful for spawning particle effects.
+    /// </summary>
+    public Vector3 GetWorldPosition(Vector2Int gridPos)
+    {
+        if (GridController != null)
+        {
+            // Convert UI position to world position
+            Vector2 uiPos = GridController.GridToUIPos(gridPos);
+            var view = Views[gridPos.x, gridPos.y];
+            
+            if (view != null)
+            {
+                // Use the tile's world position if available
+                RectTransform rect = view.transform as RectTransform;
+                if (rect != null)
+                {
+                    // Convert UI anchored position to world position
+                    return rect.position;
+                }
+            }
+            
+            // Fallback: convert UI position assuming Canvas is Screen Space - Overlay
+            // This might need adjustment based on your Canvas setup
+            return new Vector3(uiPos.x, uiPos.y, 0f);
+        }
+        
+        // Fallback if GridController is not set
+        return new Vector3(gridPos.x, gridPos.y, 0f);
     }
 }

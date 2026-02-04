@@ -102,6 +102,7 @@ public class GridController : MonoBehaviour, IGridController
             commandInvoker,
             TileDestroyed
         );
+        GridContext.GridController = this;
 
         boardStateEvaluator = new BoardStateEvaluator(gridData, gridViews, width, height, this);
 

@@ -9,6 +9,6 @@ public class LineClearVertical : ITilePowerBehavior
                .Select(y => new Vector2Int(origin.x, y))
                .ToList();
 
-        context.DamageTiles(column, 1);
+        context.DamageTiles(column, 1, isFromPowerTile: true);
     }
 }

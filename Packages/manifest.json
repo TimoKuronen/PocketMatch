@@ -11,6 +11,7 @@
     "com.unity.services.analytics": "6.2.0",
     "com.unity.services.core": "1.16.0",
     "com.unity.services.levelplay": "9.3.0",
+    "com.unity.shadergraph": "17.3.0",
     "com.unity.test-framework": "1.6.0",
     "com.unity.timeline": "1.8.10",
     "com.unity.ugui": "2.0.0",

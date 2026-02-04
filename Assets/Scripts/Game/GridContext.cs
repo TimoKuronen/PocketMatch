@@ -13,6 +13,7 @@ public class GridContext
     public Action<TileData> OnDestroy { get; set; }
     public Action<TileData> OnSpecialTileTriggered;
     public IGridController GridController { get; set; }
+    public IEffectService EffectService { get; set; }
 
     public GridContext(
         TileData[,] data,
@@ -95,33 +96,38 @@ public class GridContext
     }
 
     /// <summary>
-    /// Gets the world position for a grid position. Useful for spawning particle effects.
+    /// Gets the screen position for a grid position. Returns screen coordinates
+    /// which will be converted to world space by EffectService based on Canvas render mode.
     /// </summary>
     public Vector3 GetWorldPosition(Vector2Int gridPos)
     {
         if (GridController != null)
         {
-            // Convert UI position to world position
-            Vector2 uiPos = GridController.GridToUIPos(gridPos);
             var view = Views[gridPos.x, gridPos.y];
             
             if (view != null)
             {
-                // Use the tile's world position if available
                 RectTransform rect = view.transform as RectTransform;
                 if (rect != null)
                 {
-                    // Convert UI anchored position to world position
-                    return rect.position;
+                    // Get the center of the rect in screen space
+                    Vector3[] corners = new Vector3[4];
+                    rect.GetWorldCorners(corners);
+                    
+                    // Return center position in screen coordinates
+                    return new Vector3(
+                        (corners[0].x + corners[2].x) / 2f,
+                        (corners[0].y + corners[2].y) / 2f,
+                        0f
+                    );
                 }
             }
             
-            // Fallback: convert UI position assuming Canvas is Screen Space - Overlay
-            // This might need adjustment based on your Canvas setup
+            // Fallback: use UI position directly
+            Vector2 uiPos = GridController.GridToUIPos(gridPos);
             return new Vector3(uiPos.x, uiPos.y, 0f);
         }
         
-        // Fallback if GridController is not set
         return new Vector3(gridPos.x, gridPos.y, 0f);
     }
 }

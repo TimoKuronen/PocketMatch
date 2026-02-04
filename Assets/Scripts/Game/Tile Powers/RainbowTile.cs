@@ -13,6 +13,13 @@ public class RainbowTile : ITilePowerBehavior
 
     public void Apply(Vector2Int origin, GridContext context, TileType matchedWithTile)
     {
+        // Spawn rainbow activation effect at the rainbow tile position
+        if (context.EffectService != null)
+        {
+            Vector3 worldPos = context.GetWorldPosition(origin);
+            context.EffectService.PlayEffect(EffectKeys.RainbowActivation, worldPos);
+        }
+
         TileType targetType;
 
         if (matchedWithTile == TileType.None)

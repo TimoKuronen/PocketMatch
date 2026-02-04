@@ -22,6 +22,7 @@ public class GridController : MonoBehaviour, IGridController
     private BoardStateEvaluator boardStateEvaluator;
     private IGameSessionService gameSessionService;
     private IAnalyticsService analyticsService;
+    private IEffectService effectService;
 
     private int width;
     private int height;
@@ -54,10 +55,11 @@ public class GridController : MonoBehaviour, IGridController
     #region Unity Lifecycle
 
     [Inject]
-    public void Construct(IGameSessionService gameSessionService, IAnalyticsService analyticsService)
+    public void Construct(IGameSessionService gameSessionService, IAnalyticsService analyticsService, IEffectService effectService)
     {
         this.gameSessionService = gameSessionService;
         this.analyticsService = analyticsService;
+        this.effectService = effectService;
     }
 
     private IEnumerator Start()
@@ -103,6 +105,7 @@ public class GridController : MonoBehaviour, IGridController
             TileDestroyed
         );
         GridContext.GridController = this;
+        GridContext.EffectService = effectService;
 
         boardStateEvaluator = new BoardStateEvaluator(gridData, gridViews, width, height, this);
 

@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 20d9683ce92423649bc1c0bb4db851ee
   m_currentHash:
     serializedVersion: 2
-    Hash: 08cc3c2fa696da0a404eeecc99595e3b
+    Hash: 929b072bab3e736731967a7e6eac6d8d
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_CatalogRequestsTimeout: 0
@@ -104,6 +104,7 @@ MonoBehaviour:
     m_LabelNames:
     - default
     - Levels
+    - TileVFX
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 90802e6904b11904ea06956b43c25f89, type: 2}

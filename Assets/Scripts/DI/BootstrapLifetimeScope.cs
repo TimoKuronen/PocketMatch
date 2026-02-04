@@ -10,10 +10,8 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.Register<IAudioService, AudioService>(Lifetime.Singleton);
         builder.Register<IEffectService, EffectService>(Lifetime.Singleton);
         builder.Register<IAdsService, AdsService>(Lifetime.Singleton);
-        builder.Register<IAnalyticsService, AnalyticsService>(Lifetime.Singleton)
-            .As<IStartable>();
-        builder.Register<IInputService, InputService>(Lifetime.Singleton);
-        // ScoreService moved to GameLifetimeScope because it depends on IGridController
+        builder.Register<IAnalyticsService, AnalyticsService>(Lifetime.Singleton).As<IStartable>();
+        builder.Register<IInputService, InputService>(Lifetime.Singleton).As<ITickable>();
 
         builder.RegisterComponentInHierarchy<CloudSaveBootstrap>();
 

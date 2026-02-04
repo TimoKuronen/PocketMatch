@@ -1,7 +1,9 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using VContainer;
+using VContainer.Unity;
 
-public class InputService : IInputService
+public class InputService : IInputService, ITickable
 {
     private GameControls controls;
     public Vector2 TouchPosition { get; private set; }
@@ -23,5 +25,13 @@ public class InputService : IInputService
     {
         controls.Disable();
         controls.Dispose();
+    }
+
+    public void Tick()
+    {
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Debug.Break();
+        }
     }
 }

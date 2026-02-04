@@ -9,22 +9,12 @@ using VContainer;
 
 public class EffectService : IEffectService, IDisposable
 {
-    // Dictionary to store pools for each effect type
     private Dictionary<string, ObjectPool<GameObject>> effectPools;
-    
-    // Dictionary to store loaded prefabs (from Addressables)
     private Dictionary<string, GameObject> loadedPrefabs;
-    
-    // Dictionary to store Addressables handles for proper cleanup
     private Dictionary<string, AsyncOperationHandle<GameObject>> addressableHandles;
-    
-    // Dictionary to track active effects
     private Dictionary<GameObject, string> activeEffects;
-    
-    // Parent transform for organizing effects in hierarchy
-    private Transform effectsParent;
-    
-    // Preload settings
+    private HashSet<string> failedEffects;
+
     private const int DEFAULT_POOL_SIZE = 10;
     private const int MAX_POOL_SIZE = 50;
 
@@ -35,79 +25,100 @@ public class EffectService : IEffectService, IDisposable
         loadedPrefabs = new Dictionary<string, GameObject>();
         addressableHandles = new Dictionary<string, AsyncOperationHandle<GameObject>>();
         activeEffects = new Dictionary<GameObject, string>();
-        
-        // Create parent GameObject for effects
-        var parentObj = new GameObject("EffectManager");
-        effectsParent = parentObj.transform;
-        UnityEngine.Object.DontDestroyOnLoad(parentObj);
+        failedEffects = new HashSet<string>();
     }
 
     public void PreloadEffects(string[] effectKeys)
     {
         foreach (var key in effectKeys)
         {
-            if (!loadedPrefabs.ContainsKey(key))
+            if (!loadedPrefabs.ContainsKey(key) && !failedEffects.Contains(key))
             {
-                CoroutineMonoBehavior.Instance.StartCoroutine(LoadAndPoolEffectCoroutine(key));
+                CoroutineMonoBehavior.Instance.StartCoroutine(LoadEffectCoroutine(key));
             }
         }
     }
 
     public void PreloadEffectsByLabel(string label)
     {
-        CoroutineMonoBehavior.Instance.StartCoroutine(PreloadEffectsByLabelCoroutine(label));
+        CoroutineMonoBehavior.Instance.StartCoroutine(PreloadByLabelCoroutine(label));
     }
 
-    private IEnumerator PreloadEffectsByLabelCoroutine(string label)
+    private IEnumerator PreloadByLabelCoroutine(string label)
     {
         var handle = Addressables.LoadResourceLocationsAsync(label, typeof(GameObject));
         yield return handle;
 
-        if (handle.Status == AsyncOperationStatus.Succeeded)
+        if (handle.Status != AsyncOperationStatus.Succeeded || handle.Result == null)
         {
-            foreach (var location in handle.Result)
-            {
-                if (!loadedPrefabs.ContainsKey(location.PrimaryKey))
-                {
-                    yield return LoadAndPoolEffectCoroutine(location.PrimaryKey);
-                }
-            }
-            Debug.Log($"[EffectService] Preloaded {handle.Result.Count} effects with label '{label}'");
-        }
-        else
-        {
-            Debug.LogError($"[EffectService] Failed to load locations for label '{label}'. Status: {handle.Status}");
+            Debug.LogWarning($"[EffectService] Label '{label}' not found or failed to load.");
+            if (handle.IsValid()) Addressables.Release(handle);
+            yield break;
         }
 
-        Addressables.Release(handle);
+        int loadedCount = 0;
+        foreach (var location in handle.Result)
+        {
+            if (!loadedPrefabs.ContainsKey(location.PrimaryKey) && !failedEffects.Contains(location.PrimaryKey))
+            {
+                yield return LoadEffectCoroutine(location.PrimaryKey);
+                if (effectPools.ContainsKey(location.PrimaryKey)) loadedCount++;
+            }
+        }
+
+        Debug.Log($"[EffectService] Preloaded {loadedCount}/{handle.Result.Count} effects with label '{label}'");
+        if (handle.IsValid()) Addressables.Release(handle);
     }
 
-    private IEnumerator LoadAndPoolEffectCoroutine(string effectKey)
+    private IEnumerator LoadEffectCoroutine(string effectKey)
     {
+        // Check if location exists first (prevents InvalidKeyException)
+        var locationHandle = Addressables.LoadResourceLocationsAsync(effectKey, typeof(GameObject));
+        yield return locationHandle;
+
+        if (locationHandle.Status != AsyncOperationStatus.Succeeded || 
+            locationHandle.Result == null || 
+            locationHandle.Result.Count == 0)
+        {
+            MarkAsFailed(effectKey, "not found in Addressables");
+            if (locationHandle.IsValid()) 
+                Addressables.Release(locationHandle);
+
+            yield break;
+        }
+
+        if (locationHandle.IsValid()) 
+            Addressables.Release(locationHandle);
+
+        // Load the asset
         var handle = Addressables.LoadAssetAsync<GameObject>(effectKey);
-        
         yield return handle;
-        
-        if (handle.Status == AsyncOperationStatus.Succeeded)
+
+        if (handle.Status != AsyncOperationStatus.Succeeded || !handle.IsValid())
         {
-            var prefab = handle.Result;
-            loadedPrefabs[effectKey] = prefab;
-            addressableHandles[effectKey] = handle;
-            
-            // Create pool for this effect
-            CreatePoolForEffect(effectKey, prefab);
+            MarkAsFailed(effectKey, $"load failed: {handle.Status}");
+            if (handle.IsValid()) Addressables.Release(handle);
+            yield break;
         }
-        else
-        {
-            Debug.LogError($"Failed to load effect: {effectKey}. Status: {handle.Status}");
-            Addressables.Release(handle);
-        }
+
+        // Success - create pool
+        var prefab = handle.Result;
+        loadedPrefabs[effectKey] = prefab;
+        addressableHandles[effectKey] = handle;
+        CreatePoolForEffect(effectKey, prefab);
+        failedEffects.Remove(effectKey);
+    }
+
+    private void MarkAsFailed(string effectKey, string reason)
+    {
+        failedEffects.Add(effectKey);
+        Debug.LogWarning($"[EffectService] Effect '{effectKey}' {reason}. Will be skipped.");
     }
 
     private void CreatePoolForEffect(string effectKey, GameObject prefab)
     {
         var pool = new ObjectPool<GameObject>(
-            createFunc: () => UnityEngine.Object.Instantiate(prefab, effectsParent),
+            createFunc: () => UnityEngine.Object.Instantiate(prefab),
             actionOnGet: (obj) => obj.SetActive(true),
             actionOnRelease: (obj) => obj.SetActive(false),
             actionOnDestroy: (obj) => UnityEngine.Object.Destroy(obj),
@@ -121,119 +132,87 @@ public class EffectService : IEffectService, IDisposable
 
     public void PlayEffect(string effectKey, Vector3 position, Quaternion rotation = default)
     {
-        if (string.IsNullOrEmpty(effectKey))
-        {
-            Debug.LogWarning("Effect key is null or empty");
+        if (string.IsNullOrEmpty(effectKey) || failedEffects.Contains(effectKey))
             return;
-        }
 
-        if (!effectPools.ContainsKey(effectKey))
+        if (effectPools.TryGetValue(effectKey, out var pool))
         {
-            Debug.LogWarning($"Effect {effectKey} not preloaded. Attempting to load synchronously...");
-            // Start loading and return early - effect will play once loaded
-            CoroutineMonoBehavior.Instance.StartCoroutine(LoadAndPlayEffectWhenReady(effectKey, position, rotation));
-            return;
-        }
-
-        var pool = effectPools[effectKey];
-        var effectInstance = pool.Get();
-        effectInstance.transform.position = position;
-        effectInstance.transform.rotation = rotation;
-        
-        activeEffects[effectInstance] = effectKey;
-        
-        // Auto-return to pool when particle system finishes
-        var particleSystem = effectInstance.GetComponent<ParticleSystem>();
-        if (particleSystem != null)
-        {
-            var main = particleSystem.main;
-            float duration = main.duration + main.startLifetime.constantMax;
-            CoroutineMonoBehavior.Instance.StartCoroutine(
-                ReturnToPoolWhenFinished(effectInstance, effectKey, duration)
-            );
+            SpawnEffect(pool, effectKey, position, rotation);
         }
         else
         {
-            // Fallback: return after fixed duration
-            CoroutineMonoBehavior.Instance.StartCoroutine(
-                ReturnToPoolWhenFinished(effectInstance, effectKey, 5f)
-            );
+            // Try to load it
+            CoroutineMonoBehavior.Instance.StartCoroutine(LoadAndPlayCoroutine(effectKey, position, rotation));
         }
     }
 
-    private IEnumerator LoadAndPlayEffectWhenReady(string effectKey, Vector3 position, Quaternion rotation)
+    private void SpawnEffect(ObjectPool<GameObject> pool, string effectKey, Vector3 position, Quaternion rotation)
     {
-        yield return LoadAndPoolEffectCoroutine(effectKey);
-        
-        // Try to play again once loaded
-        if (effectPools.ContainsKey(effectKey))
+        var instance = pool.Get();
+        instance.transform.SetPositionAndRotation(position, rotation);
+        activeEffects[instance] = effectKey;
+
+        var ps = instance.GetComponent<ParticleSystem>();
+        float duration = ps != null 
+            ? ps.main.duration + ps.main.startLifetime.constantMax 
+            : 5f;
+
+        CoroutineMonoBehavior.Instance.StartCoroutine(
+            ReturnToPoolWhenFinished(instance, effectKey, duration));
+    }
+
+    private IEnumerator LoadAndPlayCoroutine(string effectKey, Vector3 position, Quaternion rotation)
+    {
+        if (failedEffects.Contains(effectKey)) yield break;
+
+        yield return LoadEffectCoroutine(effectKey);
+
+        if (effectPools.TryGetValue(effectKey, out var pool))
         {
-            PlayEffect(effectKey, position, rotation);
+            SpawnEffect(pool, effectKey, position, rotation);
         }
     }
 
-    private IEnumerator ReturnToPoolWhenFinished(GameObject effectInstance, string effectKey, float duration)
+    private IEnumerator ReturnToPoolWhenFinished(GameObject instance, string effectKey, float duration)
     {
         yield return new WaitForSeconds(duration);
-        ReleaseEffect(effectInstance);
+
+        ReleaseEffect(instance);
     }
 
     public void ReleaseEffect(GameObject effectInstance)
     {
-        if (effectInstance == null)
+        if (effectInstance == null || !activeEffects.TryGetValue(effectInstance, out var effectKey))
             return;
 
-        if (!activeEffects.TryGetValue(effectInstance, out var effectKey))
-        {
-            Debug.LogWarning("Trying to release an effect that is not tracked");
-            return;
-        }
-            
         if (effectPools.TryGetValue(effectKey, out var pool))
         {
             pool.Release(effectInstance);
             activeEffects.Remove(effectInstance);
         }
-        else
-        {
-            Debug.LogWarning($"Pool not found for effect key: {effectKey}");
-        }
     }
 
     public void Dispose()
     {
-        // Clean up all active effects
         foreach (var kvp in activeEffects)
         {
-            if (kvp.Key != null)
-            {
-                ReleaseEffect(kvp.Key);
-            }
+            if (kvp.Key != null) ReleaseEffect(kvp.Key);
         }
         activeEffects.Clear();
 
-        // Release all Addressables handles
         foreach (var kvp in addressableHandles)
         {
-            if (kvp.Value.IsValid())
-            {
+            if (kvp.Value.IsValid()) 
                 Addressables.Release(kvp.Value);
-            }
         }
+
         addressableHandles.Clear();
         loadedPrefabs.Clear();
 
-        // Clear pools
         foreach (var pool in effectPools.Values)
         {
             pool.Dispose();
         }
         effectPools.Clear();
-
-        // Destroy parent GameObject
-        if (effectsParent != null)
-        {
-            UnityEngine.Object.Destroy(effectsParent.gameObject);
-        }
     }
 }

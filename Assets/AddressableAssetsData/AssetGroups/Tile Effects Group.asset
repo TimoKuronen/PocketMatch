@@ -14,7 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: Tile Effects Group
   m_GUID: 20d9683ce92423649bc1c0bb4db851ee
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 99bc28c0d45f51c4fbac01080b73edc7
+    m_Address: Effects/BombExplosion
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - TileVFX
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7811e86d7a8c3844b932acf2033f2179, type: 2}
   m_SchemaSet:

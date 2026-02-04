@@ -11,19 +11,22 @@ public class CreatePowerTileCommand : ICommand
     private readonly TileView[,] gridViews;
     private readonly Func<List<Vector2Int>, TileData[,], MatchShape> determineShape;
     private readonly Func<Vector2Int, TileType, TilePower, TileData> createData;
+    private readonly Vector2Int? lastMovedTilePosition;
 
     public CreatePowerTileCommand(
         List<List<Vector2Int>> matchGroups,
         TileData[,] gridData,
         TileView[,] gridViews,
         Func<List<Vector2Int>, TileData[,], MatchShape> determineShape,
-        Func<Vector2Int, TileType, TilePower, TileData> createData)
+        Func<Vector2Int, TileType, TilePower, TileData> createData,
+        Vector2Int? lastMovedTilePosition = null)
     {
         this.matchGroups = matchGroups;
         this.gridData = gridData;
         this.gridViews = gridViews;
         this.determineShape = determineShape;
         this.createData = createData;
+        this.lastMovedTilePosition = lastMovedTilePosition;
     }
 
     public IEnumerator Execute()
@@ -35,7 +38,7 @@ public class CreatePowerTileCommand : ICommand
             if (shape == MatchShape.None)
                 continue;
 
-            Vector2Int origin = group[0]; // You may want to use last moved tile
+            Vector2Int origin = DeterminePowerTilePosition(group);
             TileData baseData = gridData[origin.x, origin.y];
 
             if (baseData == null)
@@ -64,5 +67,28 @@ public class CreatePowerTileCommand : ICommand
         }
 
         yield return null;
+    }
+
+    private Vector2Int DeterminePowerTilePosition(List<Vector2Int> group)
+    {
+        // If player moved a tile and it's part of this match group, use that position
+        if (lastMovedTilePosition.HasValue && group.Contains(lastMovedTilePosition.Value))
+        {
+            return lastMovedTilePosition.Value;
+        }
+
+        int count = group.Count;
+        int middleIndex;
+
+        if (count == 5)
+        {
+            middleIndex = 2;
+        }
+        else
+        {
+            middleIndex = count / 2;
+        }
+
+        return group[middleIndex];
     }
 }

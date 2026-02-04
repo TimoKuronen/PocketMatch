@@ -27,6 +27,7 @@ public class GridController : MonoBehaviour, IGridController
     private int height;
     private float tileSize;
     private bool allowInitialMatches;
+    private Vector2Int? lastMovedTilePosition;
 
     public bool IsBoardInitialized { get; private set; } = false;
     public bool IsProcessingTiles { get; private set; }
@@ -187,6 +188,7 @@ public class GridController : MonoBehaviour, IGridController
         IsProcessingTiles = true;
         int cycleCount = 0;
         bool changed;
+        Vector2Int? movedTileForThisCycle = lastMovedTilePosition;
 
         do
         {
@@ -210,6 +212,9 @@ public class GridController : MonoBehaviour, IGridController
                 var destroyedNeighbours = AdjacentDamageProcessor.GetAdjacentDestroyables(matchGroups, gridData);
                 var powerTilePositions = new HashSet<Vector2Int>();
 
+                // Use moved tile only for the first cycle (player-initiated), not for cascading matches
+                Vector2Int? tileToUse = cycleCount == 0 ? movedTileForThisCycle : null;
+
                 var createPowerTileCommand = new CreatePowerTileCommand(
                     matchGroups, gridData, gridViews, MatchFinder.DetermineMatchShape,
                     (origin, type, power) =>
@@ -218,7 +223,8 @@ public class GridController : MonoBehaviour, IGridController
                         powerTilePositions.Add(origin);
                         PowerTileCreated?.Invoke(newData);
                         return newData;
-                    }
+                    },
+                    tileToUse
                 );
 
                 yield return createPowerTileCommand.Execute();
@@ -238,6 +244,9 @@ public class GridController : MonoBehaviour, IGridController
             cycleCount++;
 
         } while (changed);
+
+        // Reset the last moved tile position after the match cycle completes
+        lastMovedTilePosition = null;
 
         IsProcessingTiles = false;
         BoardUpdated?.Invoke(gridData);
@@ -325,6 +334,8 @@ public class GridController : MonoBehaviour, IGridController
         if (matches.Count > 0)
         {
             SwapTilesInData(origin, target, tileA, tileB);
+            // Track the position where the tile ended up (target is where tileA moved to)
+            lastMovedTilePosition = target;
             StartCoroutine(MatchCycle());
             ActionTaken?.Invoke();
         }

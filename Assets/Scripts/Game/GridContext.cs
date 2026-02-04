@@ -38,19 +38,38 @@ public class GridContext
         return GridHelperMethods.IsInBounds(Width, Height, pos);
     }
 
-    public void TriggerPower(TileData tile, TileType matchedWithTile)
+    public void TriggerPower(TileData tile, TileType matchedWithTile, Vector3? cachedWorldPosition = null)
     {
         if (tile == null || tile.Power == TilePower.None)
             return;
 
         var behavior = TilePowerFactory.Get(tile.Power);
+        
+        // If cached world position is provided, temporarily store it for GetWorldPosition
+        if (cachedWorldPosition.HasValue)
+        {
+            // Store the cached position temporarily
+            if (!cachedPositions.ContainsKey(tile.GridPosition))
+            {
+                cachedPositions[tile.GridPosition] = cachedWorldPosition.Value;
+            }
+        }
+        
         behavior?.Apply(tile.GridPosition, this, matchedWithTile);
+
+        // Clear cached position after use
+        if (cachedWorldPosition.HasValue)
+        {
+            cachedPositions.Remove(tile.GridPosition);
+        }
 
         OnSpecialTileTriggered?.Invoke(tile);
 
         // Clear power after use to prevent repeat
         tile.Power = TilePower.None;
     }
+    
+    private Dictionary<Vector2Int, Vector3> cachedPositions = new Dictionary<Vector2Int, Vector3>();
 
     public void TriggerTilePower(Vector2Int pos, TileType matchedWithTile)
     {
@@ -101,6 +120,12 @@ public class GridContext
     /// </summary>
     public Vector3 GetWorldPosition(Vector2Int gridPos)
     {
+        // Check for cached position first (used when view is destroyed but position is needed)
+        if (cachedPositions.TryGetValue(gridPos, out Vector3 cachedPos))
+        {
+            return cachedPos;
+        }
+        
         if (GridController != null)
         {
             var view = Views[gridPos.x, gridPos.y];

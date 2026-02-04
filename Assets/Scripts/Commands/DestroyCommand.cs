@@ -38,6 +38,7 @@ public class DestroyCommand : ICommand
     public IEnumerator Execute()
     {
         var powersToTrigger = new List<TileData>();
+        var powerWorldPositions = new Dictionary<TileData, Vector3>();
 
         // --- Phase 1: collect any power tiles that will trigger after destruction ---
         foreach (var pos in matchPositions)
@@ -49,6 +50,12 @@ public class DestroyCommand : ICommand
                 data.Power != TilePower.None)
             {
                 powersToTrigger.Add(data);
+                // Capture world position while view still exists
+                if (context != null)
+                {
+                    Vector3 worldPos = context.GetWorldPosition(pos);
+                    powerWorldPositions[data] = worldPos;
+                }
             }
         }
 
@@ -113,7 +120,17 @@ public class DestroyCommand : ICommand
         if (context != null && powersToTrigger.Count > 0)
         {
             foreach (var tile in powersToTrigger)
-                context.TriggerPower(tile, TileType.None);
+            {
+                // Use cached world position if available (view was destroyed)
+                if (powerWorldPositions.TryGetValue(tile, out Vector3 cachedWorldPos))
+                {
+                    context.TriggerPower(tile, TileType.None, cachedWorldPos);
+                }
+                else
+                {
+                    context.TriggerPower(tile, TileType.None);
+                }
+            }
         }
     }
 }

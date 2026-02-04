@@ -17,6 +17,7 @@ public class EffectService : IEffectService, IDisposable
 
     private const int DEFAULT_POOL_SIZE = 10;
     private const int MAX_POOL_SIZE = 50;
+    Transform vfxCanvasTransform;
 
     [Inject]
     public void Construct()
@@ -26,6 +27,12 @@ public class EffectService : IEffectService, IDisposable
         addressableHandles = new Dictionary<string, AsyncOperationHandle<GameObject>>();
         activeEffects = new Dictionary<GameObject, string>();
         failedEffects = new HashSet<string>();
+
+        if (vfxCanvasTransform == null)
+        {
+            var canvasGo = GameObject.Find("VFXCanvas");
+            if (canvasGo != null) vfxCanvasTransform = canvasGo.transform;
+        }
     }
 
     public void PreloadEffects(string[] effectKeys)
@@ -118,7 +125,11 @@ public class EffectService : IEffectService, IDisposable
     private void CreatePoolForEffect(string effectKey, GameObject prefab)
     {
         var pool = new ObjectPool<GameObject>(
-            createFunc: () => UnityEngine.Object.Instantiate(prefab),
+            createFunc: () => {
+                var obj = UnityEngine.Object.Instantiate(prefab);
+                obj.SetActive(false);
+                return obj;
+            },
             actionOnGet: (obj) => obj.SetActive(true),
             actionOnRelease: (obj) => obj.SetActive(false),
             actionOnDestroy: (obj) => UnityEngine.Object.Destroy(obj),
@@ -126,39 +137,57 @@ public class EffectService : IEffectService, IDisposable
             defaultCapacity: DEFAULT_POOL_SIZE,
             maxSize: MAX_POOL_SIZE
         );
-        
+
+        Stack<GameObject> tempPrewarmList = new Stack<GameObject>();
+        for (int i = 0; i < DEFAULT_POOL_SIZE; i++)
+        {
+            tempPrewarmList.Push(pool.Get());
+        }
+        while (tempPrewarmList.Count > 0)
+        {
+            pool.Release(tempPrewarmList.Pop());
+        }
+
         effectPools[effectKey] = pool;
     }
 
-    public void PlayEffect(string effectKey, Vector3 position, Quaternion rotation = default)
+    public void PlayEffect(string effectKey, Vector3 worldPosition, Quaternion rotation = default)
     {
-        if (string.IsNullOrEmpty(effectKey) || failedEffects.Contains(effectKey))
-            return;
+        Debug.Log($"[VFX] PlayEffect called for: {effectKey} at {worldPosition}");
 
         if (effectPools.TryGetValue(effectKey, out var pool))
         {
-            SpawnEffect(pool, effectKey, position, rotation);
+            SpawnEffect(pool, effectKey, worldPosition, rotation);
         }
         else
         {
-            // Try to load it
-            CoroutineMonoBehavior.Instance.StartCoroutine(LoadAndPlayCoroutine(effectKey, position, rotation));
+            Debug.LogWarning($"[VFX] Pool for {effectKey} not found! Is it loaded?");
+            // If not loaded, we load it. 
+            CoroutineMonoBehavior.Instance.StartCoroutine(LoadAndPlayCoroutine(effectKey, worldPosition, rotation));
         }
     }
 
-    private void SpawnEffect(ObjectPool<GameObject> pool, string effectKey, Vector3 position, Quaternion rotation)
+    private void SpawnEffect(ObjectPool<GameObject> pool, string effectKey, Vector3 worldPosition, Quaternion rotation)
     {
         var instance = pool.Get();
-        instance.transform.SetPositionAndRotation(position, rotation);
+        instance.SetActive(true);
+
+        instance.transform.SetParent(vfxCanvasTransform, false);
+        instance.transform.position = worldPosition;
+
+        instance.transform.localPosition = new Vector3(
+            instance.transform.localPosition.x,
+            instance.transform.localPosition.y,
+            0f
+        );
+
         activeEffects[instance] = effectKey;
 
-        var ps = instance.GetComponent<ParticleSystem>();
-        float duration = ps != null 
-            ? ps.main.duration + ps.main.startLifetime.constantMax 
-            : 5f;
-
-        CoroutineMonoBehavior.Instance.StartCoroutine(
-            ReturnToPoolWhenFinished(instance, effectKey, duration));
+        //if (instance.TryGetComponent<ParticleSystem>(out var ps))
+        //{
+        //    ps.Play();
+        CoroutineMonoBehavior.Instance.StartCoroutine(ReturnToPoolWhenFinished(instance, effectKey, 2f));
+        //}
     }
 
     private IEnumerator LoadAndPlayCoroutine(string effectKey, Vector3 position, Quaternion rotation)

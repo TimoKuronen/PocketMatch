@@ -3,28 +3,37 @@ using UnityEngine.EventSystems;
 
 public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
+    #region Fields
+
     [Header("Tile View Reference")]
     [SerializeField] private TileView tileView;
+
+    [Header("Double Tap Settings")]
+    [SerializeField] private float doubleTapTimeThreshold = 0.5f;
 
     private Vector2 startPointerPos;
     private bool isDragging;
     private IGridController gridController;
-
-    [Header("Double Tap Settings")]
-    [SerializeField] private float doubleTapTimeThreshold = 0.5f;
     private int tapCount = 0;
     private float lastTapTime;
 
-    // Manually injected by TilePoolManager for runtime-instantiated prefabs
-    public void Construct(IGridController gridController)
-    {
-        this.gridController = gridController;
-    }
+    #endregion
+
+    #region Unity Lifecycle
 
     void OnEnable()
     {
         isDragging = false;
         tapCount = 0;
+    }
+
+    #endregion
+
+    #region Public Methods
+
+    public void Construct(IGridController gridController)
+    {
+        this.gridController = gridController;
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -39,7 +48,6 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
         }
 
 #if UNITY_EDITOR
-        /// Destroying single tiles for debugging purposes
         if (eventData.button == PointerEventData.InputButton.Right)
         {
             gridController.DestroyTargetTile(tileView.Data.GridPosition);
@@ -51,6 +59,39 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
         CheckDoubleTap();
     }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (!IsInputAllowed())
+            return;
+
+        if (!isDragging)
+            return;
+
+        Vector2 dragDelta = eventData.position - startPointerPos;
+
+        if (dragDelta.magnitude < 35f)
+            return;
+
+        Vector2Int dir = Vector2Int.zero;
+        if (Mathf.Abs(dragDelta.x) > Mathf.Abs(dragDelta.y))
+            dir = dragDelta.x > 0 ? Vector2Int.right : Vector2Int.left;
+        else
+            dir = dragDelta.y > 0 ? Vector2Int.up : Vector2Int.down;
+
+        gridController.TrySwapTiles(tileView.Data.GridPosition, dir);
+
+        isDragging = false;
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        isDragging = false;
+    }
+
+    #endregion
+
+    #region Private Methods
 
     private void CheckDoubleTap()
     {
@@ -73,51 +114,14 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     private void HandleDoubleTap()
     {
-        //Debug.Log("Double Tap Detected");
-
         isDragging = false;
-
         gridController.AttemptPowerTrigger(tileView);
-    }
-
-    public void OnDrag(PointerEventData eventData)
-    {
-        if (!IsInputAllowed())
-        {
-            //Debug.Log($"Input not allowed during drag because " +
-            //    $"{isDragging} or " +
-            //    $"{GridController.Instance.IsProcessingTiles} or " +
-            //    $"{tileView.Data.State == TileState.Normal}");
-            return;
-        }
-
-        if (!isDragging)
-            return;
-
-        Vector2 dragDelta = eventData.position - startPointerPos;
-
-        if (dragDelta.magnitude < 35f)
-            return;
-
-        Vector2Int dir = Vector2Int.zero;
-        if (Mathf.Abs(dragDelta.x) > Mathf.Abs(dragDelta.y))
-            dir = dragDelta.x > 0 ? Vector2Int.right : Vector2Int.left;
-        else
-            dir = dragDelta.y > 0 ? Vector2Int.up : Vector2Int.down;
-
-        gridController.TrySwapTiles(tileView.Data.GridPosition, dir);
-
-        isDragging = false; // prevent multiple swaps
-    }
-
-    public void OnPointerUp(PointerEventData eventData)
-    {
-        isDragging = false;
     }
 
     private bool IsInputAllowed()
     {
         return gridController != null && !gridController.IsProcessingTiles && tileView.Data.State == TileState.Normal;
     }
-}
 
+    #endregion
+}

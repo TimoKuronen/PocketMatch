@@ -119,9 +119,6 @@ public class GridController : MonoBehaviour, IGridController
 
     #region Public Methods
 
-    /// <summary>
-    /// Attempts to swap two adjacent tiles and checks for valid matches.
-    /// </summary>
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
     {
         Vector2Int target = origin + dir;
@@ -150,9 +147,6 @@ public class GridController : MonoBehaviour, IGridController
         StartCoroutine(CheckSwapMatch(origin, target, tileA, tileB, viewA, viewB, origPosA, origPosB));
     }
 
-    /// <summary>
-    /// Manually triggers a power tile's effect.
-    /// </summary>
     public void AttemptPowerTrigger(TileView tileView)
     {
         if (tileView == null || tileView.Data == null || tileView.Data.Power == TilePower.None)
@@ -166,9 +160,6 @@ public class GridController : MonoBehaviour, IGridController
         StartCoroutine(TriggerPowerEvent(tileView.Data, TileType.None));
     }
 
-    /// <summary>
-    /// Swaps tile data and views between two grid positions.
-    /// </summary>
     public void SwapTilesInData(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB)
     {
         gridData[origin.x, origin.y] = tileB;
@@ -184,9 +175,6 @@ public class GridController : MonoBehaviour, IGridController
         GridHelperMethods.UpdateTilePosition(tileB, viewB, origin);
     }
 
-    /// <summary>
-    /// Main match resolution cycle that handles gravity, refilling, matching, and cascading effects.
-    /// </summary>
     public IEnumerator MatchCycle()
     {
         IsProcessingTiles = true;
@@ -273,9 +261,6 @@ public class GridController : MonoBehaviour, IGridController
         }
     }
 
-    /// <summary>
-    /// Converts grid coordinates to UI anchored position.
-    /// </summary>
     public Vector2 GridToUIPos(Vector2Int gridPos)
     {
         float boardWidth = width * tileSize;
@@ -290,9 +275,6 @@ public class GridController : MonoBehaviour, IGridController
         return new Vector2(x, y);
     }
 
-    /// <summary>
-    /// Debug method to destroy a single tile and trigger match cycle.
-    /// </summary>
     public void DestroyTargetTile(Vector2Int origin)
     {
         List<Vector2Int> flatMatches = new();

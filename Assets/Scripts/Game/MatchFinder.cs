@@ -4,10 +4,20 @@ using UnityEngine;
 
 public class MatchFinder
 {
+    #region Fields
+
     private readonly int width;
     private readonly int height;
 
+    #endregion
+
+    #region Properties
+
     public int AvailableMatchesCount { get; private set; }
+
+    #endregion
+
+    #region Constructor
 
     public MatchFinder(int width, int height)
     {
@@ -15,12 +25,15 @@ public class MatchFinder
         this.height = height;
     }
 
+    #endregion
+
+    #region Public Methods
+
     public List<List<Vector2Int>> GetMatchGroups(TileData[,] grid)
     {
         var matches = new List<MatchGroup>();
         var visited = new HashSet<Vector2Int>();
 
-        // Horizontal
         for (int y = 0; y < height; y++)
         {
             int x = 0;
@@ -60,7 +73,6 @@ public class MatchFinder
             }
         }
 
-        // Vertical
         for (int x = 0; x < width; x++)
         {
             int y = 0;
@@ -103,49 +115,6 @@ public class MatchFinder
         return MergeIntersectingGroups(matches);
     }
 
-    private List<List<Vector2Int>> MergeIntersectingGroups(List<MatchGroup> groups)
-    {
-        var merged = new List<MatchGroup>();
-
-        foreach (var group in groups)
-        {
-            bool mergedIntoExisting = false;
-            foreach (var existing in merged)
-            {
-                if (group.Type == existing.Type &&
-                    (group.Positions.Any(pos => existing.Positions.Contains(pos)) ||
-                     IsAdjacent(group.Positions, existing.Positions)))
-                {
-                    existing.Positions.AddRange(group.Positions.Where(p => !existing.Positions.Contains(p)));
-                    mergedIntoExisting = true;
-                    break;
-                }
-            }
-            if (!mergedIntoExisting)
-                merged.Add(new MatchGroup(group.Type) { Positions = new List<Vector2Int>(group.Positions) });
-        }
-
-        AvailableMatchesCount = merged.Count;
-
-        return merged.Select(g => g.Positions).ToList();
-    }
-
-    private bool IsAdjacent(List<Vector2Int> group, List<Vector2Int> existing)
-    {
-        foreach (var pos in group)
-        {
-            foreach (var existingPos in existing)
-            {
-                if ((Mathf.Abs(pos.x - existingPos.x) == 1 && pos.y == existingPos.y) ||
-                    (Mathf.Abs(pos.y - existingPos.y) == 1 && pos.x == existingPos.x))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     public MatchShape DetermineMatchShape(List<Vector2Int> match, TileData[,] gridData)
     {
         if (match.Count >= 5)
@@ -177,8 +146,56 @@ public class MatchFinder
         return MatchShape.None;
     }
 
+    #endregion
+
+    #region Private Methods
+
+    private List<List<Vector2Int>> MergeIntersectingGroups(List<MatchGroup> groups)
+    {
+        var merged = new List<MatchGroup>();
+
+        foreach (var group in groups)
+        {
+            bool mergedIntoExisting = false;
+            foreach (var existing in merged)
+            {
+                if (group.Type == existing.Type &&
+                    (group.Positions.Any(pos => existing.Positions.Contains(pos)) ||
+                     IsAdjacent(group.Positions, existing.Positions)))
+                {
+                    existing.Positions.AddRange(group.Positions.Where(p => !existing.Positions.Contains(p)));
+                    mergedIntoExisting = true;
+                    break;
+                }
+            }
+            if (!mergedIntoExisting)
+                merged.Add(new MatchGroup(group.Type) { Positions = new List<Vector2Int>(group.Positions) });
+        }
+
+        AvailableMatchesCount = merged.Count;
+        return merged.Select(g => g.Positions).ToList();
+    }
+
+    private bool IsAdjacent(List<Vector2Int> group, List<Vector2Int> existing)
+    {
+        foreach (var pos in group)
+        {
+            foreach (var existingPos in existing)
+            {
+                if ((Mathf.Abs(pos.x - existingPos.x) == 1 && pos.y == existingPos.y) ||
+                    (Mathf.Abs(pos.y - existingPos.y) == 1 && pos.x == existingPos.x))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private bool IsMatchableTile(TileData tileData)
     {
         return tileData != null && tileData.State == TileState.Normal;
     }
+
+    #endregion
 }

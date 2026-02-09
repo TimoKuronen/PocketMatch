@@ -4,15 +4,25 @@ using UnityEngine;
 
 public class CommandInvoker
 {
+    #region Fields
+
     private readonly Queue<ICommand> commandQueue = new();
     private MonoBehaviour runner;
     private Coroutine runningCoroutine;
     private bool isProcessingQueue;
 
+    #endregion
+
+    #region Constructor
+
     public CommandInvoker(MonoBehaviour runner)
     {
         this.runner = runner;
     }
+
+    #endregion
+
+    #region Public Methods
 
     public void AddCommand(ICommand command)
     {
@@ -32,16 +42,21 @@ public class CommandInvoker
         return commandQueue.Count == 0 && !isProcessingQueue;
     }
 
+    #endregion
+
+    #region Private Methods
+
     private IEnumerator RunQueue()
     {
         isProcessingQueue = true;
 
         while (commandQueue.Count > 0)
         {
-            //Debug.Log($"Executing command: {commandQueue.Peek().GetType().Name}");
             yield return commandQueue.Dequeue().Execute();
         }
 
         isProcessingQueue = false;
     }
+
+    #endregion
 }

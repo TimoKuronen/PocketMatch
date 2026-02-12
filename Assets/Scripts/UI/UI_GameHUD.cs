@@ -6,15 +6,12 @@ using UnityEngine;
 using VContainer;
 
 /// <summary>
-/// Main UI menu for gameplay, handling victory conditions display, moves counter, and level completion states.
+/// HUD component for gameplay - displays game information (moves, coins, victory conditions).
+/// This is NOT a menu in the stack system, just a display overlay.
 /// </summary>
-public class UI_GameMenu : UIMenu, IDisposable
+public class UI_GameHUD : MonoBehaviour, IDisposable
 {
     #region Fields
-
-    [SerializeField] private GameObject winPanel;
-    [SerializeField] private GameObject losePanel;
-    [SerializeField] private GameObject nextLevelButton;
 
     [SerializeField] private TileIconCollection tileIconCollection;
     [SerializeField] private VictoryConditionUI victoryConditionPrefab;
@@ -22,15 +19,16 @@ public class UI_GameMenu : UIMenu, IDisposable
     [SerializeField] private TextMeshProUGUI movesText;
     [SerializeField] private TextMeshProUGUI coinCountText;
     [SerializeField] private TextMeshProUGUI puzzleIndexText;
+    [SerializeField] private UI_SettingsMenu settingsMenu;
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
 
     private ILevelManager levelManager;
-    private IAdsService adsService;
     private IGameSessionService gameSessionService;
     private IScoreService scoreService;
     private ISaveService saveService;
+    private MenuStackManager menuStackManager;
 
     public static event Action OnCheatButtonClicked;
 
@@ -41,20 +39,20 @@ public class UI_GameMenu : UIMenu, IDisposable
     [Inject]
     public void Construct(
         ILevelManager levelManager,
-        IAdsService adsService,
         IGameSessionService gameSessionService,
         IScoreService scoreService,
-        ISaveService saveService)
+        ISaveService saveService,
+        MenuStackManager menuStackManager)
     {
         this.levelManager = levelManager;
-        this.adsService = adsService;
         this.gameSessionService = gameSessionService;
         this.scoreService = scoreService;
         this.saveService = saveService;
+        this.menuStackManager = menuStackManager;
     }
 
     public void Start()
-    {       
+    {
         // If session is already loaded, initialize immediately
         if (GameSignals.IsSessionLoaded)
         {
@@ -84,27 +82,59 @@ public class UI_GameMenu : UIMenu, IDisposable
         OnCheatButtonClicked?.Invoke();
     }
 
-    public void MenuButtonPressed()
+    public void SettingsButtonPressed()
     {
+        if (menuStackManager != null && settingsMenu != null)
+        {
+            if (menuStackManager.CanOpenMenu())
+            {
+                menuStackManager.PushMenu(settingsMenu);
+            }
+            else
+            {
+                Debug.LogWarning("Cannot open settings menu - matches are being processed");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Helper method for panels to load main menu (with confirmation handled by panels)
+    /// </summary>
+    public void LoadMainMenu()
+    {
+        if (menuStackManager != null)
+        {
+            menuStackManager.ClearStack();
+        }
         Loader.Load(Loader.GameScene.MainMenu);
     }
 
-    public void RestartButtonPressed()
+    /// <summary>
+    /// Helper method for panels to restart the level
+    /// </summary>
+    public void RestartLevel()
     {
         Loader.Restart();
     }
 
-    public void NextLevelButtonPressed()
+    /// <summary>
+    /// Helper method for panels to load next level
+    /// </summary>
+    public void LoadNextLevel()
     {
-        Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
+        // This will be called from UI_WinPanel
+        // We need adsService for this, so panels will handle it directly
     }
 
     public void Dispose()
     {
         GameSignals.OnSessionLoaded -= InitializeAfterSessionLoaded;
-        levelManager.OnVictoryConditionsUpdated -= HandleVictoryConditionUpdate;
-        levelManager.OnLevelWon -= OnLevelWon;
-        levelManager.OnLevelLost -= OnLevelLost;
+        if (levelManager != null)
+        {
+            levelManager.OnVictoryConditionsUpdated -= HandleVictoryConditionUpdate;
+            levelManager.OnLevelWon -= OnLevelWon;
+            levelManager.OnLevelLost -= OnLevelLost;
+        }
     }
 
     #endregion
@@ -137,23 +167,29 @@ public class UI_GameMenu : UIMenu, IDisposable
 
     private void OnLevelWon()
     {
-        winPanel.SetActive(true);
         HideAllVictoryConditions();
-
-        if (gameSessionService.IsLevelCapReached)
-        {
-            nextLevelButton.SetActive(false);
-        }
-
         UpdateCoinCountText(scoreService.GetTotalScore());
         movesText.gameObject.SetActive(false);
+        
+        // Push win panel onto menu stack
+        var winPanel = FindFirstObjectByType<UI_WinPanel>();
+        if (winPanel != null && menuStackManager != null)
+        {
+            menuStackManager.PushMenu(winPanel);
+        }
     }
 
     private void OnLevelLost()
     {
-        losePanel.SetActive(true);
         HideAllVictoryConditions();
         movesText.gameObject.SetActive(false);
+        
+        // Push lose panel onto menu stack
+        var losePanel = FindFirstObjectByType<UI_LosePanel>();
+        if (losePanel != null && menuStackManager != null)
+        {
+            menuStackManager.PushMenu(losePanel);
+        }
     }
 
     #endregion

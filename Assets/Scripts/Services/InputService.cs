@@ -6,6 +6,7 @@ using VContainer.Unity;
 public class InputService : IInputService, ITickable
 {
     private GameControls controls;
+    
     public Vector2 TouchPosition { get; private set; }
     public bool IsTouching { get; private set; }
 
@@ -29,9 +30,6 @@ public class InputService : IInputService, ITickable
 
     public void Tick()
     {
-        if (Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            Debug.Break();
-        }
+
     }
 }

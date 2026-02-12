@@ -22,12 +22,24 @@ public class UI_MainMenu : UIMenu
         this.saveService = saveService;
         this.adsService = adsService;
     }
+    
+    protected override void Awake()
+    {  
+        menuType = MenuType.PauseMenu; // Main menu doesn't need a specific type, but set one for consistency
 
+        // Main menu should be open by default - ensure panel is active and state is set
+        menuPanel.SetActive(true);
+
+        IsOpen = true;
+    }
+    
     private void Start()
-    {
+    {       
         levelPanel.SetActive(true);
         settingsPanel.SetActive(false);
+
         levelIndex = saveService.PlayerData.nextLevelIndex;
+
         LoadInitialValues();
         StartCoroutine(ShowBannerWhenReady());
     }
@@ -36,6 +48,7 @@ public class UI_MainMenu : UIMenu
     {
         yield return new WaitUntil(() => adsService.IsInitialized);
         yield return new WaitForSeconds(0.5f);
+
         adsService.ShowBannerAd();
     }
 

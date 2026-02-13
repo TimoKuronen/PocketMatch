@@ -9,6 +9,9 @@ public class AdsService : IAdsService, IDisposable
     private const string AppKey = "23b074f85";
     private const string BannerAdId = "dq0x680o73ez3iyt";
     private const string InterstitialAdId = "adgl52j6cwsc0pge";
+    
+    private const string BannerPlacementName = "Banner";
+    private const string InterstitialPlacementName = "interstitial";
 
     private LevelPlayBannerAd bannerAd;
     private LevelPlayInterstitialAd interstitialAd;
@@ -51,15 +54,6 @@ public class AdsService : IAdsService, IDisposable
 
         Debug.Log($"[AdsService] Initializing LevelPlay SDK with AppKey: {AppKey} on platform: {Application.platform}");
         Debug.Log($"[AdsService] Bundle ID: {Application.identifier}");
-        Debug.Log($"[AdsService] App Version: {Application.version}");
-        
-        // Verify bundle ID matches what's configured in LevelPlay dashboard
-        string expectedBundleId = "com.TimoKuronen.PocketMatch";
-        if (Application.identifier != expectedBundleId)
-        {
-            Debug.LogWarning($"[AdsService] Bundle ID mismatch! Expected: {expectedBundleId}, Got: {Application.identifier}");
-            Debug.LogWarning("[AdsService] Make sure your LevelPlay dashboard is configured with the correct bundle ID!");
-        }
         
         LevelPlay.ValidateIntegration();
         LevelPlay.OnInitSuccess += OnSdkInitSuccess;
@@ -78,23 +72,6 @@ public class AdsService : IAdsService, IDisposable
     private void OnSdkInitFailed(LevelPlayInitError error)
     {
         Debug.LogError($"[AdsService] SDK Initialization Failed: {error}");
-        Debug.LogError($"[AdsService] Error Details: {error.ToString()}");
-        Debug.LogError($"[AdsService] AppKey used: {AppKey}");
-        Debug.LogError($"[AdsService] Platform: {Application.platform}");
-        Debug.LogError($"[AdsService] Internet Reachability: {Application.internetReachability}");
-        
-        // Error 2110 (Bad Request - 400) usually means invalid AppKey or configuration issue
-        // Check if AppKey might be incorrect
-        string errorString = error.ToString();
-        if (errorString.Contains("2110") || errorString.Contains("400") || errorString.Contains("Bad Request"))
-        {
-            Debug.LogError("[AdsService] CRITICAL: Invalid AppKey or configuration issue detected!");
-            Debug.LogError("[AdsService] Please verify:");
-            Debug.LogError("  1. AppKey is correct in LevelPlay dashboard");
-            Debug.LogError("  2. AppKey matches your platform (Android/iOS)");
-            Debug.LogError("  3. App is properly configured in LevelPlay dashboard");
-            Debug.LogError("  4. Network connectivity is working");
-        }
         
         // Retry initialization after a delay (but only once to avoid spam)
         if (!IsInitialized)
@@ -126,6 +103,16 @@ public class AdsService : IAdsService, IDisposable
     private void OnSdkInitSuccess(LevelPlayConfiguration configuration)
     {
         IsInitialized = true;
+        
+        // Small delay to ensure SDK is fully ready before creating ads
+        CoroutineMonoBehavior.Instance.StartCoroutine(DelayedAdCreation());
+    }
+    
+    private IEnumerator DelayedAdCreation()
+    {
+        // Wait a brief moment for SDK to be fully ready
+        yield return new WaitForSeconds(0.5f);
+        
         CreateBannerAd();
         CreateInterstitialAd();
     }
@@ -136,17 +123,28 @@ public class AdsService : IAdsService, IDisposable
 
     private void CreateInterstitialAd()
     {
+        if (!IsInitialized)
+            return;
+        
         CleanupInterstitialAd();
-        interstitialAd = new LevelPlayInterstitialAd(InterstitialAdId);
+        
+        try
+        {
+            interstitialAd = new LevelPlayInterstitialAd(InterstitialAdId);
 
-        interstitialAd.OnAdLoaded += OnInterstitialLoaded;
-        interstitialAd.OnAdClosed += OnInterstitialClosed;
-        interstitialAd.OnAdDisplayed += OnInterstitialDisplayed;
-        interstitialAd.OnAdClicked += OnInterstitialClicked;
-        interstitialAd.OnAdLoadFailed += OnInterstitialLoadFailed;
-        interstitialAd.OnAdDisplayFailed += OnInterstitialDisplayFailed;
+            interstitialAd.OnAdLoaded += OnInterstitialLoaded;
+            interstitialAd.OnAdClosed += OnInterstitialClosed;
+            interstitialAd.OnAdDisplayed += OnInterstitialDisplayed;
+            interstitialAd.OnAdClicked += OnInterstitialClicked;
+            interstitialAd.OnAdLoadFailed += OnInterstitialLoadFailed;
+            interstitialAd.OnAdDisplayFailed += OnInterstitialDisplayFailed;
 
-        LoadInterstitialAd();
+            LoadInterstitialAd();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[AdsService] Exception while creating interstitial ad: {e}");
+        }
     }
 
     private void LoadInterstitialAd()
@@ -208,7 +206,7 @@ public class AdsService : IAdsService, IDisposable
 
         if (interstitialAd.IsAdReady())
         {
-            interstitialAd.ShowAd();
+            interstitialAd.ShowAd(InterstitialPlacementName);
         }
         else
         {
@@ -222,17 +220,17 @@ public class AdsService : IAdsService, IDisposable
 
     private void CreateBannerAd()
     {
+        if (!IsInitialized)
+            return;
+        
         CleanupBannerAd();
-
-        Debug.Log($"[AdsService] Creating banner ad with placement ID: {BannerAdId}");
-        Debug.Log($"[AdsService] Bundle ID: {Application.identifier}");
-        Debug.Log($"[AdsService] Platform: {Application.platform}");
 
         var configBuilder = new LevelPlayBannerAd.Config.Builder()
             .SetSize(LevelPlayAdSize.BANNER)
             .SetPosition(LevelPlayBannerPosition.BottomCenter)
             .SetDisplayOnLoad(false)
-            .SetRespectSafeArea(false);
+            .SetRespectSafeArea(false)
+            .SetPlacementName(BannerPlacementName);
 
         bannerAd = new LevelPlayBannerAd(BannerAdId, configBuilder.Build());
 

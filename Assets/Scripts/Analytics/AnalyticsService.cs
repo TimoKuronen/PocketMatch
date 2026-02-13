@@ -167,23 +167,11 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
 
     private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
     {
-        // Get total score from ScoreService - resolve lazily from GameLifetimeScope
-        int totalScore = 0;
-        try
-        {
-            var scoreService = objectResolver.Resolve<IScoreService>();
-            totalScore = scoreService.GetTotalScore();
-        }
-        catch (VContainerException ex)
-        {
-            Debug.LogWarning($"[AnalyticsService] Could not resolve IScoreService: {ex.Message}. Score will be 0.");
-        }
-        
         LogEvent(AnalyticsEvents.LevelCompleted, new Dictionary<string, object>
         {
             { "level_name", e.LevelName },
             { "moves_spent", e.MovesSpent },
-            { "total_score", totalScore },
+            { "total_score", e.TotalScore },
             { "matchDuration", e.GameTimeInSeconds }
         });
     }

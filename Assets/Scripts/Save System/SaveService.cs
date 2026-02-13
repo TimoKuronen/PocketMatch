@@ -241,19 +241,9 @@ public class SaveService : ISaveService, IStartable, IDisposable
         // Only update save data if level cap is not reached
         if (!e.IsLevelCapReached)
         {
-            // Resolve IScoreService from current scope (GameLifetimeScope) when handling event
-            // This works because the event is raised during gameplay when GameLifetimeScope is active
-            try
-            {
-                var scoreService = objectResolver.Resolve<IScoreService>();
-                PlayerData.nextLevelIndex++;
-                PlayerData.coins += scoreService.GetTotalScore();
-                Save();
-            }
-            catch (VContainerException ex)
-            {
-                Debug.LogWarning($"[SaveService] Could not resolve IScoreService: {ex.Message}. Score may not be saved.");
-            }
+            PlayerData.nextLevelIndex++;
+            PlayerData.coins += e.TotalScore;
+            Save();
         }
         else
         {

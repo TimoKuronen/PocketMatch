@@ -443,7 +443,7 @@ RectTransform:
   m_Father: {fileID: 8636421469735983344}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1325,11 +1325,13 @@ MonoBehaviour:
   victoryConditionPrefab: {fileID: 3587731619109642694, guid: d39810434cef50347af1423b7abdc69f, type: 3}
   victoryConditionsContainer: {fileID: 1057863014739118428}
   movesText: {fileID: 8366981096686471845}
-  coinCountText: {fileID: 0}
+  coinCountText: {fileID: 1679721714496281146}
   currentLevelText: {fileID: 5812376503679086814}
   settingsButton: {fileID: 6089612508639609692}
   cheatWinButton: {fileID: 1696014437548153967}
   settingsPanel: {fileID: 5698018774649320206}
+  winPanel: {fileID: 7047343150333231909}
+  losePanel: {fileID: 5867713840579091313}
 --- !u!1 &2735084061482336123
 GameObject:
   m_ObjectHideFlags: 0
@@ -2912,8 +2914,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 4321000836160984775}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}

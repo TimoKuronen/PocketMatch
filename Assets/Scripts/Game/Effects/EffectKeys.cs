@@ -16,6 +16,7 @@ public static class EffectKeys
     
     // Label for bulk preloading
     public const string EffectsLabel = "Effects";
+    public const string TileVFXLabel = "TileVFX";
     
     // Array of all effect keys for easy preloading
     public static readonly string[] AllEffects = new[]

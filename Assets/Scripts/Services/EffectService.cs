@@ -6,14 +6,16 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.Pool;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using VContainer;
+using VContainer.Unity;
 
-public class EffectService : IEffectService, IDisposable
+public class EffectService : IEffectService, IStartable, IDisposable
 {
     private Dictionary<string, ObjectPool<GameObject>> effectPools;
     private Dictionary<string, GameObject> loadedPrefabs;
     private Dictionary<string, AsyncOperationHandle<GameObject>> addressableHandles;
     private Dictionary<GameObject, string> activeEffects;
     private HashSet<string> failedEffects;
+    private Dictionary<string, Transform> poolParents; // Store pool parent transforms for cleanup
 
     private const int DEFAULT_POOL_SIZE = 10;
     private const int MAX_POOL_SIZE = 50;
@@ -27,12 +29,27 @@ public class EffectService : IEffectService, IDisposable
         addressableHandles = new Dictionary<string, AsyncOperationHandle<GameObject>>();
         activeEffects = new Dictionary<GameObject, string>();
         failedEffects = new HashSet<string>();
+        poolParents = new Dictionary<string, Transform>();
 
         if (vfxCanvasTransform == null)
         {
             var canvasGo = GameObject.Find("VFXCanvas");
             if (canvasGo != null) vfxCanvasTransform = canvasGo.transform;
         }
+    }
+
+    public void Start()
+    {
+        // Ensure VFXCanvas is found
+        if (vfxCanvasTransform == null)
+        {
+            var canvasGo = GameObject.Find("VFXCanvas");
+            if (canvasGo != null) vfxCanvasTransform = canvasGo.transform;
+        }
+
+        // Preload all effects with the TileVFX label
+        PreloadEffectsByLabel(EffectKeys.TileVFXLabel);
+        Debug.Log("[EffectService] Started preloading effects with label: " + EffectKeys.TileVFXLabel);
     }
 
     public void PreloadEffects(string[] effectKeys)
@@ -110,6 +127,14 @@ public class EffectService : IEffectService, IDisposable
 
         // Success - create pool
         var prefab = handle.Result;
+        if (prefab == null)
+        {
+            MarkAsFailed(effectKey, "prefab result is null");
+            if (handle.IsValid()) Addressables.Release(handle);
+            yield break;
+        }
+
+        Debug.Log($"[EffectService] Successfully loaded prefab for {effectKey}: {prefab.name}");
         loadedPrefabs[effectKey] = prefab;
         addressableHandles[effectKey] = handle;
         CreatePoolForEffect(effectKey, prefab);
@@ -124,31 +149,159 @@ public class EffectService : IEffectService, IDisposable
 
     private void CreatePoolForEffect(string effectKey, GameObject prefab)
     {
+        // Validate prefab
+        if (prefab == null)
+        {
+            Debug.LogError($"[EffectService] Cannot create pool for {effectKey}: prefab is null!");
+            MarkAsFailed(effectKey, "prefab is null");
+            return;
+        }
+
+        Debug.Log($"[EffectService] Creating pool for {effectKey} with prefab: {prefab.name}");
+
+        // Ensure VFXCanvas is available
+        if (vfxCanvasTransform == null)
+        {
+            var canvasGo = GameObject.Find("VFXCanvas");
+            if (canvasGo != null) vfxCanvasTransform = canvasGo.transform;
+        }
+
+        // Create a hidden parent for inactive pooled objects to prevent Unity from destroying them
+        Transform poolParent = null;
+        if (vfxCanvasTransform != null)
+        {
+            var poolParentGo = new GameObject($"{effectKey}_Pool");
+            poolParentGo.SetActive(false); // Hide the parent
+            poolParent = poolParentGo.transform;
+            poolParent.SetParent(vfxCanvasTransform, false);
+            poolParents[effectKey] = poolParent; // Store for cleanup
+        }
+
+        // Capture poolParent and prefab in closure
+        var capturedPoolParent = poolParent;
+        var capturedVfxCanvas = vfxCanvasTransform;
+        var capturedPrefab = prefab; // Capture prefab reference
+
         var pool = new ObjectPool<GameObject>(
             createFunc: () => {
-                var obj = UnityEngine.Object.Instantiate(prefab);
-                obj.SetActive(false);
-                return obj;
+                if (capturedPrefab == null)
+                {
+                    Debug.LogError($"[EffectService] Prefab for {effectKey} is null in createFunc!");
+                    return null;
+                }
+
+                try
+                {
+                    var obj = UnityEngine.Object.Instantiate(capturedPrefab);
+                    if (obj == null)
+                    {
+                        Debug.LogError($"[EffectService] Instantiate returned null for {effectKey}");
+                        return null;
+                    }
+                    
+                    obj.SetActive(false);
+                    // Parent to pool parent (or VFXCanvas if pool parent doesn't exist) to prevent destruction
+                    if (capturedPoolParent != null)
+                    {
+                        obj.transform.SetParent(capturedPoolParent, false);
+                    }
+                    else if (capturedVfxCanvas != null)
+                    {
+                        obj.transform.SetParent(capturedVfxCanvas, false);
+                    }
+                    
+                    Debug.Log($"[EffectService] Created pooled instance for {effectKey}");
+                    return obj;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[EffectService] Exception creating instance for {effectKey}: {ex}");
+                    return null;
+                }
             },
-            actionOnGet: (obj) => obj.SetActive(true),
-            actionOnRelease: (obj) => obj.SetActive(false),
-            actionOnDestroy: (obj) => UnityEngine.Object.Destroy(obj),
+            actionOnGet: (obj) => {
+                // Unity's == operator handles destroyed objects
+                if (obj != null)
+                {
+                    try
+                    {
+                        obj.SetActive(true);
+                    }
+                    catch (MissingReferenceException)
+                    {
+                        // Object was destroyed, pool will create a new one
+                        Debug.LogWarning($"[EffectService] Object in pool was destroyed, will create new instance");
+                    }
+                }
+            },
+            actionOnRelease: (obj) => {
+                // Unity's == operator handles destroyed objects
+                if (obj != null)
+                {
+                    try
+                    {
+                        obj.SetActive(false);
+                        // Return to pool parent when released
+                        if (capturedPoolParent != null)
+                        {
+                            obj.transform.SetParent(capturedPoolParent, false);
+                        }
+                    }
+                    catch (MissingReferenceException)
+                    {
+                        // Object was destroyed, ignore
+                    }
+                }
+            },
+            actionOnDestroy: (obj) => {
+                if (obj != null)
+                {
+                    UnityEngine.Object.Destroy(obj);
+                }
+            },
             collectionCheck: false,
             defaultCapacity: DEFAULT_POOL_SIZE,
             maxSize: MAX_POOL_SIZE
         );
 
+        // Prewarm the pool
         Stack<GameObject> tempPrewarmList = new Stack<GameObject>();
+        int successfulPrewarms = 0;
         for (int i = 0; i < DEFAULT_POOL_SIZE; i++)
         {
-            tempPrewarmList.Push(pool.Get());
+            var obj = pool.Get();
+            if (obj != null)
+            {
+                tempPrewarmList.Push(obj);
+                successfulPrewarms++;
+            }
+            else
+            {
+                Debug.LogWarning($"[EffectService] Failed to prewarm pool instance {i} for {effectKey}");
+            }
         }
+        
+        Debug.Log($"[EffectService] Prewarmed {successfulPrewarms}/{DEFAULT_POOL_SIZE} instances for {effectKey}");
+        
         while (tempPrewarmList.Count > 0)
         {
-            pool.Release(tempPrewarmList.Pop());
+            var obj = tempPrewarmList.Pop();
+            if (obj != null)
+            {
+                pool.Release(obj);
+            }
+        }
+
+        if (successfulPrewarms == 0)
+        {
+            Debug.LogError($"[EffectService] Failed to create any pool instances for {effectKey}! Pool may not work correctly.");
+            MarkAsFailed(effectKey, "failed to create pool instances");
+            pool.Dispose();
+            return;
         }
 
         effectPools[effectKey] = pool;
+        Debug.Log($"[EffectService] Successfully created pool for {effectKey}");
     }
 
     public void PlayEffect(string effectKey, Vector3 worldPosition, Quaternion rotation = default)
@@ -170,9 +323,56 @@ public class EffectService : IEffectService, IDisposable
     private void SpawnEffect(ObjectPool<GameObject> pool, string effectKey, Vector3 worldPosition, Quaternion rotation)
     {
         var instance = pool.Get();
-        instance.SetActive(true);
+        if (instance == null)
+        {
+            Debug.LogError($"[EffectService] Failed to get instance from pool for {effectKey}. Attempting to recreate pool...");
+            
+            // Try to recreate the pool if prefab is still available
+            if (loadedPrefabs.TryGetValue(effectKey, out var prefab) && prefab != null)
+            {
+                Debug.Log($"[EffectService] Recreating pool for {effectKey}");
+                // Dispose old pool if it exists
+                if (effectPools.TryGetValue(effectKey, out var oldPool))
+                {
+                    oldPool.Dispose();
+                }
+                CreatePoolForEffect(effectKey, prefab);
+                
+                // Try again
+                if (effectPools.TryGetValue(effectKey, out var newPool))
+                {
+                    instance = newPool.Get();
+                    if (instance == null)
+                    {
+                        Debug.LogError($"[EffectService] Still failed to get instance after recreating pool for {effectKey}");
+                        return;
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"[EffectService] Failed to recreate pool for {effectKey}");
+                    return;
+                }
+            }
+            else
+            {
+                Debug.LogError($"[EffectService] Cannot recreate pool - prefab not available for {effectKey}");
+                return;
+            }
+        }
 
-        instance.transform.SetParent(vfxCanvasTransform, false);
+        // Ensure VFXCanvas is available
+        if (vfxCanvasTransform == null)
+        {
+            var canvasGo = GameObject.Find("VFXCanvas");
+            if (canvasGo != null) vfxCanvasTransform = canvasGo.transform;
+        }
+
+        // Move to VFXCanvas and set position
+        if (vfxCanvasTransform != null)
+        {
+            instance.transform.SetParent(vfxCanvasTransform, false);
+        }
         instance.transform.position = worldPosition;
 
         instance.transform.localPosition = new Vector3(
@@ -219,6 +419,15 @@ public class EffectService : IEffectService, IDisposable
             pool.Release(effectInstance);
             activeEffects.Remove(effectInstance);
         }
+        else
+        {
+            // Pool doesn't exist, just destroy the instance
+            if (effectInstance != null)
+            {
+                UnityEngine.Object.Destroy(effectInstance);
+            }
+            activeEffects.Remove(effectInstance);
+        }
     }
 
     public void Dispose()
@@ -243,5 +452,15 @@ public class EffectService : IEffectService, IDisposable
             pool.Dispose();
         }
         effectPools.Clear();
+
+        // Clean up pool parent GameObjects
+        foreach (var poolParent in poolParents.Values)
+        {
+            if (poolParent != null && poolParent.gameObject != null)
+            {
+                UnityEngine.Object.Destroy(poolParent.gameObject);
+            }
+        }
+        poolParents.Clear();
     }
 }

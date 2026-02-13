@@ -16,14 +16,17 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
 
     private IGameSessionService gameSessionService;
     private IGridController gridController;
+    private IScoreService scoreService;
 
     [Inject]
     public void Construct(
         IGameSessionService gameSessionService,
-        IGridController gridController)
+        IGridController gridController,
+        IScoreService scoreService)
     {
         this.gameSessionService = gameSessionService;
         this.gridController = gridController;
+        this.scoreService = scoreService;
     }
 
     public void Start()
@@ -169,14 +172,14 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
     private void ToggleWinEvent()
     {
         int movesSpent = LocalMapData.VictoryConditions.MoveLimit - MovesRemaining;
+        int totalScore = scoreService.GetTotalScore();
         
         // Raise level completed event - SaveService and AnalyticsService will listen to this
-        // Note: TotalScore will be retrieved by event handlers from IScoreService
         LevelEvents.RaiseLevelCompleted(new LevelCompletedEventArgs(
             LocalMapData.name,
             MovesRemaining,
             movesSpent,
-            0, // Score will be retrieved by event handlers from ScoreService
+            totalScore,
             GameTimeInSeconds,
             gameSessionService.IsLevelCapReached));
 

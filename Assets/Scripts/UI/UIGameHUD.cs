@@ -23,6 +23,8 @@ public class UIGameHUD : MonoBehaviour, IDisposable
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button cheatWinButton;
     [SerializeField] private SettingsPanel settingsPanel;
+    [SerializeField] private WinPanel winPanel;
+    [SerializeField] private LosePanel losePanel;
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
@@ -181,12 +183,7 @@ public class UIGameHUD : MonoBehaviour, IDisposable
         UpdateCoinCountText(scoreService.GetTotalScore());
         movesText.gameObject.SetActive(false);
         
-        // Push win panel onto menu stack
-        var winPanel = FindFirstObjectByType<WinPanel>();
-        if (winPanel != null && menuStackManager != null)
-        {
-            menuStackManager.PushMenu(winPanel);
-        }
+        menuStackManager.PushMenu(winPanel);
     }
 
     private void OnLevelLost()
@@ -194,12 +191,7 @@ public class UIGameHUD : MonoBehaviour, IDisposable
         HideAllVictoryConditions();
         movesText.gameObject.SetActive(false);
         
-        // Push lose panel onto menu stack
-        var losePanel = FindFirstObjectByType<LosePanel>();
-        if (losePanel != null && menuStackManager != null)
-        {
-            menuStackManager.PushMenu(losePanel);
-        }
+        menuStackManager.PushMenu(losePanel);
     }
 
     #endregion

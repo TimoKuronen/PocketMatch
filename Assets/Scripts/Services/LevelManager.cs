@@ -92,7 +92,7 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
         gridController.TileDestroyed += OnTileDestroyed;
         gridController.GridContext.OnDestroy += OnTileDestroyed;
 
-        UI_GameHUD.OnCheatButtonClicked += ToggleWinEvent;
+        UIGameHUD.OnCheatButtonClicked += ToggleWinEvent;
     }
 
     private void OnTileDestroyed(TileData data)
@@ -205,6 +205,6 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
             gridController.GridContext.OnDestroy -= OnTileDestroyed;
         }
 
-        UI_GameHUD.OnCheatButtonClicked -= ToggleWinEvent;
+        UIGameHUD.OnCheatButtonClicked -= ToggleWinEvent;
     }
 }

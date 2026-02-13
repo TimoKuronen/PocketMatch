@@ -16,6 +16,7 @@ public class UIAudioPlayer : MonoBehaviour
     public void Construct(IAudioService audioService)
     {
         this.audioService = audioService;
+        Debug.Log(gameObject + "UIAudioPlayer Constructed with IAudioService dependency.");
     }
 
     void Start()

@@ -5,6 +5,11 @@ public class MenuLifetimeScope : LifetimeScope
 {
     protected override void Configure(IContainerBuilder builder)
     {
-        builder.RegisterComponentInHierarchy<UI_MainMenu>();
+        // Register MenuStackManager for main menu scene
+        builder.Register<MenuStackManager>(Lifetime.Scoped);
+        
+        builder.RegisterComponentInHierarchy<MainMenuPanel>();
+        builder.RegisterComponentInHierarchy<SettingsPanel>();
+        builder.RegisterComponentInHierarchy<ConfirmationDialog>();
     }
 }

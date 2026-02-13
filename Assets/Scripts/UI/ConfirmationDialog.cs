@@ -1,16 +1,17 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using VContainer;
 
 /// <summary>
 /// Reusable confirmation dialog that can be pushed onto the menu stack.
 /// </summary>
-public class UI_ConfirmationDialog : UIMenu
+public class ConfirmationDialog : UIMenu
 {
     [SerializeField] private TextMeshProUGUI messageText;
-    [SerializeField] private UnityEngine.UI.Button yesButton;
-    [SerializeField] private UnityEngine.UI.Button noButton;
+    [SerializeField] private Button yesButton;
+    [SerializeField] private Button noButton;
     
     private Action onConfirmCallback;
     private MenuStackManager menuStackManager;
@@ -25,6 +26,17 @@ public class UI_ConfirmationDialog : UIMenu
     {
         base.Awake();
         menuType = MenuType.ConfirmationPrompt;
+        
+        // Subscribe to button clicks via code
+        yesButton.onClick.AddListener(OnYesButtonClicked);
+        noButton.onClick.AddListener(OnNoButtonClicked);
+    }
+    
+    private void OnDestroy()
+    {
+        // Unsubscribe to prevent memory leaks
+        yesButton.onClick.RemoveListener(OnYesButtonClicked);
+        noButton.onClick.RemoveListener(OnNoButtonClicked);
     }
     
     /// <summary>
@@ -32,30 +44,19 @@ public class UI_ConfirmationDialog : UIMenu
     /// </summary>
     public void Setup(string message, Action onConfirm)
     {
-        if (messageText != null)
-        {
-            messageText.text = message;
-        }
-        
+        messageText.text = message;
         onConfirmCallback = onConfirm;
     }
     
-    public void YesButtonPressed()
+    private void OnYesButtonClicked()
     {
         onConfirmCallback?.Invoke();
-        
-        if (menuStackManager != null)
-        {
-            menuStackManager.PopMenu();
-        }
+        menuStackManager.PopMenu();
     }
     
-    public void NoButtonPressed()
+    private void OnNoButtonClicked()
     {
-        if (menuStackManager != null)
-        {
-            menuStackManager.PopMenu();
-        }
+        menuStackManager.PopMenu();
     }
     
     public override void Open()
@@ -63,7 +64,7 @@ public class UI_ConfirmationDialog : UIMenu
         base.Open();
         
         // Ensure buttons are enabled
-        if (yesButton != null) yesButton.interactable = true;
-        if (noButton != null) noButton.interactable = true;
+        yesButton.interactable = true;
+        noButton.interactable = true;
     }
 }

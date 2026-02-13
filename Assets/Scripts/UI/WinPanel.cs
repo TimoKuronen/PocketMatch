@@ -6,12 +6,12 @@ using VContainer;
 /// <summary>
 /// Win panel menu that appears when player completes a level.
 /// </summary>
-public class UI_WinPanel : UIMenu
+public class WinPanel : UIMenu
 {
     [SerializeField] private Button nextLevelButton;
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private TextMeshProUGUI coinCountText;
-    [SerializeField] private UI_ConfirmationDialog confirmationDialog;
+    [SerializeField] private ConfirmationDialog confirmationDialog;
     
     private MenuStackManager menuStackManager;
     private IAdsService adsService;
@@ -35,6 +35,17 @@ public class UI_WinPanel : UIMenu
     {
         base.Awake();
         menuType = MenuType.WinMenu;
+        
+        // Subscribe to button clicks via code
+        nextLevelButton.onClick.AddListener(OnNextLevelButtonClicked);
+        mainMenuButton.onClick.AddListener(OnMainMenuButtonClicked);
+    }
+    
+    private void OnDestroy()
+    {
+        // Unsubscribe to prevent memory leaks
+        nextLevelButton.onClick.RemoveListener(OnNextLevelButtonClicked);
+        mainMenuButton.onClick.RemoveListener(OnMainMenuButtonClicked);
     }
     
     public override void Open()
@@ -42,40 +53,28 @@ public class UI_WinPanel : UIMenu
         base.Open();
         
         // Update coin count display
-        if (coinCountText != null && scoreService != null)
-        {
-            coinCountText.text = $"x {scoreService.GetTotalScore()}";
-        }
+        coinCountText.text = $"x {scoreService.GetTotalScore()}";
         
         // Hide next level button if level cap reached
-        if (nextLevelButton != null && gameSessionService != null)
-        {
-            nextLevelButton.gameObject.SetActive(!gameSessionService.IsLevelCapReached);
-        }
+        nextLevelButton.gameObject.SetActive(!gameSessionService.IsLevelCapReached);
     }
     
-    public void NextLevelButtonPressed()
+    private void OnNextLevelButtonClicked()
     {
-        if (menuStackManager != null)
-        {
-            menuStackManager.PopMenu();
-        }
+        menuStackManager.PopMenu();
         Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
     }
     
-    public void MainMenuButtonPressed()
+    private void OnMainMenuButtonClicked()
     {
-        if (menuStackManager != null && confirmationDialog != null)
+        if (menuStackManager.CanOpenMenu())
         {
-            if (menuStackManager.CanOpenMenu())
+            confirmationDialog.Setup("Are you sure you want to return to the main menu?", () =>
             {
-                confirmationDialog.Setup("Are you sure you want to return to the main menu?", () =>
-                {
-                    menuStackManager.ClearStack();
-                    Loader.Load(Loader.GameScene.MainMenu);
-                });
-                menuStackManager.PushMenu(confirmationDialog);
-            }
+                menuStackManager.ClearStack();
+                Loader.Load(Loader.GameScene.MainMenu);
+            });
+            menuStackManager.PushMenu(confirmationDialog);
         }
     }
 }

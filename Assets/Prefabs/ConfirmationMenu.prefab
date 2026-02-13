@@ -120,19 +120,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 3822415512607883331}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UI_MainMenu, Assembly-CSharp
-        m_MethodName: PlayButtonPressed
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &2937234990832416639
 GameObject:
   m_ObjectHideFlags: 0
@@ -741,19 +729,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1294310398052988585}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UI_MainMenu, Assembly-CSharp
-        m_MethodName: PlayButtonPressed
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!1 &7692326073013295484
 GameObject:
   m_ObjectHideFlags: 0
@@ -763,7 +739,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7182104984342963571}
-  - component: {fileID: 2626217633915583437}
+  - component: {fileID: 2878348989476097094}
   m_Layer: 5
   m_Name: ConfirmationMenu
   m_TagString: Untagged
@@ -794,7 +770,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 450, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2626217633915583437
+--- !u!114 &2878348989476097094
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -803,10 +779,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 7692326073013295484}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4054c737ba4550040872763d004ba276, type: 3}
+  m_Script: {fileID: 11500000, guid: e10a4d9830c5a2f40ae1c577d4c21c37, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UI_ConfirmationDialog
-  menuPanel: {fileID: 0}
+  m_EditorClassIdentifier: Assembly-CSharp::ConfirmationDialog
+  menuPanel: {fileID: 7692326073013295484}
   menuType: 2
   messageText: {fileID: 3992422010277775535}
   yesButton: {fileID: 7632271802944466391}

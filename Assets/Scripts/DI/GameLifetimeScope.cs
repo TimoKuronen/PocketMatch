@@ -15,15 +15,23 @@ public class GameLifetimeScope : LifetimeScope
         // Register MenuStackManager as singleton
         builder.Register<MenuStackManager>(Lifetime.Scoped);
 
-        builder.RegisterComponentInHierarchy<UI_GameHUD>();
-        builder.RegisterComponentInHierarchy<UI_SettingsMenu>();
-        builder.RegisterComponentInHierarchy<UI_WinPanel>();
-        builder.RegisterComponentInHierarchy<UI_LosePanel>();
-        builder.RegisterComponentInHierarchy<UI_ConfirmationDialog>();
+        builder.RegisterComponentInHierarchy<UIGameHUD>();
+        builder.RegisterComponentInHierarchy<SettingsPanel>();
+        builder.RegisterComponentInHierarchy<WinPanel>();
+        builder.RegisterComponentInHierarchy<LosePanel>();
+        builder.RegisterComponentInHierarchy<ConfirmationDialog>();
 
         builder.RegisterComponentInHierarchy<GridController>()
             .As<IGridController>();
         builder.RegisterComponentInHierarchy<GridAudioPlayer>()
             .As<IStartable>();
+        
+        // Set grid controller reference in MenuStackManager after construction
+        builder.RegisterBuildCallback(container =>
+        {
+            var menuStackManager = container.Resolve<MenuStackManager>();
+            var gridController = container.Resolve<IGridController>();
+            menuStackManager.SetGridController(gridController);
+        });
     }
 }

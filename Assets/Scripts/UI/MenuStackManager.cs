@@ -14,8 +14,65 @@ public class MenuStackManager : IDisposable
     public bool HasOpenMenus => menuStack.Count > 0;
     public IMenu TopMenu => menuStack.Count > 0 ? menuStack.Peek() : null;
     
+    /// <summary>
+    /// Check if a menu of the specified type is currently on the stack
+    /// </summary>
+    public bool HasMenuOfType(MenuType menuType)
+    {
+        foreach (var menu in menuStack)
+        {
+            if (menu.MenuType == menuType)
+                return true;
+        }
+        return false;
+    }
+    
+    /// <summary>
+    /// Pop menus until the specified menu type is removed (if it exists)
+    /// Closes all menus popped in the process, including the target menu
+    /// </summary>
+    public bool PopMenuOfType(MenuType menuType)
+    {
+        if (!HasMenuOfType(menuType))
+            return false;
+        
+        // Pop menus until we find and remove the target menu
+        // Close everything we pop, including menus above the target
+        var menusToRestore = new Stack<IMenu>();
+        bool found = false;
+        
+        while (menuStack.Count > 0)
+        {
+            var menu = menuStack.Pop();
+            menu.Close();
+            
+            if (menu.MenuType == menuType)
+            {
+                found = true;
+                break; // Stop here, don't restore menus above settings
+            }
+            
+            menusToRestore.Push(menu);
+        }
+        
+        // Restore menus that were below the target (they were closed, so reopen them)
+        while (menusToRestore.Count > 0)
+        {
+            var menu = menusToRestore.Pop();
+            menuStack.Push(menu);
+            menu.Open();
+        }
+        
+        return found;
+    }
+    
     [Inject]
-    public void Construct(IGridController gridController)
+    public void Construct() { }
+    
+    /// <summary>
+    /// Set grid controller reference (called from GameLifetimeScope)
+    /// </summary>
+    public void SetGridController(IGridController gridController)
     {
         this.gridController = gridController;
     }
@@ -25,7 +82,11 @@ public class MenuStackManager : IDisposable
     /// </summary>
     public bool CanOpenMenu()
     {
-        return gridController != null && !gridController.IsProcessingTiles;
+        // If no grid controller (main menu scene), always allow opening menus
+        if (gridController == null)
+            return true;
+            
+        return !gridController.IsProcessingTiles;
     }
     
     /// <summary>
@@ -51,11 +112,10 @@ public class MenuStackManager : IDisposable
             return false;
         }
         
-        // Close current top menu if exists (for visual layering)
-        if (menuStack.Count > 0)
+        // Ensure menu GameObject is enabled before opening (Awake needs to run)
+        if (menu is MonoBehaviour menuBehaviour && !menuBehaviour.gameObject.activeSelf)
         {
-            var topMenu = menuStack.Peek();
-            // Don't close it, just hide visually if needed
+            menuBehaviour.gameObject.SetActive(true);
         }
         
         menuStack.Push(menu);

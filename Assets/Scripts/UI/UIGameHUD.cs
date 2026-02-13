@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using VContainer;
 
 /// <summary>
 /// HUD component for gameplay - displays game information (moves, coins, victory conditions).
 /// This is NOT a menu in the stack system, just a display overlay.
 /// </summary>
-public class UI_GameHUD : MonoBehaviour, IDisposable
+public class UIGameHUD : MonoBehaviour, IDisposable
 {
     #region Fields
 
@@ -18,8 +19,10 @@ public class UI_GameHUD : MonoBehaviour, IDisposable
     [SerializeField] private Transform victoryConditionsContainer;
     [SerializeField] private TextMeshProUGUI movesText;
     [SerializeField] private TextMeshProUGUI coinCountText;
-    [SerializeField] private TextMeshProUGUI puzzleIndexText;
-    [SerializeField] private UI_SettingsMenu settingsMenu;
+    [SerializeField] private TextMeshProUGUI currentLevelText;
+    [SerializeField] private Button settingsButton;
+    [SerializeField] private Button cheatWinButton;
+    [SerializeField] private SettingsPanel settingsPanel;
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
@@ -53,6 +56,10 @@ public class UI_GameHUD : MonoBehaviour, IDisposable
 
     public void Start()
     {
+        // Subscribe to button clicks via code
+        settingsButton.onClick.AddListener(OnSettingsButtonClicked);
+        cheatWinButton.onClick.AddListener(OnCheatWinButtonClicked);
+        
         // If session is already loaded, initialize immediately
         if (GameSignals.IsSessionLoaded)
         {
@@ -77,18 +84,23 @@ public class UI_GameHUD : MonoBehaviour, IDisposable
 
     #region Public Methods
 
-    public void CheatWinButtonPressed()
+    private void OnCheatWinButtonClicked()
     {
         OnCheatButtonClicked?.Invoke();
     }
 
-    public void SettingsButtonPressed()
+    private void OnSettingsButtonClicked()
     {
-        if (menuStackManager != null && settingsMenu != null)
+        // Toggle settings menu - close if already open, open if closed
+        if (menuStackManager.HasMenuOfType(MenuType.SettingsMenu))
+        {
+            menuStackManager.PopMenuOfType(MenuType.SettingsMenu);
+        }
+        else
         {
             if (menuStackManager.CanOpenMenu())
             {
-                menuStackManager.PushMenu(settingsMenu);
+                menuStackManager.PushMenu(settingsPanel);
             }
             else
             {
@@ -102,10 +114,7 @@ public class UI_GameHUD : MonoBehaviour, IDisposable
     /// </summary>
     public void LoadMainMenu()
     {
-        if (menuStackManager != null)
-        {
-            menuStackManager.ClearStack();
-        }
+        menuStackManager.ClearStack();
         Loader.Load(Loader.GameScene.MainMenu);
     }
 
@@ -122,19 +131,20 @@ public class UI_GameHUD : MonoBehaviour, IDisposable
     /// </summary>
     public void LoadNextLevel()
     {
-        // This will be called from UI_WinPanel
+        // This will be called from WinPanel
         // We need adsService for this, so panels will handle it directly
     }
 
     public void Dispose()
     {
+        // Unsubscribe from button clicks
+        settingsButton.onClick.RemoveListener(OnSettingsButtonClicked);
+        cheatWinButton.onClick.RemoveListener(OnCheatWinButtonClicked);
+        
         GameSignals.OnSessionLoaded -= InitializeAfterSessionLoaded;
-        if (levelManager != null)
-        {
-            levelManager.OnVictoryConditionsUpdated -= HandleVictoryConditionUpdate;
-            levelManager.OnLevelWon -= OnLevelWon;
-            levelManager.OnLevelLost -= OnLevelLost;
-        }
+        levelManager.OnVictoryConditionsUpdated -= HandleVictoryConditionUpdate;
+        levelManager.OnLevelWon -= OnLevelWon;
+        levelManager.OnLevelLost -= OnLevelLost;
     }
 
     #endregion
@@ -172,7 +182,7 @@ public class UI_GameHUD : MonoBehaviour, IDisposable
         movesText.gameObject.SetActive(false);
         
         // Push win panel onto menu stack
-        var winPanel = FindFirstObjectByType<UI_WinPanel>();
+        var winPanel = FindFirstObjectByType<WinPanel>();
         if (winPanel != null && menuStackManager != null)
         {
             menuStackManager.PushMenu(winPanel);
@@ -185,7 +195,7 @@ public class UI_GameHUD : MonoBehaviour, IDisposable
         movesText.gameObject.SetActive(false);
         
         // Push lose panel onto menu stack
-        var losePanel = FindFirstObjectByType<UI_LosePanel>();
+        var losePanel = FindFirstObjectByType<LosePanel>();
         if (losePanel != null && menuStackManager != null)
         {
             menuStackManager.PushMenu(losePanel);
@@ -219,10 +229,7 @@ public class UI_GameHUD : MonoBehaviour, IDisposable
 
     private void UpdatePuzzleIndexText(int levelIndex)
     {
-        var sb = new StringBuilder();
-        sb.Append("Puzzle #");
-        sb.Append(levelIndex.ToString());
-        puzzleIndexText.text = sb.ToString();
+        currentLevelText.text = $"Puzzle #{levelIndex}";
     }
 
     private void UpdateMovesText(int moves)
@@ -235,10 +242,7 @@ public class UI_GameHUD : MonoBehaviour, IDisposable
 
     private void UpdateCoinCountText(int coins)
     {
-        var sb = new StringBuilder();
-        sb.Append("x ");
-        sb.Append(coins.ToString());
-        coinCountText.text = sb.ToString();
+        coinCountText.text = $"x {coins}";
     }
 
     private void HideAllVictoryConditions()

@@ -10,7 +10,7 @@ env:
   UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
   UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
   UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-  # 1. Updated to your specific version
+
   UNITY_VERSION: 6000.3.6f1 
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
           tool-cache: false
 
       - name: Cache Library
-        uses: actions/cache@v4 # 2. Upgraded to v4 (v3 is deprecated)
+        uses: actions/cache@v4
         with:
           path: Library
           key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -39,21 +39,20 @@ jobs:
 
       # D) Resolve Dependencies
       - name: Resolve Android Dependencies
-        uses: game-ci/unity-builder@v5 # 3. MUST be v5 for Unity 6
+        uses: game-ci/unity-builder@v4
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
-          unityLicense: ${{ secrets.UNITY_LICENSE }} # 4. Changed 'c' to 's'
+          unityLicense: ${{ secrets.UNITY_LICENSE }} 
           targetPlatform: Android
           buildMethod: CIResolveDependencies.Resolve
-          # androidAppBundle: false (Removed: this is not a valid input for this action)
 
       # E) Build APK
       - name: Build Android APK
-        uses: game-ci/unity-builder@v5 # 5. MUST be v5 for Unity 6
+        uses: game-ci/unity-builder@v4
         with:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
-          unityLicense: ${{ secrets.UNITY_LICENSE }} # 6. Added missing license here
+          unityLicense: ${{ secrets.UNITY_LICENSE }}
           androidExportType: androidPackage
           allowDirtyBuild: true
 

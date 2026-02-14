@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   width: 6
   height: 8
-  tileSize: 100
+  tileSize: 125
   normalTilePrefab: {fileID: 1747666802176816276, guid: a2685d7cab03aea42a28bd0a9a0840af, type: 3}
   blockedTilePrefab: {fileID: 4545452978988066638, guid: 0642d980d3f1f224abd3fa7d330a4321, type: 3}
   breakableTilePrefab: {fileID: 8613264246384731429, guid: 4d4668722f5d73940a5ecaf193c02676, type: 3}

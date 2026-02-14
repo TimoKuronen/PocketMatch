@@ -7,6 +7,7 @@ public abstract class BasePerformanceProfile : ScriptableObject
 
     public virtual void Apply()
     {
+        Debug.Log($"Applying {name} performance profile: Target FPS = {targetFrameRate}, VSync Count = {vSyncCount}");
         Application.targetFrameRate = targetFrameRate;
         QualitySettings.vSyncCount = vSyncCount;
     }

@@ -7,14 +7,16 @@ public class PerformanceManager : MonoBehaviour
 
     void Awake()
     {
+        BasePerformanceProfile profile = null;
         // If device has less than 3GB RAM, use Low
         if (SystemInfo.systemMemorySize < 3000)
-        {
-            lowEnd.Apply();
-        }
+            profile = lowEnd;
         else
-        {
-            highEnd.Apply();
-        }
+            profile = highEnd;
+
+        if (profile != null)
+            profile.Apply();
+        else
+            Debug.LogWarning("[PerformanceManager] No performance profile assigned for this tier (lowEnd or highEnd missing). Using default quality.");
     }
 }

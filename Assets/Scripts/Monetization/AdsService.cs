@@ -19,6 +19,9 @@ public class AdsService : IAdsService, IDisposable
     private bool isBannerLoaded = false;
     private int bannerRetryCount = 0;
     private const int MaxBannerRetries = 3;
+    private int bannerNoFillRetryCount = 0;
+    private const int MaxBannerNoFillRetries = 3;
+    private const float NoFillRetryDelaySeconds = 15f;
 
     public event Action OnInterstitialAdClosed;
 
@@ -244,6 +247,7 @@ public class AdsService : IAdsService, IDisposable
     {
         isBannerLoaded = true;
         bannerRetryCount = 0;
+        bannerNoFillRetryCount = 0;
 
         Debug.Log("[AdsService] BannerAd loaded");
 
@@ -281,11 +285,19 @@ public class AdsService : IAdsService, IDisposable
         }
 
         // Check if it's a "No fill" error (error code 509)
-        // No fill means no ad is available - don't spam retries
+        // No fill = no ad inventory at this moment; retry a few times with delay
         if (errorString.Contains("509") || errorString.Contains("No fill") || errorString.Contains("no fill"))
         {
-            Debug.LogWarning($"[AdsService] Banner load failed (No fill): {error}. Will retry when ShowBannerAd is called again.");
-            bannerRetryCount = 0; // Reset retry count for natural retries
+            bannerRetryCount = 0;
+            bannerNoFillRetryCount++;
+            if (bannerNoFillRetryCount <= MaxBannerNoFillRetries)
+            {
+                CoroutineMonoBehavior.Instance.StartCoroutine(RetryLoadBanner(NoFillRetryDelaySeconds));
+            }
+            else
+            {
+                bannerNoFillRetryCount = 0;
+            }
             return;
         }
 
@@ -321,8 +333,9 @@ public class AdsService : IAdsService, IDisposable
         if (!IsInitialized)
             return;
 
-        // Reset retry count when ShowBannerAd is called (user action or natural retry)
+        // Reset retry counts when ShowBannerAd is called (user action or natural retry)
         bannerRetryCount = 0;
+        bannerNoFillRetryCount = 0;
 
         if (bannerAd == null)
         {
@@ -351,9 +364,8 @@ public class AdsService : IAdsService, IDisposable
     private IEnumerator RetryLoadBanner(float delay)
     {
         yield return new WaitForSeconds(delay);
-        if (bannerAd != null && IsInitialized)
+        if (bannerAd != null && IsInitialized && !isBannerLoaded)
         {
-            Debug.Log("[AdsService] Retrying banner load");
             bannerAd.LoadAd();
         }
     }

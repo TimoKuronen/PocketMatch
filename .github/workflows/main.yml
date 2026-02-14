@@ -10,7 +10,8 @@ env:
   UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
   UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
   UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-  UNITY_VERSION: 6000.0.58f2
+  # 1. Updated to your specific version
+  UNITY_VERSION: 6000.3.6f1 
 
 jobs:
   buildAndroid:
@@ -18,47 +19,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # A) Checkout (LFS REQUIRED)
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      # B) Free disk space
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: false
 
-      # C) Cache Library
       - name: Cache Library
-        uses: actions/cache@v3
+        uses: actions/cache@v4 # 2. Upgraded to v4 (v3 is deprecated)
         with:
           path: Library
           key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-
 
-      # D) Resolve Firebase / EDM dependencies (CRITICAL)
+      # D) Resolve Dependencies
       - name: Resolve Android Dependencies
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@v5 # 3. MUST be v5 for Unity 6
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
-          unityLicence: ${{ secrets.UNITY_LICENSE }}
+          unityLicense: ${{ secrets.UNITY_LICENSE }} # 4. Changed 'c' to 's'
           targetPlatform: Android
           buildMethod: CIResolveDependencies.Resolve
-          androidAppBundle: false
+          # androidAppBundle: false (Removed: this is not a valid input for this action)
 
-      # E) Build APK (DEBUG SIGNING)
+      # E) Build APK
       - name: Build Android APK
-        uses: game-ci/unity-builder@v4
+        uses: game-ci/unity-builder@v5 # 5. MUST be v5 for Unity 6
         with:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
+          unityLicense: ${{ secrets.UNITY_LICENSE }} # 6. Added missing license here
           androidExportType: androidPackage
           allowDirtyBuild: true
 
-      # F) Upload artifact
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:

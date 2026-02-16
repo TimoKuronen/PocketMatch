@@ -28,6 +28,7 @@ public class UIGameHUD : MonoBehaviour, IDisposable
 
     private MapData mapData;
     private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
+    private readonly StringBuilder sb = new StringBuilder(32);
 
     private ILevelManager levelManager;
     private IGameSessionService gameSessionService;
@@ -157,7 +158,6 @@ public class UIGameHUD : MonoBehaviour, IDisposable
     {
         UpdateMovesText(levelManager.MovesRemaining);
 
-        // Update each victory condition UI with current progress
         foreach (var item in victoryConditions)
         {
             if (item.ConditionType == ConditionType.ColorMatch)
@@ -166,13 +166,14 @@ public class UIGameHUD : MonoBehaviour, IDisposable
                 {
                     if (item.TileType == condition.TileColor)
                     {
-                        item.UpdateUI(condition.TileCount.ToString());
+                        item.UpdateUI(condition.TileCount);
+                        break;
                     }
                 }
             }
             else if (item.ConditionType == ConditionType.DestroyableTiles)
             {
-                item.UpdateUI(levelManager.VictoryConditions.DestroyableTileCount.ToString());
+                item.UpdateUI(levelManager.VictoryConditions.DestroyableTileCount);
             }
         }
     }
@@ -221,20 +222,26 @@ public class UIGameHUD : MonoBehaviour, IDisposable
 
     private void UpdatePuzzleIndexText(int levelIndex)
     {
-        currentLevelText.text = $"Puzzle #{levelIndex}";
+        sb.Clear();
+        sb.Append("Puzzle #");
+        sb.Append(levelIndex);
+        currentLevelText.text = sb.ToString();
     }
 
     private void UpdateMovesText(int moves)
     {
-        var sb = new StringBuilder();
+        sb.Clear();
         sb.Append("Moves: ");
-        sb.Append(moves.ToString());
+        sb.Append(moves);
         movesText.text = sb.ToString();
     }
 
     private void UpdateCoinCountText(int coins)
     {
-        coinCountText.text = $"x {coins}";
+        sb.Clear();
+        sb.Append("x ");
+        sb.Append(coins);
+        coinCountText.text = sb.ToString();
     }
 
     private void HideAllVictoryConditions()
@@ -249,7 +256,7 @@ public class UIGameHUD : MonoBehaviour, IDisposable
     {
         var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer);
         victoryCondition.Init(
-            tileCount.ToString(),
+            tileCount,
             tileIconCollection.GetIcon(tileColor, TilePower.None, TileState.Normal),
             tileColor,
             ConditionType.ColorMatch);
@@ -260,7 +267,7 @@ public class UIGameHUD : MonoBehaviour, IDisposable
     {
         var victoryCondition = Instantiate(victoryConditionPrefab, victoryConditionsContainer);
         victoryCondition.Init(
-            destroyableTileCount.ToString(),
+            destroyableTileCount,
             tileIconCollection.GetIcon(TileType.Red, TilePower.None, TileState.Destroyable),
             TileType.Red,
             ConditionType.DestroyableTiles);

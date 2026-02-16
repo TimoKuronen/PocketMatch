@@ -1,3 +1,4 @@
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,25 +14,33 @@ public class VictoryConditionUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI conditionText;
     [SerializeField] private Image conditionIcon;
 
+    private readonly StringBuilder sb = new StringBuilder(8);
+
     public ConditionType ConditionType { get; private set; }
     public TileType TileType { get; private set; }
 
-    public void Init(string text, Sprite icon, TileType tileType, ConditionType conditionType)
+    public void Init(int count, Sprite icon, TileType tileType, ConditionType conditionType)
     {
         conditionIcon.sprite = icon;
-        conditionText.text = text;
         ConditionType = conditionType;
         TileType = tileType;
+        SetCountText(count);
 
         if (conditionType == ConditionType.DestroyableTiles)
         {
             conditionIcon.color = Color.white;
-            return;
         }
     }
 
-    public void UpdateUI(string conditionText)
+    public void UpdateUI(int count)
     {
-        this.conditionText.text = conditionText;
+        SetCountText(count);
+    }
+
+    private void SetCountText(int count)
+    {
+        sb.Clear();
+        sb.Append(count);
+        conditionText.text = sb.ToString();
     }
 }

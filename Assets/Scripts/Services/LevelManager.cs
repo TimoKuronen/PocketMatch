@@ -32,7 +32,7 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
     public void Start()
     {
         // Start game timer immediately (doesn't depend on session)
-        CoroutineMonoBehavior.Instance.StartCoroutine(GameTimer());
+        TaskRunner.Instance.StartCoroutine(GameTimer());
 
         // Subscribe to session loaded event instead of polling
         GameSignals.OnSessionLoaded += OnSessionLoaded;
@@ -60,7 +60,7 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
         VictoryConditions = LocalMapData.VictoryConditions;
 
         // Wait for grid controller to be initialized before subscribing to events
-        CoroutineMonoBehavior.Instance.StartCoroutine(WaitForGridInitialization());
+        TaskRunner.Instance.StartCoroutine(WaitForGridInitialization());
     }
 
     private IEnumerator WaitForGridInitialization()

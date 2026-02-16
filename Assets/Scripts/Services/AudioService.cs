@@ -53,7 +53,7 @@ public class AudioService : IAudioService
             }
         }
 
-        CoroutineMonoBehavior.Instance.StartCoroutine(PlaySoundCoroutine(audioSource, data));
+        TaskRunner.Instance.StartCoroutine(PlaySoundCoroutine(audioSource, data));
         soundList.Add(new PlayingSound
         {
             Cue = data,

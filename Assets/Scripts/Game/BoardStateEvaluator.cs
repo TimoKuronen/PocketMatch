@@ -142,7 +142,7 @@ public class BoardStateEvaluator
             Debug.Log($"Successfully shuffled without matches in {attempts} attempts.");
         }
 
-        CoroutineMonoBehavior.Instance.StartCoroutine(AnimateShuffle(tileViews, tilePositions));
+        TaskRunner.Instance.StartCoroutine(AnimateShuffle(tileViews, tilePositions));
     }
 
     public void DebugHighlightPotentialMoves()
@@ -257,7 +257,7 @@ public class BoardStateEvaluator
         }
 
         yield return new WaitForSeconds(0.05f);
-        CoroutineMonoBehavior.Instance.StartCoroutine(gridController.MatchCycle());
+        TaskRunner.Instance.StartCoroutine(gridController.MatchCycle());
     }
 
     #endregion

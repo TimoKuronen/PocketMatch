@@ -35,7 +35,7 @@ public class AdsService : IAdsService, IDisposable
     public void Construct(IAnalyticsService analyticsService)
     {
         this.analyticsService = analyticsService;
-        CoroutineMonoBehavior.Instance.StartCoroutine(DelayedInit());
+        TaskRunner.Instance.StartCoroutine(DelayedInit());
     }
 
     private IEnumerator DelayedInit()
@@ -79,7 +79,7 @@ public class AdsService : IAdsService, IDisposable
         // Retry initialization after a delay (but only once to avoid spam)
         if (!IsInitialized)
         {
-            CoroutineMonoBehavior.Instance.StartCoroutine(RetryInit(5f));
+            TaskRunner.Instance.StartCoroutine(RetryInit(5f));
         }
     }
     
@@ -108,7 +108,7 @@ public class AdsService : IAdsService, IDisposable
         IsInitialized = true;
         
         // Small delay to ensure SDK is fully ready before creating ads
-        CoroutineMonoBehavior.Instance.StartCoroutine(DelayedAdCreation());
+        TaskRunner.Instance.StartCoroutine(DelayedAdCreation());
     }
     
     private IEnumerator DelayedAdCreation()
@@ -184,7 +184,7 @@ public class AdsService : IAdsService, IDisposable
 
     private void OnInterstitialLoadFailed(LevelPlayAdError error)
     {
-        CoroutineMonoBehavior.Instance.StartCoroutine(RetryLoadInterstitial(3f));
+        TaskRunner.Instance.StartCoroutine(RetryLoadInterstitial(3f));
     }
 
     private void OnInterstitialDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
@@ -292,7 +292,7 @@ public class AdsService : IAdsService, IDisposable
             bannerNoFillRetryCount++;
             if (bannerNoFillRetryCount <= MaxBannerNoFillRetries)
             {
-                CoroutineMonoBehavior.Instance.StartCoroutine(RetryLoadBanner(NoFillRetryDelaySeconds));
+                TaskRunner.Instance.StartCoroutine(RetryLoadBanner(NoFillRetryDelaySeconds));
             }
             else
             {
@@ -308,7 +308,7 @@ public class AdsService : IAdsService, IDisposable
         {
             Debug.LogError($"[AdsService] Banner load failed: {error}. Retry attempt {bannerRetryCount}/{MaxBannerRetries}");
             float delay = 3f * bannerRetryCount; // Exponential backoff: 3s, 6s, 9s
-            CoroutineMonoBehavior.Instance.StartCoroutine(RetryLoadBanner(delay));
+            TaskRunner.Instance.StartCoroutine(RetryLoadBanner(delay));
         }
         else
         {

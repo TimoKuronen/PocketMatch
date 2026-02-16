@@ -58,14 +58,14 @@ public class EffectService : IEffectService, IStartable, IDisposable
         {
             if (!loadedPrefabs.ContainsKey(key) && !failedEffects.Contains(key))
             {
-                CoroutineMonoBehavior.Instance.StartCoroutine(LoadEffectCoroutine(key));
+                TaskRunner.Instance.StartCoroutine(LoadEffectCoroutine(key));
             }
         }
     }
 
     public void PreloadEffectsByLabel(string label)
     {
-        CoroutineMonoBehavior.Instance.StartCoroutine(PreloadByLabelCoroutine(label));
+        TaskRunner.Instance.StartCoroutine(PreloadByLabelCoroutine(label));
     }
 
     private IEnumerator PreloadByLabelCoroutine(string label)
@@ -316,7 +316,7 @@ public class EffectService : IEffectService, IStartable, IDisposable
         {
             Debug.LogWarning($"[VFX] Pool for {effectKey} not found! Is it loaded?");
             // If not loaded, we load it. 
-            CoroutineMonoBehavior.Instance.StartCoroutine(LoadAndPlayCoroutine(effectKey, worldPosition, rotation));
+            TaskRunner.Instance.StartCoroutine(LoadAndPlayCoroutine(effectKey, worldPosition, rotation));
         }
     }
 
@@ -386,7 +386,7 @@ public class EffectService : IEffectService, IStartable, IDisposable
         //if (instance.TryGetComponent<ParticleSystem>(out var ps))
         //{
         //    ps.Play();
-        CoroutineMonoBehavior.Instance.StartCoroutine(ReturnToPoolWhenFinished(instance, effectKey, 2f));
+        TaskRunner.Instance.StartCoroutine(ReturnToPoolWhenFinished(instance, effectKey, 2f));
         //}
     }
 

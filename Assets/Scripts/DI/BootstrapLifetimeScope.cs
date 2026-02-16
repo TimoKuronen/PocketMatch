@@ -17,7 +17,6 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.RegisterComponentInHierarchy<CloudSaveBootstrap>();
 
         builder.Register<FirebaseInitializer>(Lifetime.Singleton);
-        builder.Register<GameSettingsService>(Lifetime.Singleton);
     }
 
     private new void Awake()

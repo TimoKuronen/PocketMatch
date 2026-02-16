@@ -13,6 +13,4 @@ MonoBehaviour:
   m_Name: Match3Profile_Low
   m_EditorClassIdentifier: Assembly-CSharp::Match3PerformanceProfile
   targetFrameRate: 30
-  vSyncCount: 1
-  idleTimeout: 5
-  physicsStep: 0.05
+  lodBias: 0.6

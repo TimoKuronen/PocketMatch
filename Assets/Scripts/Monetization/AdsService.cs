@@ -41,13 +41,13 @@ public class AdsService : IAdsService, IDisposable
     private IEnumerator DelayedInit()
     {
         // Wait a bit longer to ensure Unity Services are ready
-        yield return new WaitForSeconds(0.5f);
+        yield return CachedCoroutines.Wait(0.5f);
         
         // Check network connectivity before initializing
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
             Debug.LogWarning("[AdsService] No internet connection. Retrying initialization in 3 seconds...");
-            yield return new WaitForSeconds(3f);
+            yield return CachedCoroutines.Wait(3f);
             if (Application.internetReachability == NetworkReachability.NotReachable)
             {
                 Debug.LogError("[AdsService] Still no internet connection. Cannot initialize ads.");
@@ -85,7 +85,7 @@ public class AdsService : IAdsService, IDisposable
     
     private IEnumerator RetryInit(float delay)
     {
-        yield return new WaitForSeconds(delay);
+        yield return CachedCoroutines.Wait(delay);
         
         if (!IsInitialized && Application.internetReachability != NetworkReachability.NotReachable)
         {
@@ -114,7 +114,7 @@ public class AdsService : IAdsService, IDisposable
     private IEnumerator DelayedAdCreation()
     {
         // Wait a brief moment for SDK to be fully ready
-        yield return new WaitForSeconds(0.5f);
+        yield return CachedCoroutines.Wait(0.5f);
         
         CreateBannerAd();
         CreateInterstitialAd();
@@ -196,7 +196,7 @@ public class AdsService : IAdsService, IDisposable
 
     private IEnumerator RetryLoadInterstitial(float delay)
     {
-        yield return new WaitForSeconds(delay);
+        yield return CachedCoroutines.Wait(delay);
         LoadInterstitialAd();
     }
 
@@ -363,7 +363,7 @@ public class AdsService : IAdsService, IDisposable
 
     private IEnumerator RetryLoadBanner(float delay)
     {
-        yield return new WaitForSeconds(delay);
+        yield return CachedCoroutines.Wait(delay);
         if (bannerAd != null && IsInitialized && !isBannerLoaded)
         {
             bannerAd.LoadAd();

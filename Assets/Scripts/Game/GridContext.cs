@@ -63,7 +63,7 @@ public class GridContext
         
         if (cachedWorldPosition.HasValue)
         {
-            if (!cachedPositions.ContainsKey(tile.GridPosition))
+            if (!cachedPositions.TryGetValue(tile.GridPosition, out _))
             {
                 cachedPositions[tile.GridPosition] = cachedWorldPosition.Value;
             }
@@ -136,7 +136,7 @@ public class GridContext
             
             if (view != null)
             {
-                RectTransform rect = view.transform as RectTransform;
+                RectTransform rect = view.RectTransform;
                 if (rect != null)
                 {
                     Vector3[] corners = new Vector3[4];

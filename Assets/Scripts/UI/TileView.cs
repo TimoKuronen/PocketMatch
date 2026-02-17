@@ -12,6 +12,16 @@ public class TileView : MonoBehaviour
     private Color originalColor;
     private RectTransform rectTransform;
 
+    public RectTransform RectTransform
+    {
+        get
+        {
+            if (rectTransform == null)
+                rectTransform = GetComponent<RectTransform>();
+            return rectTransform;
+        }
+    }
+
     public void Init(TileData data)
     {
         Data = data;

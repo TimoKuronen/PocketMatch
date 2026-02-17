@@ -83,7 +83,7 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
 
         while (true)
         {
-            yield return new WaitForSeconds(1f);
+            yield return CachedCoroutines.Wait(1f);
             GameTimeInSeconds++;
         }
     }

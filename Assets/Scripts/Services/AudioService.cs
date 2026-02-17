@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using VContainer;
 
-public class AudioService : IAudioService
+public class AudioService : IAudioService, IDisposable
 {
     private int maxSimultaneousUISounds = 5;
 
@@ -25,18 +25,17 @@ public class AudioService : IAudioService
             return;
         }
 
-        if (!Enum.IsDefined(typeof(SoundType), data.soundType))
+        if (data.soundType != SoundType.UI && data.soundType != SoundType.Other)
         {
             Debug.LogWarning($"Invalid SoundType: {data.soundType}");
             return;
         }
 
-        if (!activeSounds.ContainsKey(data.soundType))
+        if (!activeSounds.TryGetValue(data.soundType, out List<PlayingSound> soundList))
         {
-            activeSounds[data.soundType] = new List<PlayingSound>();
+            soundList = new List<PlayingSound>();
+            activeSounds[data.soundType] = soundList;
         }
-
-        List<PlayingSound> soundList = activeSounds[data.soundType];
         int maxSounds = GetMaxSimultaneousSounds(data.soundType);
 
         float now = Time.time;
@@ -72,7 +71,7 @@ public class AudioService : IAudioService
 
         AudioCuePlayer.Play(audioCue, audioSource);
 
-        yield return new WaitForSeconds(audioCue.playDuration);
+        yield return CachedCoroutines.Wait(audioCue.playDuration);
 
         if (activeSounds.TryGetValue(audioCue.soundType, out List<PlayingSound> soundList))
         {

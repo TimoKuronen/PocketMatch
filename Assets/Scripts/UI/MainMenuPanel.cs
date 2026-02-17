@@ -72,7 +72,7 @@ public class MainMenuPanel : UIMenu
     private IEnumerator ShowBannerWhenReady()
     {
         yield return new WaitUntil(() => adsService.IsInitialized);
-        yield return new WaitForSeconds(0.5f);
+        yield return CachedCoroutines.Wait(0.5f);
         adsService.ShowBannerAd();
     }
     

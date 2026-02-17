@@ -78,7 +78,7 @@ public class DestroyCommand : ICommand
             }
         }
 
-        yield return new WaitForSeconds(destroyDuration);
+        yield return CachedCoroutines.Wait(destroyDuration);
 
         // --- Phase 3: actually destroy tiles and update data ---
         foreach (var pos in matchPositions)

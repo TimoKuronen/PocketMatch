@@ -15,6 +15,33 @@ public class BoardStateEvaluator
 
     #endregion
 
+    #region SwapKey Struct
+
+    private struct SwapKey : System.IEquatable<SwapKey>
+    {
+        public int x1, y1, x2, y2;
+
+        public SwapKey(int x1, int y1, int x2, int y2)
+        {
+            this.x1 = x1;
+            this.y1 = y1;
+            this.x2 = x2;
+            this.y2 = y2;
+        }
+
+        public bool Equals(SwapKey other)
+        {
+            return x1 == other.x1 && y1 == other.y1 && x2 == other.x2 && y2 == other.y2;
+        }
+
+        public override int GetHashCode()
+        {
+            return x1.GetHashCode() ^ (y1.GetHashCode() << 2) ^ (x2.GetHashCode() >> 2) ^ (y2.GetHashCode() << 4);
+        }
+    }
+
+    #endregion
+
     #region Constructor
 
     public BoardStateEvaluator(TileData[,] gridData, TileView[,] gridViews, int width, int height, IGridController controller)
@@ -32,9 +59,11 @@ public class BoardStateEvaluator
 
     public PotentialMovesResult CountPotentialMoves()
     {
-        HashSet<string> uniqueSwaps = new HashSet<string>();
+        HashSet<SwapKey> uniqueSwaps = new HashSet<SwapKey>();
         int swapMoves = 0;
         int powerMoves = CountPowerTiles();
+
+        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
         for (int x1 = 0; x1 < width; x1++)
         {
@@ -44,10 +73,9 @@ public class BoardStateEvaluator
                 if (tile1 == null || tile1.State != TileState.Normal)
                     continue;
 
-                Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-
-                foreach (Vector2Int dir in directions)
+                for (int d = 0; d < directions.Length; d++)
                 {
+                    Vector2Int dir = directions[d];
                     Vector2Int pos2 = new Vector2Int(x1 + dir.x, y1 + dir.y);
                     if (!GridHelperMethods.IsInsideGrid(pos2, width, height))
                         continue;
@@ -56,7 +84,7 @@ public class BoardStateEvaluator
                     if (tile2 == null || tile2.State != TileState.Normal)
                         continue;
 
-                    string swapKey = $"{Mathf.Min(x1, pos2.x)}-{Mathf.Min(y1, pos2.y)}_{Mathf.Max(x1, pos2.x)}-{Mathf.Max(y1, pos2.y)}";
+                    SwapKey swapKey = new SwapKey(Mathf.Min(x1, pos2.x), Mathf.Min(y1, pos2.y), Mathf.Max(x1, pos2.x), Mathf.Max(y1, pos2.y));
                     if (uniqueSwaps.Contains(swapKey))
                         continue;
 
@@ -162,7 +190,8 @@ public class BoardStateEvaluator
             }
         }
 
-        HashSet<string> checkedSwaps = new HashSet<string>();
+        HashSet<SwapKey> checkedSwaps = new HashSet<SwapKey>();
+        Vector2Int[] directions = new Vector2Int[] { Vector2Int.right, Vector2Int.down };
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -171,14 +200,14 @@ public class BoardStateEvaluator
                 if (current == null || current.State != TileState.Normal)
                     continue;
 
-                Vector2Int[] directions = new Vector2Int[] { Vector2Int.right, Vector2Int.down };
-                foreach (Vector2Int dir in directions)
+                for (int d = 0; d < directions.Length; d++)
                 {
+                    Vector2Int dir = directions[d];
                     Vector2Int neighborPos = new Vector2Int(x, y) + dir;
                     if (!GridHelperMethods.IsInsideGrid(neighborPos, width, height))
                         continue;
 
-                    string swapKey = $"{Mathf.Min(x, neighborPos.x)}-{Mathf.Min(y, neighborPos.y)}";
+                    SwapKey swapKey = new SwapKey(Mathf.Min(x, neighborPos.x), Mathf.Min(y, neighborPos.y), Mathf.Max(x, neighborPos.x), Mathf.Max(y, neighborPos.y));
                     if (checkedSwaps.Contains(swapKey))
                         continue;
 
@@ -245,7 +274,7 @@ public class BoardStateEvaluator
             tweens.Add(t);
         }
 
-        yield return new WaitForSeconds(moveDuration * 2);
+        yield return CachedCoroutines.Wait(moveDuration * 2);
 
         foreach (var view in tileViews)
             ((RectTransform)view.transform).DOKill();
@@ -256,7 +285,7 @@ public class BoardStateEvaluator
             tileViews[i].Init(gridData[pos.x, pos.y]);
         }
 
-        yield return new WaitForSeconds(0.05f);
+        yield return CachedCoroutines.Wait(0.05f);
         TaskRunner.Instance.StartCoroutine(gridController.MatchCycle());
     }
 

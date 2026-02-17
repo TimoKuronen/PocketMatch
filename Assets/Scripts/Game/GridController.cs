@@ -109,7 +109,7 @@ public class GridController : MonoBehaviour, IGridController
 
         boardStateEvaluator = new BoardStateEvaluator(gridData, gridViews, width, height, this);
 
-        yield return new WaitForSeconds(0.5f);
+        yield return CachedCoroutines.Wait(0.5f);
 
         BoardUpdated?.Invoke(gridData);
         IsBoardInitialized = true;
@@ -135,10 +135,8 @@ public class GridController : MonoBehaviour, IGridController
         var viewA = gridViews[origin.x, origin.y];
         var viewB = gridViews[target.x, target.y];
 
-        var rectA = viewA.GetComponent<RectTransform>();
-        var rectB = viewB.GetComponent<RectTransform>();
-        Vector2 origPosA = rectA.anchoredPosition;
-        Vector2 origPosB = rectB.anchoredPosition;
+        Vector2 origPosA = viewA.RectTransform.anchoredPosition;
+        Vector2 origPosB = viewB.RectTransform.anchoredPosition;
 
         IsProcessingTiles = true;
         commandInvoker.AddCommand(new SwapCommand(viewA, viewB, origPosA, origPosB));
@@ -221,13 +219,27 @@ public class GridController : MonoBehaviour, IGridController
 
                 yield return createPowerTileCommand.Execute();
 
-                var flatMatches = matchGroups
-                    .SelectMany(g => g)
-                    .Distinct()
-                    .Where(pos => !powerTilePositions.Contains(pos))
-                    .Concat(destroyedNeighbours)
-                    .Distinct()
-                    .ToList();
+                var flatMatches = new List<Vector2Int>(matchGroups.Count * 3 + destroyedNeighbours.Count);
+                var seen = new HashSet<Vector2Int>();
+
+                foreach (var group in matchGroups)
+                {
+                    foreach (var pos in group)
+                    {
+                        if (!powerTilePositions.Contains(pos) && seen.Add(pos))
+                        {
+                            flatMatches.Add(pos);
+                        }
+                    }
+                }
+
+                foreach (var pos in destroyedNeighbours)
+                {
+                    if (seen.Add(pos))
+                    {
+                        flatMatches.Add(pos);
+                    }
+                }
 
                 TileSwapped?.Invoke();
                 yield return new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext).Execute();
@@ -297,7 +309,7 @@ public class GridController : MonoBehaviour, IGridController
         IsProcessingTiles = true;
         TileMoved?.Invoke();
 
-        yield return new WaitForSeconds(0.2f);
+        yield return CachedCoroutines.Wait(0.2f);
 
         var tempGridData = gridData.Clone() as TileData[,];
         tempGridData[origin.x, origin.y] = tileB;
@@ -467,10 +479,14 @@ public class GridController : MonoBehaviour, IGridController
     {
         if (gridViews != null)
         {
-            foreach (var view in gridViews)
+            for (int x = 0; x < gridViews.GetLength(0); x++)
             {
-                if (view != null && view.Data != null)
-                    tilePoolManager.Release(view);
+                for (int y = 0; y < gridViews.GetLength(1); y++)
+                {
+                    var view = gridViews[x, y];
+                    if (view != null && view.Data != null)
+                        tilePoolManager.Release(view);
+                }
             }
         }
 

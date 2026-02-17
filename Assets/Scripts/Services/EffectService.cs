@@ -404,7 +404,7 @@ public class EffectService : IEffectService, IStartable, IDisposable
 
     private IEnumerator ReturnToPoolWhenFinished(GameObject instance, string effectKey, float duration)
     {
-        yield return new WaitForSeconds(duration);
+        yield return CachedCoroutines.Wait(duration);
 
         ReleaseEffect(instance);
     }

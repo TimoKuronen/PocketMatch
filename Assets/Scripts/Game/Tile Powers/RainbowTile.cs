@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class RainbowTile : ITilePowerBehavior
@@ -62,13 +61,24 @@ public class RainbowTile : ITilePowerBehavior
                     if (tile.State == TileState.Blocked || tile.State == TileState.Destroyable)
                         continue;
 
-                    if (!counter.ContainsKey(tile.Type))
-                        counter[tile.Type] = 0;
-                    counter[tile.Type]++;
+                    if (counter.TryGetValue(tile.Type, out int count))
+                        counter[tile.Type] = count + 1;
+                    else
+                        counter[tile.Type] = 1;
                 }
             }
         }
 
-        return counter.OrderByDescending(kv => kv.Value).First().Key;
+        TileType mostCommon = TileType.Red;
+        int maxCount = 0;
+        foreach (var kvp in counter)
+        {
+            if (kvp.Value > maxCount)
+            {
+                maxCount = kvp.Value;
+                mostCommon = kvp.Key;
+            }
+        }
+        return mostCommon;
     }
 }

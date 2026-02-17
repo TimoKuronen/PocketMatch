@@ -159,13 +159,30 @@ public class MatchFinder
             bool mergedIntoExisting = false;
             foreach (var existing in merged)
             {
-                if (group.Type == existing.Type &&
-                    (group.Positions.Any(pos => existing.Positions.Contains(pos)) ||
-                     IsAdjacent(group.Positions, existing.Positions)))
+                if (group.Type == existing.Type)
                 {
-                    existing.Positions.AddRange(group.Positions.Where(p => !existing.Positions.Contains(p)));
-                    mergedIntoExisting = true;
-                    break;
+                    bool hasOverlap = false;
+                    foreach (var pos in group.Positions)
+                    {
+                        if (existing.Positions.Contains(pos))
+                        {
+                            hasOverlap = true;
+                            break;
+                        }
+                    }
+
+                    if (hasOverlap || IsAdjacent(group.Positions, existing.Positions))
+                    {
+                        foreach (var pos in group.Positions)
+                        {
+                            if (!existing.Positions.Contains(pos))
+                            {
+                                existing.Positions.Add(pos);
+                            }
+                        }
+                        mergedIntoExisting = true;
+                        break;
+                    }
                 }
             }
             if (!mergedIntoExisting)

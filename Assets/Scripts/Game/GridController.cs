@@ -27,7 +27,6 @@ public class GridController : MonoBehaviour, IGridController
     private int width;
     private int height;
     private float tileSize;
-    private bool allowInitialMatches;
     private Vector2Int? lastMovedTilePosition;
 
     public bool IsBoardInitialized { get; private set; } = false;
@@ -73,7 +72,6 @@ public class GridController : MonoBehaviour, IGridController
         width = settings.width;
         height = settings.height;
         tileSize = settings.tileSize;
-        allowInitialMatches = settings.allowInitialMatches;
 
         yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
 
@@ -92,7 +90,7 @@ public class GridController : MonoBehaviour, IGridController
 
         mapData = gameSessionService.CurrentMapData;
 
-        GenerateGrid(allowInitialMatches);
+        GenerateGrid();
         CenterCameraOnGrid();
 
         GridContext = new GridContext(
@@ -421,16 +419,18 @@ public class GridController : MonoBehaviour, IGridController
 
     #region Private Methods - Grid Generation
 
-    private void GenerateGrid(bool allowMatches)
+    private void GenerateGrid()
     {
         ClearBoard();
 
         gridData = LevelBuilder.BuildLevelFromMapData(mapData);
         gridViews = new TileView[gridData.GetLength(0), gridData.GetLength(1)];
+        int w = gridData.GetLength(0);
+        int h = gridData.GetLength(1);
 
-        for (int x = 0; x < gridData.GetLength(0); x++)
+        for (int x = 0; x < w; x++)
         {
-            for (int y = 0; y < gridData.GetLength(1); y++)
+            for (int y = 0; y < h; y++)
             {
                 var data = gridData[x, y];
                 if (data == null || data.State != TileState.Normal)
@@ -439,31 +439,30 @@ public class GridController : MonoBehaviour, IGridController
             }
         }
 
-        if (!allowMatches)
+        bool hasMatches = true;
+        bool hasPotentialMoves = false;
+        int safeguard = 200;
+
+        while ((hasMatches || !hasPotentialMoves) && safeguard > 0)
         {
-            bool hasMatches;
-            int safeguard = 100;
-
-            do
+            for (int x = 0; x < w; x++)
             {
-                for (int x = 0; x < gridData.GetLength(0); x++)
+                for (int y = 0; y < h; y++)
                 {
-                    for (int y = 0; y < gridData.GetLength(1); y++)
-                    {
-                        var data = gridData[x, y];
-                        if (data == null || data.State != TileState.Normal) continue;
-                        data.Type = GridHelperMethods.GetRandomTileType(mapData);
-                    }
+                    var data = gridData[x, y];
+                    if (data == null || data.State != TileState.Normal) continue;
+                    data.Type = GridHelperMethods.GetRandomTileType(mapData);
                 }
+            }
 
-                hasMatches = MatchFinder.GetMatchGroups(gridData).Count > 0;
-                safeguard--;
-                if (safeguard <= 0)
-                {
-                    Debug.LogWarning("Safeguard hit: could not generate grid without matches.");
-                    break;
-                }
-            } while (hasMatches);
+            hasMatches = MatchFinder.GetMatchGroups(gridData).Count > 0;
+            hasPotentialMoves = GridHelperMethods.HasPotentialMoves(gridData, w, h);
+            safeguard--;
+        }
+
+        if (safeguard <= 0)
+        {
+            Debug.LogWarning("GenerateGrid safeguard hit: could not get board with no matches and at least one possible move.");
         }
 
         if (tileSize <= 0)

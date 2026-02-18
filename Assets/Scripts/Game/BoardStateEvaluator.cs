@@ -134,40 +134,16 @@ public class BoardStateEvaluator
             originalTypes.Add(tile.Type);
         }
 
-        int maxAttempts = 100;
-        int attempts = 0;
-        bool hasMatches = true;
+        bool success = GridHelperMethods.ShuffleTypesUntilPlayable(
+            gridData, width, height, gridController.MatchFinder, null, 150);
 
-        while (hasMatches && attempts < maxAttempts)
+        if (!success)
         {
-            for (int i = 0; i < normalTiles.Count; i++)
-            {
-                normalTiles[i].Type = originalTypes[i];
-            }
-
-            for (int i = normalTiles.Count - 1; i > 0; i--)
-            {
-                int j = UnityEngine.Random.Range(0, i + 1);
-                (normalTiles[i].Type, normalTiles[j].Type) = (normalTiles[j].Type, normalTiles[i].Type);
-            }
-
-            for (int i = 0; i < normalTiles.Count; i++)
-            {
-                Vector2Int pos = tilePositions[i];
-                gridData[pos.x, pos.y].Type = normalTiles[i].Type;
-            }
-
-            hasMatches = gridController.MatchFinder.GetMatchGroups(gridData).Count > 0;
-            attempts++;
-        }
-
-        if (attempts >= maxAttempts)
-        {
-            Debug.LogWarning($"Could not shuffle without matches after {maxAttempts} attempts. Using last arrangement.");
+            Debug.LogWarning($"Could not shuffle to no matches + possible moves after 150 attempts. Using last arrangement.");
         }
         else
         {
-            Debug.Log($"Successfully shuffled without matches in {attempts} attempts.");
+            Debug.Log($"Shuffled to playable board (no matches, has moves).");
         }
 
         TaskRunner.Instance.StartCoroutine(AnimateShuffle(tileViews, tilePositions));

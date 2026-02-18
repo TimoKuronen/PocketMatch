@@ -5,18 +5,18 @@ public class BootstrapLifetimeScope : LifetimeScope
 {
     protected override void Configure(IContainerBuilder builder)
     {
-        builder.Register<ISaveService, SaveService>(Lifetime.Singleton)
-            .As<IStartable>();
+        builder.Register<ISaveService, SaveService>(Lifetime.Singleton).
+            As<IStartable>();
+        builder.Register<IAnalyticsService, AnalyticsService>(Lifetime.Singleton).
+            As<IStartable>();
+        builder.Register<IInputService, InputService>(Lifetime.Singleton).
+            As<ITickable>();
+
         builder.Register<IAudioService, AudioService>(Lifetime.Singleton);
-        builder.Register<IEffectService, EffectService>(Lifetime.Singleton)
-            .As<IStartable>();
         builder.Register<IAdsService, AdsService>(Lifetime.Singleton);
-        builder.Register<IAnalyticsService, AnalyticsService>(Lifetime.Singleton).As<IStartable>();
-        builder.Register<IInputService, InputService>(Lifetime.Singleton).As<ITickable>();
+        builder.Register<FirebaseInitializer>(Lifetime.Singleton);
 
         builder.RegisterComponentInHierarchy<CloudSaveBootstrap>();
-
-        builder.Register<FirebaseInitializer>(Lifetime.Singleton);
     }
 
     private new void Awake()

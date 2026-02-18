@@ -11,8 +11,7 @@ public class GameLifetimeScope : LifetimeScope
 
         builder.Register<IScoreService, ScoreService>(Lifetime.Scoped)
             .As<IStartable>();
-        
-        // Register MenuStackManager as singleton
+        builder.Register<IEffectService, EffectService>(Lifetime.Singleton).As<IStartable>();
         builder.Register<MenuStackManager>(Lifetime.Scoped);
 
         builder.RegisterComponentInHierarchy<UIGameHUD>();
@@ -26,7 +25,6 @@ public class GameLifetimeScope : LifetimeScope
         builder.RegisterComponentInHierarchy<GridAudioPlayer>()
             .As<IStartable>();
         
-        // Set grid controller reference in MenuStackManager after construction
         builder.RegisterBuildCallback(container =>
         {
             var menuStackManager = container.Resolve<MenuStackManager>();

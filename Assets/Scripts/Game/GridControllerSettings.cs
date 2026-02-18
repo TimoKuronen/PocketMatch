@@ -13,9 +13,6 @@ public class GridControllerSettings : ScriptableObject
     public TileView blockedTilePrefab;
     public TileView breakableTilePrefab;
     public RectTransform tileFramePrefab;
-
-    [Header("Initial Debugging Settings")]
-    public bool allowInitialMatches = false;
 }
 
 

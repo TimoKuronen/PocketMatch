@@ -25,8 +25,8 @@ public class SwapCommand : ICommand
         if (viewA == null || viewB == null)
             yield break;
 
-        var rectA = GridHelperMethods.GetRectTransform(viewA);
-        var rectB = GridHelperMethods.GetRectTransform(viewB);
+        var rectA = viewA.RectTransform;
+        var rectB = viewB.RectTransform;
 
         rectA.DOKill();
         rectB.DOKill();

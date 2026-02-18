@@ -19,9 +19,6 @@ public class SaveService : ISaveService, IStartable, IDisposable
     private bool cloudInitialized = false;
     private IObjectResolver objectResolver;
 
-    // ------------------------------
-    // CONSTRUCTOR (VContainer Inject)
-    // ------------------------------
     [Inject]
     public void Construct(IObjectResolver objectResolver)
     {
@@ -35,7 +32,6 @@ public class SaveService : ISaveService, IStartable, IDisposable
 
     public void Start()
     {
-        // Subscribe to level completion events
         LevelEvents.OnLevelCompleted += OnLevelCompleted;
     }
 

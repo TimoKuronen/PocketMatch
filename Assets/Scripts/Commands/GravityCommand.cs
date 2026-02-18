@@ -136,7 +136,7 @@ public class GravityCommand : ICommand
         var view = CreateTileAt(x, y);
         if (view == null) return;
 
-        var rect = GridHelperMethods.GetRectTransform(view);
+        var rect = view.RectTransform;
         rect.anchoredPosition = GridToUIPos(new Vector2Int(x, height));
         tweens.Add(rect.DOAnchorPos(GridToUIPos(new Vector2Int(x, y)), stepDuration).SetEase(Ease.OutCubic));
     }
@@ -157,7 +157,7 @@ public class GravityCommand : ICommand
 
         GridHelperMethods.UpdateTilePosition(data, view, to);
 
-        var rect = GridHelperMethods.GetRectTransform(view);
+        var rect = view.RectTransform;
         tweens.Add(rect.DOAnchorPos(GridToUIPos(to), stepDuration).SetEase(Ease.OutCubic));
     }
 }

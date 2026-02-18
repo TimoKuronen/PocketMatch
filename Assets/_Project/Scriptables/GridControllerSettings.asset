@@ -19,4 +19,3 @@ MonoBehaviour:
   blockedTilePrefab: {fileID: 4545452978988066638, guid: 0642d980d3f1f224abd3fa7d330a4321, type: 3}
   breakableTilePrefab: {fileID: 8613264246384731429, guid: 4d4668722f5d73940a5ecaf193c02676, type: 3}
   tileFramePrefab: {fileID: 901421959083162220, guid: 92c937bf21495c24986d5cb1cb4ffbd4, type: 3}
-  allowInitialMatches: 0

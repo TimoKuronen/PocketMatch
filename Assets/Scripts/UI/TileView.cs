@@ -32,7 +32,6 @@ public class TileView : MonoBehaviour
         originalColor = image.color;
         image.sprite = icons.GetIcon(data.Type, data.Power, data.State);
 
-        // Unnormal tiles aren’t assigned a color
         if (data.State != TileState.Normal)
         {
             if (data is DestroyableTileData destroyableData)

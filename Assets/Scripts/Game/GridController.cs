@@ -35,6 +35,14 @@ public class GridController : MonoBehaviour, IGridController
     public GridContext GridContext { get; private set; }
     public BoardStateEvaluator BoardEvaluator => boardStateEvaluator;
 
+#if UNITY_EDITOR
+    /// <summary>For editor validation only: data and view arrays + dimensions.</summary>
+    public TileData[,] GridDataForValidation => gridData;
+    public TileView[,] GridViewsForValidation => gridViews;
+    public int GridWidthForValidation => width;
+    public int GridHeightForValidation => height;
+#endif
+
     #endregion
 
     #region Events

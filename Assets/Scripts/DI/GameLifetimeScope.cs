@@ -6,11 +6,8 @@ public class GameLifetimeScope : LifetimeScope
     protected override void Configure(IContainerBuilder builder)
     {
         builder.Register<IGameSessionService, GameSessionService>(Lifetime.Scoped);
-        builder.Register<ILevelManager, LevelManager>(Lifetime.Scoped)
-            .As<IStartable>();
-
-        builder.Register<IScoreService, ScoreService>(Lifetime.Scoped)
-            .As<IStartable>();
+        builder.Register<ILevelManager, LevelManager>(Lifetime.Scoped).As<IStartable>();
+        builder.Register<IScoreService, ScoreService>(Lifetime.Scoped).As<IStartable>();
         builder.Register<IEffectService, EffectService>(Lifetime.Singleton).As<IStartable>();
         builder.Register<MenuStackManager>(Lifetime.Scoped);
 
@@ -20,10 +17,8 @@ public class GameLifetimeScope : LifetimeScope
         builder.RegisterComponentInHierarchy<LosePanel>();
         builder.RegisterComponentInHierarchy<ConfirmationDialog>();
 
-        builder.RegisterComponentInHierarchy<GridController>()
-            .As<IGridController>();
-        builder.RegisterComponentInHierarchy<GridAudioPlayer>()
-            .As<IStartable>();
+        builder.RegisterComponentInHierarchy<GridController>().As<IGridController>();
+        builder.RegisterComponentInHierarchy<GridAudioPlayer>();
         
         builder.RegisterBuildCallback(container =>
         {

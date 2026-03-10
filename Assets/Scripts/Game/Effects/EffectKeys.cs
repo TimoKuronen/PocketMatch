@@ -13,11 +13,10 @@ public static class EffectKeys
     // General Effects
     public const string TileDestroy = "Effects/TileDestroy";
     public const string TileMatch = "Effects/TileMatch";
-    
+
     // Label for bulk preloading
-    public const string EffectsLabel = "Effects";
-    public const string TileVFXLabel = "TileVFX";
-    
+    public const string EffectsLabel = "TileVFX";
+
     // Array of all effect keys for easy preloading
     public static readonly string[] AllEffects = new[]
     {

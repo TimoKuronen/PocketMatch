@@ -1,9 +1,7 @@
-using System.Collections;
 using UnityEngine;
 using VContainer;
-using VContainer.Unity;
 
-public class GridAudioPlayer : MonoBehaviour, IStartable
+public class GridAudioPlayer : MonoBehaviour
 {
     [SerializeField] private AudioCue tileMoveAudio;
     [SerializeField] private AudioCue tileHitAudio;
@@ -61,7 +59,7 @@ public class GridAudioPlayer : MonoBehaviour, IStartable
         gridController.BoardUpdated -= OnBoardInitialized;
 
         // Subscribe to grid controller events
-        gridController.TileDrop += PlayHitAudio;
+        //gridController.TileDrop += PlayHitAudio;
         gridController.TileSwapped += PlayMatchAudio;
         gridController.TileSwapError += PlaySwitchErrorAudio;
         gridController.TileDestroyed += PlayDestroyAudio;
@@ -99,6 +97,7 @@ public class GridAudioPlayer : MonoBehaviour, IStartable
 
     private void PlayTileMoveAudio()
     {
+        Debug.Log("Playing tile move audio");
         audioService.Play(tileMoveAudio, audioSource);
     }
 
@@ -119,6 +118,7 @@ public class GridAudioPlayer : MonoBehaviour, IStartable
 
     private void PlayHitAudio()
     {
+        Debug.Log("Playing hit audio");
         audioService.Play(tileHitAudio, audioSource);
     }
 
@@ -141,7 +141,7 @@ public class GridAudioPlayer : MonoBehaviour, IStartable
     {
         if (gridController != null)
         {
-            gridController.TileDrop -= PlayHitAudio;
+            //gridController.TileDrop -= PlayHitAudio;
             gridController.TileSwapped -= PlayMatchAudio;
             gridController.TileSwapError -= PlaySwitchErrorAudio;
             gridController.TileDestroyed -= PlayDestroyAudio;

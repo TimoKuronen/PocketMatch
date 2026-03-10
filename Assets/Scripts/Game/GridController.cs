@@ -1,7 +1,6 @@
 using DG.Tweening;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using VContainer;
 using Cysharp.Threading.Tasks;
@@ -46,12 +45,11 @@ public class GridController : MonoBehaviour, IGridController
     #endregion
 
     #region Events
-
+    //public event Action TileDrop;
     public event Action ActionTaken;
     public event Action TileMoved;
     public event Action TileSwapped;
     public event Action TileSwapError;
-    public event Action TileDrop;
     public event Action<TileData> TileDestroyed;
     public event Action<TileData[,]> BoardUpdated;
     public event Action<TileData> PowerTileCreated;
@@ -370,6 +368,9 @@ public class GridController : MonoBehaviour, IGridController
 
         await UniTask.WaitUntil(() => commandInvoker.IsEmpty(), cancellationToken: token);
         await UniTask.WaitUntil(() => !AnyTileTweening(), cancellationToken: token);
+
+        // Treat gravity after a power activation as a tile-move action for audio purposes
+        TileMoved?.Invoke();
 
         commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData));
         commandInvoker.ExecuteAll();

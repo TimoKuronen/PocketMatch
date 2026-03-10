@@ -210,6 +210,15 @@ public class AdsService : IAdsService, IDisposable
 
     public void ShowInterstitialAd()
     {
+        // In the Unity Editor we don't rely on the real network interstitial,
+        // as the placeholder ad can behave differently (e.g. close not firing).
+        // Instead, simulate an immediate completion so game flow can continue.
+#if UNITY_EDITOR
+        Debug.Log("[AdsService] Simulating interstitial ad completion in Editor.");
+        InterstitialAdCompleted = true;
+        OnInterstitialAdClosed?.Invoke();
+        return;
+#else
         if (!IsInitialized || interstitialAd == null)
             return;
 
@@ -223,6 +232,7 @@ public class AdsService : IAdsService, IDisposable
         {
             LoadInterstitialAd();
         }
+#endif
     }
 
     #endregion

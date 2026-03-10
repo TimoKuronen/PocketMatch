@@ -125,9 +125,13 @@ public static class Loader
         if (!targetScene.HasValue)
             targetScene = GameScene.MainMenu;
 #endif
-
         if (pendingAdService != null)
         {
+#if UNITY_EDITOR
+            // In editor, skip showing the real interstitial (which uses a Unity placeholder
+            // that may not close correctly) and immediately mark it complete so loading continues.
+            pendingAdService.ForceMarkAdComplete();
+#else
             while (!pendingAdService.IsInitialized)
                 await UniTask.Yield();
 
@@ -158,6 +162,7 @@ public static class Loader
                     pendingAdService.ForceMarkAdComplete();
                 }
             }
+#endif
 
             pendingAdService = null;
         }

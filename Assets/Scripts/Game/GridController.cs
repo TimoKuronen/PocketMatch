@@ -76,6 +76,7 @@ public class GridController : MonoBehaviour, IGridController
 
     private async UniTask StartAsync()
     {
+        var token = this.GetCancellationTokenOnDestroy();
         if (settings == null)
         {
             Debug.LogError("GridControllerSettings is not assigned!");
@@ -86,7 +87,7 @@ public class GridController : MonoBehaviour, IGridController
         height = settings.height;
         tileSize = settings.tileSize;
 
-        await UniTask.WaitUntil(() => GameSignals.IsSessionLoaded);
+        await UniTask.WaitUntil(() => GameSignals.IsSessionLoaded, cancellationToken: token);
 
         Debug.Log("GridController starting with map data: " + gameSessionService.CurrentMapData);
 
@@ -120,7 +121,7 @@ public class GridController : MonoBehaviour, IGridController
 
         boardStateEvaluator = new BoardStateEvaluator(gridData, gridViews, width, height, this);
 
-        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: token);
 
         BoardUpdated?.Invoke(gridData);
         IsBoardInitialized = true;
@@ -186,6 +187,7 @@ public class GridController : MonoBehaviour, IGridController
 
     public async UniTask MatchCycleAsync()
     {
+        var token = this.GetCancellationTokenOnDestroy();
         IsProcessingTiles = true;
         int cycleCount = 0;
         bool changed;
@@ -197,7 +199,7 @@ public class GridController : MonoBehaviour, IGridController
 
             await new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData)
                 .ExecuteAsync();
-            await UniTask.WaitUntil(() => !AnyTileTweening());
+            await UniTask.WaitUntil(() => !AnyTileTweening(), cancellationToken: token);
 
             if (HasEmptyNormalSlots())
             {
@@ -319,10 +321,11 @@ public class GridController : MonoBehaviour, IGridController
 
     private async UniTask CheckSwapMatchAsync(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector2 origPosA, Vector2 origPosB)
     {
+        var token = this.GetCancellationTokenOnDestroy();
         IsProcessingTiles = true;
         TileMoved?.Invoke();
 
-        await UniTask.Delay(TimeSpan.FromSeconds(0.2f));
+        await UniTask.Delay(TimeSpan.FromSeconds(0.2f), cancellationToken: token);
 
         var tempGridData = gridData.Clone() as TileData[,];
         tempGridData[origin.x, origin.y] = tileB;
@@ -361,17 +364,18 @@ public class GridController : MonoBehaviour, IGridController
 
     private async UniTask TriggerPowerEventAsync(TileData tileData, TileType matchedWithTile)
     {
+        var token = this.GetCancellationTokenOnDestroy();
         GridContext.TriggerTilePower(tileData.GridPosition, matchedWithTile);
         commandInvoker.ExecuteAll();
 
-        await UniTask.WaitUntil(() => commandInvoker.IsEmpty());
-        await UniTask.WaitUntil(() => !AnyTileTweening());
+        await UniTask.WaitUntil(() => commandInvoker.IsEmpty(), cancellationToken: token);
+        await UniTask.WaitUntil(() => !AnyTileTweening(), cancellationToken: token);
 
         commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData));
         commandInvoker.ExecuteAll();
 
-        await UniTask.WaitUntil(() => commandInvoker.IsEmpty());
-        await UniTask.WaitUntil(() => !AnyTileTweening());
+        await UniTask.WaitUntil(() => commandInvoker.IsEmpty(), cancellationToken: token);
+        await UniTask.WaitUntil(() => !AnyTileTweening(), cancellationToken: token);
 
         await MatchCycleAsync();
     }

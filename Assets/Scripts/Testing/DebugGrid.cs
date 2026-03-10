@@ -26,7 +26,8 @@ public class DebugGrid : MonoBehaviour
 
     private async UniTaskVoid Start()
     {
-        await UniTask.WaitUntil(() => GameSignals.IsSessionLoaded);
+        var token = this.GetCancellationTokenOnDestroy();
+        await UniTask.WaitUntil(() => GameSignals.IsSessionLoaded, cancellationToken: token);
 
         gridController.BoardUpdated += OnBoardUpdated;
         CreateDebugBoards();

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -17,6 +18,7 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
     private IGameSessionService gameSessionService;
     private IGridController gridController;
     private IScoreService scoreService;
+    private readonly CancellationTokenSource cts = new();
 
     [Inject]
     public void Construct(
@@ -65,7 +67,8 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
 
     private async UniTask WaitForGridInitializationAsync()
     {
-        await UniTask.WaitUntil(() => gridController != null && gridController.IsBoardInitialized);
+        var token = cts.Token;
+        await UniTask.WaitUntil(() => gridController != null && gridController.IsBoardInitialized, cancellationToken: token);
 
         SubscribeToEvents();
 
@@ -79,11 +82,12 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
 
     private async UniTaskVoid GameTimerAsync()
     {
+        var token = cts.Token;
         GameTimeInSeconds = 0;
 
         while (true)
         {
-            await UniTask.Delay(TimeSpan.FromSeconds(1f));
+            await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: token);
             GameTimeInSeconds++;
         }
     }
@@ -209,5 +213,11 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
         }
 
         UIGameHUD.OnCheatButtonClicked -= ToggleWinEvent;
+
+        if (!cts.IsCancellationRequested)
+        {
+            cts.Cancel();
+        }
+        cts.Dispose();
     }
 }

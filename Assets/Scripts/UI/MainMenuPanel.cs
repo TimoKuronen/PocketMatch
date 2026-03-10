@@ -72,8 +72,9 @@ public class MainMenuPanel : UIMenu
     
     private async UniTaskVoid ShowBannerWhenReadyAsync()
     {
-        await UniTask.WaitUntil(() => adsService.IsInitialized);
-        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+        var token = this.GetCancellationTokenOnDestroy();
+        await UniTask.WaitUntil(() => adsService.IsInitialized, cancellationToken: token);
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: token);
         adsService.ShowBannerAd();
     }
     

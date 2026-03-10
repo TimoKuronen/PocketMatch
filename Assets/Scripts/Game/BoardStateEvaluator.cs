@@ -1,6 +1,7 @@
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
@@ -231,6 +232,7 @@ public class BoardStateEvaluator
 
     private async UniTask AnimateShuffleAsync(List<TileView> tileViews, List<Vector2Int> tilePositions)
     {
+        var token = (gridController as MonoBehaviour)?.GetCancellationTokenOnDestroy() ?? CancellationToken.None;
         float moveDuration = 0.3f;
         List<Tweener> tweens = new();
 
@@ -251,7 +253,7 @@ public class BoardStateEvaluator
             tweens.Add(t);
         }
 
-        await UniTask.Delay(System.TimeSpan.FromSeconds(moveDuration * 2));
+        await UniTask.Delay(System.TimeSpan.FromSeconds(moveDuration * 2), cancellationToken: token);
 
         foreach (var view in tileViews)
             ((RectTransform)view.transform).DOKill();
@@ -262,7 +264,7 @@ public class BoardStateEvaluator
             tileViews[i].Init(gridData[pos.x, pos.y]);
         }
 
-        await UniTask.Delay(System.TimeSpan.FromSeconds(0.05f));
+        await UniTask.Delay(System.TimeSpan.FromSeconds(0.05f), cancellationToken: token);
         await gridController.MatchCycleAsync();
     }
 

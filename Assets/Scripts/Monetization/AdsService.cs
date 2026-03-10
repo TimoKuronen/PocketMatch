@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Unity.Services.LevelPlay;
 using UnityEngine;
@@ -30,6 +31,8 @@ public class AdsService : IAdsService, IDisposable
     public bool InterstitialAdReady => interstitialAd?.IsAdReady() ?? false;
     public bool InterstitialAdCompleted { get; private set; } = false;
 
+    private readonly CancellationTokenSource cts = new();
+
     #region Initialization
 
     [Inject]
@@ -41,14 +44,15 @@ public class AdsService : IAdsService, IDisposable
 
     private async UniTaskVoid DelayedInitAsync()
     {
+        var token = cts.Token;
         // Wait a bit longer to ensure Unity Services are ready
-        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: token);
         
         // Check network connectivity before initializing
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
             Debug.LogWarning("[AdsService] No internet connection. Retrying initialization in 3 seconds...");
-            await UniTask.Delay(TimeSpan.FromSeconds(3f));
+            await UniTask.Delay(TimeSpan.FromSeconds(3f), cancellationToken: token);
             if (Application.internetReachability == NetworkReachability.NotReachable)
             {
                 Debug.LogError("[AdsService] Still no internet connection. Cannot initialize ads.");
@@ -86,7 +90,8 @@ public class AdsService : IAdsService, IDisposable
     
     private async UniTask RetryInitAsync(float delay)
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+        var token = cts.Token;
+        await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: token);
         
         if (!IsInitialized && Application.internetReachability != NetworkReachability.NotReachable)
         {
@@ -114,8 +119,9 @@ public class AdsService : IAdsService, IDisposable
     
     private async UniTask DelayedAdCreationAsync()
     {
+        var token = cts.Token;
         // Wait a brief moment for SDK to be fully ready
-        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: token);
         
         CreateBannerAd();
         CreateInterstitialAd();
@@ -197,7 +203,8 @@ public class AdsService : IAdsService, IDisposable
 
     private async UniTask RetryLoadInterstitialAsync(float delay)
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+        var token = cts.Token;
+        await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: token);
         LoadInterstitialAd();
     }
 
@@ -364,7 +371,8 @@ public class AdsService : IAdsService, IDisposable
 
     private async UniTask RetryLoadBannerAsync(float delay)
     {
-        await UniTask.Delay(TimeSpan.FromSeconds(delay));
+        var token = cts.Token;
+        await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: token);
         if (bannerAd != null && IsInitialized && !isBannerLoaded)
         {
             bannerAd.LoadAd();
@@ -428,6 +436,12 @@ public class AdsService : IAdsService, IDisposable
 
         LevelPlay.OnInitSuccess -= OnSdkInitSuccess;
         LevelPlay.OnInitFailed -= OnSdkInitFailed;
+
+        if (!cts.IsCancellationRequested)
+        {
+            cts.Cancel();
+        }
+        cts.Dispose();
     }
 
     public void ForceMarkAdComplete()

@@ -1,7 +1,7 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Cysharp.Threading.Tasks;
 
 public static class Loader
 {
@@ -18,7 +18,6 @@ public static class Loader
     private static AsyncOperation loadingAsyncOperation;
     private static bool isLoading;
     private static GameScene? targetScene;
-    private static LoaderHost host;
     private static IAdsService pendingAdService;
 
 #if UNITY_EDITOR
@@ -40,7 +39,7 @@ public static class Loader
 
     internal static void ContinueFromLoader()
     {
-        Run(ContinueLoadFromLoaderWithOptionalAd());
+        ContinueLoadFromLoaderWithOptionalAdAsync().Forget();
     }
 
     public static void Restart()
@@ -61,7 +60,7 @@ public static class Loader
 
     #region Core Loading Logic
 
-    private static IEnumerator LoadSceneAsync(GameScene targetScene, float delay)
+    private static async UniTask LoadSceneAsync(GameScene targetScene, float delay)
     {
         string targetName = targetScene.ToString();
         isLoading = true;
@@ -70,29 +69,41 @@ public static class Loader
         try
         {
             while (SceneManager.GetActiveScene().name != GameScene.Loader.ToString())
-                yield return null;
+                await UniTask.Yield();
 
             if (delay > 0f)
-                yield return new WaitForSecondsRealtime(delay);
+                await UniTask.Delay(TimeSpan.FromSeconds(delay), DelayType.Realtime);
 
             if (!Application.CanStreamedLevelBeLoaded(targetName))
-                yield break;
+                return;
 
             Scene existing = SceneManager.GetSceneByName(targetName);
             if (existing.IsValid() && existing.isLoaded)
-                yield return SceneManager.UnloadSceneAsync(existing);
+            {
+                var unloadExistingOp = SceneManager.UnloadSceneAsync(existing);
+                if (unloadExistingOp != null)
+                {
+                    await unloadExistingOp.ToUniTask();
+                }
+            }
 
             loadingAsyncOperation = SceneManager.LoadSceneAsync(targetName, LoadSceneMode.Additive);
             loadingAsyncOperation.allowSceneActivation = true;
 
-            while (!loadingAsyncOperation.isDone)
-                yield return null;
+            if (loadingAsyncOperation != null)
+            {
+                await loadingAsyncOperation.ToUniTask();
+            }
 
             Scene loadedScene = SceneManager.GetSceneByName(targetName);
             if (loadedScene.IsValid() && loadedScene.isLoaded)
                 SceneManager.SetActiveScene(loadedScene);
 
-            yield return SceneManager.UnloadSceneAsync(GameScene.Loader.ToString());
+            var unloadLoaderOp = SceneManager.UnloadSceneAsync(GameScene.Loader.ToString());
+            if (unloadLoaderOp != null)
+            {
+                await unloadLoaderOp.ToUniTask();
+            }
         }
         finally
         {
@@ -101,7 +112,7 @@ public static class Loader
         }
     }
 
-    private static IEnumerator ContinueLoadFromLoaderWithOptionalAd()
+    private static async UniTask ContinueLoadFromLoaderWithOptionalAdAsync()
     {
 #if UNITY_EDITOR
         if (!targetScene.HasValue)
@@ -118,7 +129,7 @@ public static class Loader
         if (pendingAdService != null)
         {
             while (!pendingAdService.IsInitialized)
-                yield return null;
+                await UniTask.Yield();
 
             float waitReadyTimer = 0f;
             const float waitReadyTimeout = 6f;
@@ -126,7 +137,7 @@ public static class Loader
             while (!pendingAdService.InterstitialAdReady && waitReadyTimer < waitReadyTimeout)
             {
                 waitReadyTimer += Time.unscaledDeltaTime;
-                yield return null;
+                await UniTask.Yield();
             }
 
             if (pendingAdService.InterstitialAdReady)
@@ -139,7 +150,7 @@ public static class Loader
                 while (!pendingAdService.InterstitialAdCompleted && waitDoneTimer < waitDoneTimeout)
                 {
                     waitDoneTimer += Time.unscaledDeltaTime;
-                    yield return null;
+                    await UniTask.Yield();
                 }
 
                 if (!pendingAdService.InterstitialAdCompleted)
@@ -151,7 +162,7 @@ public static class Loader
             pendingAdService = null;
         }
 
-        yield return LoadSceneAsync(targetScene.Value, 0f);
+        await LoadSceneAsync(targetScene.Value, 0f);
     }
 
     #endregion
@@ -170,23 +181,6 @@ public static class Loader
 
     public static bool IsGameScene() =>
         GetCurrentScene() != GameScene.Empty && GetCurrentScene() > GameScene.Loader;
-
-    #endregion
-
-    #region Internal Coroutine Runner
-
-    private class LoaderHost : MonoBehaviour { }
-
-    private static void Run(IEnumerator routine)
-    {
-        if (host == null)
-        {
-            var go = new GameObject("[LoaderHost]");
-            UnityEngine.Object.DontDestroyOnLoad(go);
-            host = go.AddComponent<LoaderHost>();
-        }
-        host.StartCoroutine(routine);
-    }
 
     #endregion
 }

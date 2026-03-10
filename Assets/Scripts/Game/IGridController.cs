@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public interface IGridController
 {
@@ -25,7 +26,7 @@ public interface IGridController
     void TrySwapTiles(Vector2Int origin, Vector2Int dir);
     void AttemptPowerTrigger(TileView tileView);
     void SwapTilesInData(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB);
-    System.Collections.IEnumerator MatchCycle();
+    UniTask MatchCycleAsync();
     Vector2 GridToUIPos(Vector2Int gridPos);
     void DestroyTargetTile(Vector2Int origin);
 }

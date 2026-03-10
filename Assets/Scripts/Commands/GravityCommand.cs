@@ -1,8 +1,8 @@
 using DG.Tweening;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class GravityCommand : ICommand
 {
@@ -25,7 +25,7 @@ public class GravityCommand : ICommand
         this.mapData = mapData;
     }
 
-    public IEnumerator Execute()
+    public async UniTask ExecuteAsync()
     {
         bool boardChanged;
         do
@@ -79,7 +79,10 @@ public class GravityCommand : ICommand
 
         EndStep:
             if (boardChanged)
-                yield return DOTween.Sequence().AppendInterval(stepDuration).WaitForCompletion();
+            {
+                var delaySeq = DOTween.Sequence().AppendInterval(stepDuration);
+                await delaySeq.AsyncWaitForCompletion();
+            }
 
         } while (boardChanged);
     }

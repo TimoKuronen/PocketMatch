@@ -1,6 +1,7 @@
 using DG.Tweening;
-using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class SwapCommand : ICommand
 {
@@ -20,10 +21,10 @@ public class SwapCommand : ICommand
         this.ease = ease;
     }
 
-    public IEnumerator Execute()
+    public async UniTask ExecuteAsync()
     {
         if (viewA == null || viewB == null)
-            yield break;
+            return;
 
         var rectA = viewA.RectTransform;
         var rectB = viewB.RectTransform;
@@ -35,6 +36,6 @@ public class SwapCommand : ICommand
         seq.Join(rectA.DOAnchorPos(targetPosB, duration).SetEase(ease));
         seq.Join(rectB.DOAnchorPos(targetPosA, duration).SetEase(ease));
 
-        yield return seq.WaitForCompletion();
+        await seq.AsyncWaitForCompletion();
     }
 }

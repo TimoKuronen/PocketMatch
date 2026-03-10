@@ -1,6 +1,6 @@
-using System.Collections;
+using Cysharp.Threading.Tasks;
 
 public interface ICommand
 {
-    IEnumerator Execute();
+    UniTask ExecuteAsync();
 }

@@ -2,6 +2,7 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class BoardStateEvaluator
 {
@@ -146,7 +147,7 @@ public class BoardStateEvaluator
             Debug.Log($"Shuffled to playable board (no matches, has moves).");
         }
 
-        TaskRunner.Instance.StartCoroutine(AnimateShuffle(tileViews, tilePositions));
+        AnimateShuffleAsync(tileViews, tilePositions).Forget();
     }
 
     public void DebugHighlightPotentialMoves()
@@ -228,7 +229,7 @@ public class BoardStateEvaluator
         return count;
     }
 
-    private IEnumerator AnimateShuffle(List<TileView> tileViews, List<Vector2Int> tilePositions)
+    private async UniTask AnimateShuffleAsync(List<TileView> tileViews, List<Vector2Int> tilePositions)
     {
         float moveDuration = 0.3f;
         List<Tweener> tweens = new();
@@ -250,7 +251,7 @@ public class BoardStateEvaluator
             tweens.Add(t);
         }
 
-        yield return CachedCoroutines.Wait(moveDuration * 2);
+        await UniTask.Delay(System.TimeSpan.FromSeconds(moveDuration * 2));
 
         foreach (var view in tileViews)
             ((RectTransform)view.transform).DOKill();
@@ -261,8 +262,8 @@ public class BoardStateEvaluator
             tileViews[i].Init(gridData[pos.x, pos.y]);
         }
 
-        yield return CachedCoroutines.Wait(0.05f);
-        TaskRunner.Instance.StartCoroutine(gridController.MatchCycle());
+        await UniTask.Delay(System.TimeSpan.FromSeconds(0.05f));
+        await gridController.MatchCycleAsync();
     }
 
     #endregion

@@ -1,8 +1,8 @@
 using DG.Tweening;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class DestroyCommand : ICommand
 {
@@ -35,7 +35,7 @@ public class DestroyCommand : ICommand
         destroyDuration = isFromPowerTile ? 0.4f : 0.2f;
     }
 
-    public IEnumerator Execute()
+    public async UniTask ExecuteAsync()
     {
         var powersToTrigger = new List<TileData>();
         var powerWorldPositions = new Dictionary<TileData, Vector3>();
@@ -78,7 +78,7 @@ public class DestroyCommand : ICommand
             }
         }
 
-        yield return CachedCoroutines.Wait(destroyDuration);
+        await UniTask.Delay(TimeSpan.FromSeconds(destroyDuration));
 
         // --- Phase 3: actually destroy tiles and update data ---
         foreach (var pos in matchPositions)

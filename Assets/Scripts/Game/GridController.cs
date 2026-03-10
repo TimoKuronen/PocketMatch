@@ -1,10 +1,10 @@
 using DG.Tweening;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using VContainer;
+using Cysharp.Threading.Tasks;
 
 public class GridController : MonoBehaviour, IGridController
 {
@@ -69,23 +69,28 @@ public class GridController : MonoBehaviour, IGridController
         this.effectService = effectService;
     }
 
-    private IEnumerator Start()
+    private void Start()
+    {
+        StartAsync().Forget();
+    }
+
+    private async UniTask StartAsync()
     {
         if (settings == null)
         {
             Debug.LogError("GridControllerSettings is not assigned!");
-            yield break;
+            return;
         }
 
         width = settings.width;
         height = settings.height;
         tileSize = settings.tileSize;
 
-        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
+        await UniTask.WaitUntil(() => GameSignals.IsSessionLoaded);
 
         Debug.Log("GridController starting with map data: " + gameSessionService.CurrentMapData);
 
-        commandInvoker = new CommandInvoker(this);
+        commandInvoker = new CommandInvoker();
         MatchFinder = new MatchFinder(width, height);
 
         tilePoolManager = new TilePoolManager(
@@ -115,7 +120,7 @@ public class GridController : MonoBehaviour, IGridController
 
         boardStateEvaluator = new BoardStateEvaluator(gridData, gridViews, width, height, this);
 
-        yield return CachedCoroutines.Wait(0.5f);
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
 
         BoardUpdated?.Invoke(gridData);
         IsBoardInitialized = true;
@@ -148,7 +153,7 @@ public class GridController : MonoBehaviour, IGridController
         commandInvoker.AddCommand(new SwapCommand(viewA, viewB, origPosA, origPosB));
         commandInvoker.ExecuteAll();
 
-        StartCoroutine(CheckSwapMatch(origin, target, tileA, tileB, viewA, viewB, origPosA, origPosB));
+        CheckSwapMatchAsync(origin, target, tileA, tileB, viewA, viewB, origPosA, origPosB).Forget();
     }
 
     public void AttemptPowerTrigger(TileView tileView)
@@ -161,7 +166,7 @@ public class GridController : MonoBehaviour, IGridController
         }
 
         ActionTaken?.Invoke();
-        StartCoroutine(TriggerPowerEvent(tileView.Data, TileType.None));
+        TriggerPowerEventAsync(tileView.Data, TileType.None).Forget();
     }
 
     public void SwapTilesInData(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB)
@@ -179,7 +184,7 @@ public class GridController : MonoBehaviour, IGridController
         GridHelperMethods.UpdateTilePosition(tileB, viewB, origin);
     }
 
-    public IEnumerator MatchCycle()
+    public async UniTask MatchCycleAsync()
     {
         IsProcessingTiles = true;
         int cycleCount = 0;
@@ -190,8 +195,9 @@ public class GridController : MonoBehaviour, IGridController
         {
             changed = false;
 
-            yield return new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData).Execute();
-            yield return new WaitUntil(() => !AnyTileTweening());
+            await new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData)
+                .ExecuteAsync();
+            await UniTask.WaitUntil(() => !AnyTileTweening());
 
             if (HasEmptyNormalSlots())
             {
@@ -223,7 +229,7 @@ public class GridController : MonoBehaviour, IGridController
                     tileToUse
                 );
 
-                yield return createPowerTileCommand.Execute();
+                await createPowerTileCommand.ExecuteAsync();
 
                 var flatMatches = new List<Vector2Int>(matchGroups.Count * 3 + destroyedNeighbours.Count);
                 var seen = new HashSet<Vector2Int>();
@@ -248,7 +254,8 @@ public class GridController : MonoBehaviour, IGridController
                 }
 
                 TileSwapped?.Invoke();
-                yield return new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext).Execute();
+                await new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext)
+                    .ExecuteAsync();
             }
 
             cycleCount++;
@@ -303,19 +310,19 @@ public class GridController : MonoBehaviour, IGridController
         commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext));
         commandInvoker.ExecuteAll();
 
-        StartCoroutine(MatchCycle());
+        MatchCycleAsync().Forget();
     }
 
     #endregion
 
     #region Private Methods - Tile Operations
 
-    private IEnumerator CheckSwapMatch(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector2 origPosA, Vector2 origPosB)
+    private async UniTask CheckSwapMatchAsync(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector2 origPosA, Vector2 origPosB)
     {
         IsProcessingTiles = true;
         TileMoved?.Invoke();
 
-        yield return CachedCoroutines.Wait(0.2f);
+        await UniTask.Delay(TimeSpan.FromSeconds(0.2f));
 
         var tempGridData = gridData.Clone() as TileData[,];
         tempGridData[origin.x, origin.y] = tileB;
@@ -326,12 +333,12 @@ public class GridController : MonoBehaviour, IGridController
             SwapTilesInData(origin, target, tileA, tileB);
 
             if (tileA.Power != TilePower.None)
-                StartCoroutine(TriggerPowerEvent(tileA, tileB.Type));
+                TriggerPowerEventAsync(tileA, tileB.Type).Forget();
 
             if (tileB.Power != TilePower.None)
-                StartCoroutine(TriggerPowerEvent(tileB, tileA.Type));
+                TriggerPowerEventAsync(tileB, tileA.Type).Forget();
 
-            yield break;
+            return;
         }
 
         var matches = MatchFinder.GetMatchGroups(tempGridData);
@@ -340,33 +347,33 @@ public class GridController : MonoBehaviour, IGridController
             SwapTilesInData(origin, target, tileA, tileB);
             // Track the position where the tile ended up (target is where tileA moved to)
             lastMovedTilePosition = target;
-            StartCoroutine(MatchCycle());
+            MatchCycleAsync().Forget();
             ActionTaken?.Invoke();
         }
         else
         {
             TileSwapError?.Invoke();
             var revertCommand = new SwapCommand(viewA, viewB, origPosB, origPosA, Ease.OutBack);
-            yield return revertCommand.Execute();
+            await revertCommand.ExecuteAsync();
             IsProcessingTiles = false;
         }
     }
 
-    private IEnumerator TriggerPowerEvent(TileData tileData, TileType matchedWithTile)
+    private async UniTask TriggerPowerEventAsync(TileData tileData, TileType matchedWithTile)
     {
         GridContext.TriggerTilePower(tileData.GridPosition, matchedWithTile);
         commandInvoker.ExecuteAll();
 
-        yield return new WaitUntil(() => commandInvoker.IsEmpty());
-        yield return new WaitUntil(() => !AnyTileTweening());
+        await UniTask.WaitUntil(() => commandInvoker.IsEmpty());
+        await UniTask.WaitUntil(() => !AnyTileTweening());
 
         commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData));
         commandInvoker.ExecuteAll();
 
-        yield return new WaitUntil(() => commandInvoker.IsEmpty());
-        yield return new WaitUntil(() => !AnyTileTweening());
+        await UniTask.WaitUntil(() => commandInvoker.IsEmpty());
+        await UniTask.WaitUntil(() => !AnyTileTweening());
 
-        StartCoroutine(MatchCycle());
+        await MatchCycleAsync();
     }
 
     private TileView CreateTileAt(int x, int y)

@@ -1,8 +1,8 @@
 using DG.Tweening;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 public class CreatePowerTileCommand : ICommand
 {
@@ -29,7 +29,7 @@ public class CreatePowerTileCommand : ICommand
         this.lastMovedTilePosition = lastMovedTilePosition;
     }
 
-    public IEnumerator Execute()
+    public async UniTask ExecuteAsync()
     {
         foreach (var group in matchGroups)
         {
@@ -66,7 +66,7 @@ public class CreatePowerTileCommand : ICommand
             }
         }
 
-        yield return null;
+        await UniTask.Yield();
     }
 
     private Vector2Int DeterminePowerTilePosition(List<Vector2Int> group)

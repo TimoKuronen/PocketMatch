@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using Cysharp.Threading.Tasks;
 
 public class LevelManager : ILevelManager, IDisposable, IStartable
 {
@@ -32,7 +32,7 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
     public void Start()
     {
         // Start game timer immediately (doesn't depend on session)
-        TaskRunner.Instance.StartCoroutine(GameTimer());
+        GameTimerAsync().Forget();
 
         // Subscribe to session loaded event instead of polling
         GameSignals.OnSessionLoaded += OnSessionLoaded;
@@ -60,12 +60,12 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
         VictoryConditions = LocalMapData.VictoryConditions;
 
         // Wait for grid controller to be initialized before subscribing to events
-        TaskRunner.Instance.StartCoroutine(WaitForGridInitialization());
+        WaitForGridInitializationAsync().Forget();
     }
 
-    private IEnumerator WaitForGridInitialization()
+    private async UniTask WaitForGridInitializationAsync()
     {
-        yield return new WaitUntil(() => gridController != null && gridController.IsBoardInitialized);
+        await UniTask.WaitUntil(() => gridController != null && gridController.IsBoardInitialized);
 
         SubscribeToEvents();
 
@@ -77,13 +77,13 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
             LocalMapData.VictoryConditions.MoveLimit));
     }
 
-    private IEnumerator GameTimer()
+    private async UniTaskVoid GameTimerAsync()
     {
         GameTimeInSeconds = 0;
 
         while (true)
         {
-            yield return CachedCoroutines.Wait(1f);
+            await UniTask.Delay(TimeSpan.FromSeconds(1f));
             GameTimeInSeconds++;
         }
     }

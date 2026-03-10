@@ -1,6 +1,6 @@
-using System.Collections;
 using UnityEngine;
 using VContainer;
+using Cysharp.Threading.Tasks;
 
 public class DebugGrid : MonoBehaviour
 {
@@ -24,9 +24,9 @@ public class DebugGrid : MonoBehaviour
         this.gridController = gridController;
     }
 
-    private IEnumerator Start()
+    private async UniTaskVoid Start()
     {
-        yield return new WaitUntil(() => GameSignals.IsSessionLoaded);
+        await UniTask.WaitUntil(() => GameSignals.IsSessionLoaded);
 
         gridController.BoardUpdated += OnBoardUpdated;
         CreateDebugBoards();

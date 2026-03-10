@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using Unity.Services.LevelPlay;
 using UnityEngine;
 using VContainer;
@@ -35,23 +36,23 @@ public class AdsService : IAdsService, IDisposable
     public void Construct(IAnalyticsService analyticsService)
     {
         this.analyticsService = analyticsService;
-        TaskRunner.Instance.StartCoroutine(DelayedInit());
+        DelayedInitAsync().Forget();
     }
 
-    private IEnumerator DelayedInit()
+    private async UniTaskVoid DelayedInitAsync()
     {
         // Wait a bit longer to ensure Unity Services are ready
-        yield return CachedCoroutines.Wait(0.5f);
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         
         // Check network connectivity before initializing
         if (Application.internetReachability == NetworkReachability.NotReachable)
         {
             Debug.LogWarning("[AdsService] No internet connection. Retrying initialization in 3 seconds...");
-            yield return CachedCoroutines.Wait(3f);
+            await UniTask.Delay(TimeSpan.FromSeconds(3f));
             if (Application.internetReachability == NetworkReachability.NotReachable)
             {
                 Debug.LogError("[AdsService] Still no internet connection. Cannot initialize ads.");
-                yield break;
+                return;
             }
         }
 
@@ -79,13 +80,13 @@ public class AdsService : IAdsService, IDisposable
         // Retry initialization after a delay (but only once to avoid spam)
         if (!IsInitialized)
         {
-            TaskRunner.Instance.StartCoroutine(RetryInit(5f));
+            RetryInitAsync(5f).Forget();
         }
     }
     
-    private IEnumerator RetryInit(float delay)
+    private async UniTask RetryInitAsync(float delay)
     {
-        yield return CachedCoroutines.Wait(delay);
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
         
         if (!IsInitialized && Application.internetReachability != NetworkReachability.NotReachable)
         {
@@ -108,13 +109,13 @@ public class AdsService : IAdsService, IDisposable
         IsInitialized = true;
         
         // Small delay to ensure SDK is fully ready before creating ads
-        TaskRunner.Instance.StartCoroutine(DelayedAdCreation());
+        DelayedAdCreationAsync().Forget();
     }
     
-    private IEnumerator DelayedAdCreation()
+    private async UniTask DelayedAdCreationAsync()
     {
         // Wait a brief moment for SDK to be fully ready
-        yield return CachedCoroutines.Wait(0.5f);
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         
         CreateBannerAd();
         CreateInterstitialAd();
@@ -184,7 +185,7 @@ public class AdsService : IAdsService, IDisposable
 
     private void OnInterstitialLoadFailed(LevelPlayAdError error)
     {
-        TaskRunner.Instance.StartCoroutine(RetryLoadInterstitial(3f));
+        RetryLoadInterstitialAsync(3f).Forget();
     }
 
     private void OnInterstitialDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
@@ -194,9 +195,9 @@ public class AdsService : IAdsService, IDisposable
         OnInterstitialAdClosed?.Invoke();
     }
 
-    private IEnumerator RetryLoadInterstitial(float delay)
+    private async UniTask RetryLoadInterstitialAsync(float delay)
     {
-        yield return CachedCoroutines.Wait(delay);
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
         LoadInterstitialAd();
     }
 
@@ -292,7 +293,7 @@ public class AdsService : IAdsService, IDisposable
             bannerNoFillRetryCount++;
             if (bannerNoFillRetryCount <= MaxBannerNoFillRetries)
             {
-                TaskRunner.Instance.StartCoroutine(RetryLoadBanner(NoFillRetryDelaySeconds));
+                RetryLoadBannerAsync(NoFillRetryDelaySeconds).Forget();
             }
             else
             {
@@ -308,7 +309,7 @@ public class AdsService : IAdsService, IDisposable
         {
             Debug.LogError($"[AdsService] Banner load failed: {error}. Retry attempt {bannerRetryCount}/{MaxBannerRetries}");
             float delay = 3f * bannerRetryCount; // Exponential backoff: 3s, 6s, 9s
-            TaskRunner.Instance.StartCoroutine(RetryLoadBanner(delay));
+            RetryLoadBannerAsync(delay).Forget();
         }
         else
         {
@@ -361,9 +362,9 @@ public class AdsService : IAdsService, IDisposable
         }
     }
 
-    private IEnumerator RetryLoadBanner(float delay)
+    private async UniTask RetryLoadBannerAsync(float delay)
     {
-        yield return CachedCoroutines.Wait(delay);
+        await UniTask.Delay(TimeSpan.FromSeconds(delay));
         if (bannerAd != null && IsInitialized && !isBannerLoaded)
         {
             bannerAd.LoadAd();

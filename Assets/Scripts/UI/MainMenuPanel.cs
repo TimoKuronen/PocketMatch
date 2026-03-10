@@ -1,8 +1,9 @@
-using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
+using Cysharp.Threading.Tasks;
+using System;
 
 /// <summary>
 /// Main menu panel displayed in the main menu scene.
@@ -66,13 +67,13 @@ public class MainMenuPanel : UIMenu
     {
         levelIndex = saveService.PlayerData.nextLevelIndex;
         LoadInitialValues();
-        StartCoroutine(ShowBannerWhenReady());
+        ShowBannerWhenReadyAsync().Forget();
     }
     
-    private IEnumerator ShowBannerWhenReady()
+    private async UniTaskVoid ShowBannerWhenReadyAsync()
     {
-        yield return new WaitUntil(() => adsService.IsInitialized);
-        yield return CachedCoroutines.Wait(0.5f);
+        await UniTask.WaitUntil(() => adsService.IsInitialized);
+        await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
         adsService.ShowBannerAd();
     }
     

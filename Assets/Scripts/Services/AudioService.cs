@@ -1,9 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using VContainer;
+using Cysharp.Threading.Tasks;
 
 public class AudioService : IAudioService, IDisposable
 {
@@ -52,7 +52,7 @@ public class AudioService : IAudioService, IDisposable
             }
         }
 
-        TaskRunner.Instance.StartCoroutine(PlaySoundCoroutine(audioSource, data));
+        PlaySoundAsync(audioSource, data).Forget();
         soundList.Add(new PlayingSound
         {
             Cue = data,
@@ -61,17 +61,17 @@ public class AudioService : IAudioService, IDisposable
         });
     }
 
-    private IEnumerator PlaySoundCoroutine(AudioSource audioSource, AudioCue audioCue)
+    private async UniTask PlaySoundAsync(AudioSource audioSource, AudioCue audioCue)
     {
         if (audioSource == null)
         {
             Debug.LogWarning("AudioSource is NULL. Cannot play sound.");
-            yield break;
+            return;
         }
 
         AudioCuePlayer.Play(audioCue, audioSource);
 
-        yield return CachedCoroutines.Wait(audioCue.playDuration);
+        await UniTask.Delay(TimeSpan.FromSeconds(audioCue.playDuration));
 
         if (activeSounds.TryGetValue(audioCue.soundType, out List<PlayingSound> soundList))
         {

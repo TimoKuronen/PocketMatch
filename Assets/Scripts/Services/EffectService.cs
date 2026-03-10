@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -7,6 +6,7 @@ using UnityEngine.Pool;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using VContainer;
 using VContainer.Unity;
+using Cysharp.Threading.Tasks;
 
 public class EffectService : IEffectService, IStartable, IDisposable
 {
@@ -23,47 +23,43 @@ public class EffectService : IEffectService, IStartable, IDisposable
 
     public void Start()
     {
-        PreloadEffectsByLabel(EffectKeys.TileVFXLabel);
+        string label = EffectKeys.EffectsLabel;
+        PreloadByLabelAsync(label).Forget();
     }
 
-    public void PreloadEffectsByLabel(string label)
-    {
-        Debug.Log($"Preloading effects with label: {label}");
-        TaskRunner.Instance.StartCoroutine(PreloadByLabelCoroutine(label));
-    }
-
-    private IEnumerator PreloadByLabelCoroutine(string label)
+    private async UniTask PreloadByLabelAsync(string label)
     {
         // First get all locations with this label
         var locationsHandle = Addressables.LoadResourceLocationsAsync(label, typeof(GameObject));
-        yield return locationsHandle;
+        await locationsHandle.Task;
 
         if (locationsHandle.Status != AsyncOperationStatus.Succeeded)
         {
             if (locationsHandle.IsValid())
                 Addressables.Release(locationsHandle);
-            yield break;
+            return;
         }
 
+        var tasks = new List<UniTask>();
         // Load each asset by its key
         foreach (var location in locationsHandle.Result)
         {
             var key = location.PrimaryKey;
 
             if (!pools.ContainsKey(key))
-            {
-                yield return LoadEffectCoroutine(key);
-            }
+                tasks.Add(LoadEffectAsync(location.PrimaryKey));
         }
+
+        await UniTask.WhenAll(tasks);
 
         if (locationsHandle.IsValid())
             Addressables.Release(locationsHandle);
     }
 
-    private IEnumerator LoadEffectCoroutine(string key)
+    private async UniTask LoadEffectAsync(string key)
     {
         var handle = Addressables.LoadAssetAsync<GameObject>(key);
-        yield return handle;
+        await handle.Task;
 
         if (handle.Status == AsyncOperationStatus.Succeeded && handle.Result != null)
         {
@@ -112,12 +108,12 @@ public class EffectService : IEffectService, IStartable, IDisposable
         var instance = pool.Get();
         instance.transform.SetPositionAndRotation(position, rotation);
 
-        TaskRunner.Instance.StartCoroutine(ReturnToPoolCoroutine(instance, pool, GetEffectDuration(instance)));
+        ReturnToPoolAsync(instance, pool, GetEffectDuration(instance)).Forget();
     }
 
-    private IEnumerator ReturnToPoolCoroutine(GameObject instance, ObjectPool<GameObject> pool, float duration)
+    private async UniTaskVoid ReturnToPoolAsync(GameObject instance, ObjectPool<GameObject> pool, float duration)
     {
-        yield return CachedCoroutines.Wait(duration);
+        await UniTask.Delay(TimeSpan.FromSeconds(duration));
 
         if (instance != null && instance.activeSelf)
             pool.Release(instance);

@@ -4,13 +4,11 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using VContainer;
 
 /// <summary>
 /// HUD component for gameplay - displays game information (moves, coins, victory conditions).
-/// This is NOT a menu in the stack system, just a display overlay.
 /// </summary>
-public class UIGameHUD : MonoBehaviour, IDisposable
+public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 {
     #region Fields
 
@@ -22,199 +20,122 @@ public class UIGameHUD : MonoBehaviour, IDisposable
     [SerializeField] private TextMeshProUGUI currentLevelText;
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button cheatWinButton;
-    [SerializeField] private SettingsPanel settingsPanel;
-    [SerializeField] private WinPanel winPanel;
-    [SerializeField] private LosePanel losePanel;
 
-    private MapData mapData;
-    private List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
+    private readonly List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
     private readonly StringBuilder sb = new StringBuilder(32);
 
-    private ILevelManager levelManager;
-    private IGameSessionService gameSessionService;
-    private IScoreService scoreService;
-    private ISaveService saveService;
-    private MenuStackManager menuStackManager;
-
     public static event Action OnCheatButtonClicked;
+
+    public event Action SettingsClicked;
+    public event Action CheatWinClicked;
 
     #endregion
 
     #region Initialization
 
-    [Inject]
-    public void Construct(
-        ILevelManager levelManager,
-        IGameSessionService gameSessionService,
-        IScoreService scoreService,
-        ISaveService saveService,
-        MenuStackManager menuStackManager)
-    {
-        this.levelManager = levelManager;
-        this.gameSessionService = gameSessionService;
-        this.scoreService = scoreService;
-        this.saveService = saveService;
-        this.menuStackManager = menuStackManager;
-    }
-
     public void Start()
     {
-        // Subscribe to button clicks via code
-        settingsButton.onClick.AddListener(OnSettingsButtonClicked);
-        cheatWinButton.onClick.AddListener(OnCheatWinButtonClicked);
-        
-        // If session is already loaded, initialize immediately
-        if (GameSignals.IsSessionLoaded)
+        settingsButton.onClick.AddListener(() => SettingsClicked?.Invoke());
+        cheatWinButton.onClick.AddListener(() =>
         {
-            InitializeAfterSessionLoaded();
-        }
-        else GameSignals.OnSessionLoaded += InitializeAfterSessionLoaded;
-    }
-
-    private void InitializeAfterSessionLoaded()
-    {
-        mapData = gameSessionService.CurrentMapData;
-        UpdatePuzzleIndexText(saveService.PlayerData.nextLevelIndex + 1);
-
-        levelManager.OnVictoryConditionsUpdated += HandleVictoryConditionUpdate;
-        levelManager.OnLevelWon += OnLevelWon;
-        levelManager.OnLevelLost += OnLevelLost;
-
-        LoadVictoryConditions();
+            CheatWinClicked?.Invoke();
+            OnCheatButtonClicked?.Invoke();
+        });
     }
 
     #endregion
 
     #region Public Methods
 
-    private void OnCheatWinButtonClicked()
+    public void SetMoves(int moves)
     {
-        OnCheatButtonClicked?.Invoke();
+        UpdateMovesText(moves);
     }
 
-    private void OnSettingsButtonClicked()
+    public void SetCoinCount(int coins)
     {
-        // Toggle settings menu - close if already open, open if closed
-        if (menuStackManager.HasMenuOfType(MenuType.SettingsMenu))
+        UpdateCoinCountText(coins);
+    }
+
+    public void SetLevelIndex(int levelIndex)
+    {
+        UpdatePuzzleIndexText(levelIndex);
+    }
+
+    public void InitializeVictoryConditions(VictoryConditions victoryConditions)
+    {
+        // Clear existing UI instances
+        foreach (var existing in victoryConditionsContainer.GetComponentsInChildren<VictoryConditionUI>())
         {
-            menuStackManager.PopMenuOfType(MenuType.SettingsMenu);
+            Destroy(existing.gameObject);
         }
-        else
+        this.victoryConditions.Clear();
+
+        // Rebuild from provided data
+        UpdateMovesText(victoryConditions.MoveLimit);
+
+        if (victoryConditions.RequiredColorMatchCount != null)
         {
-            if (menuStackManager.CanOpenMenu())
+            foreach (var item in victoryConditions.RequiredColorMatchCount)
             {
-                menuStackManager.PushMenu(settingsPanel);
+                CreateColorMatchCondition(item.TileColor, item.TileCount);
             }
-            else
+        }
+
+        if (victoryConditions.DestroyableTileCount > 0)
+        {
+            CreateDestroyableTileCondition(victoryConditions.DestroyableTileCount);
+        }
+    }
+
+    public void UpdateVictoryConditions(VictoryConditions victoryConditions, int movesRemaining)
+    {
+        UpdateMovesText(movesRemaining);
+        foreach (var ui in victoryConditionsContainer.GetComponentsInChildren<VictoryConditionUI>())
+        {
+            if (ui.ConditionType == ConditionType.ColorMatch &&
+                victoryConditions.RequiredColorMatchCount != null)
             {
-                Debug.LogWarning("Cannot open settings menu - matches are being processed");
+                foreach (var condition in victoryConditions.RequiredColorMatchCount)
+                {
+                    if (ui.TileType == condition.TileColor)
+                    {
+                        ui.UpdateUI(condition.TileCount);
+                        break;
+                    }
+                }
+            }
+            else if (ui.ConditionType == ConditionType.DestroyableTiles)
+            {
+                ui.UpdateUI(victoryConditions.DestroyableTileCount);
             }
         }
     }
 
-    /// <summary>
-    /// Helper method for panels to load main menu (with confirmation handled by panels)
-    /// </summary>
-    public void LoadMainMenu()
+    public void HideVictoryConditions()
     {
-        menuStackManager.ClearStack();
-        Loader.Load(Loader.GameScene.MainMenu);
-    }
-
-    /// <summary>
-    /// Helper method for panels to restart the level
-    /// </summary>
-    public void RestartLevel()
-    {
-        Loader.Restart();
-    }
-
-    /// <summary>
-    /// Helper method for panels to load next level
-    /// </summary>
-    public void LoadNextLevel()
-    {
-        // This will be called from WinPanel
-        // We need adsService for this, so panels will handle it directly
+        HideAllVictoryConditions();
+        if (movesText != null)
+        {
+            movesText.gameObject.SetActive(false);
+        }
     }
 
     public void Dispose()
     {
-        // Unsubscribe from button clicks
-        settingsButton.onClick.RemoveListener(OnSettingsButtonClicked);
-        cheatWinButton.onClick.RemoveListener(OnCheatWinButtonClicked);
-        
-        GameSignals.OnSessionLoaded -= InitializeAfterSessionLoaded;
-        levelManager.OnVictoryConditionsUpdated -= HandleVictoryConditionUpdate;
-        levelManager.OnLevelWon -= OnLevelWon;
-        levelManager.OnLevelLost -= OnLevelLost;
+        settingsButton.onClick.RemoveAllListeners();
+        cheatWinButton.onClick.RemoveAllListeners();
     }
 
     #endregion
 
     #region Event Handlers
 
-    private void HandleVictoryConditionUpdate()
-    {
-        UpdateMovesText(levelManager.MovesRemaining);
-
-        foreach (var item in victoryConditions)
-        {
-            if (item.ConditionType == ConditionType.ColorMatch)
-            {
-                foreach (var condition in levelManager.VictoryConditions.RequiredColorMatchCount)
-                {
-                    if (item.TileType == condition.TileColor)
-                    {
-                        item.UpdateUI(condition.TileCount);
-                        break;
-                    }
-                }
-            }
-            else if (item.ConditionType == ConditionType.DestroyableTiles)
-            {
-                item.UpdateUI(levelManager.VictoryConditions.DestroyableTileCount);
-            }
-        }
-    }
-
-    private void OnLevelWon()
-    {
-        HideAllVictoryConditions();
-        UpdateCoinCountText(scoreService.GetTotalScore());
-        movesText.gameObject.SetActive(false);
-        
-        menuStackManager.PushMenu(winPanel);
-    }
-
-    private void OnLevelLost()
-    {
-        HideAllVictoryConditions();
-        movesText.gameObject.SetActive(false);
-        
-        menuStackManager.PushMenu(losePanel);
-    }
-
     #endregion
 
     #region Private Methods
 
-    private void LoadVictoryConditions()
-    {
-        UpdateMovesText(mapData.VictoryConditions.MoveLimit);
-
-        // Create UI elements for each required color match condition
-        foreach (var item in mapData.VictoryConditions.RequiredColorMatchCount)
-        {
-            CreateColorMatchCondition(item.TileColor, item.TileCount);
-        }
-
-        // Create UI element for destroyable tiles condition if required
-        if (mapData.VictoryConditions.DestroyableTileCount > 0)
-        {
-            CreateDestroyableTileCondition(mapData.VictoryConditions.DestroyableTileCount);
-        }
-    }
+    // The following helpers remain for now to update labels and victory conditions
 
     #endregion
 

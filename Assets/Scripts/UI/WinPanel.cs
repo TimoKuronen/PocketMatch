@@ -5,31 +5,20 @@ using VContainer;
 
 /// <summary>
 /// Win panel menu that appears when player completes a level.
+/// Acts as a View in the MVP pattern.
 /// </summary>
-public class WinPanel : UIMenu
+public class WinPanel : UIMenu, IWinView
 {
     [SerializeField] private Button nextLevelButton;
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private TextMeshProUGUI coinCountText;
     [SerializeField] private ConfirmationDialog confirmationDialog;
     
-    private MenuStackManager menuStackManager;
-    private IAdsService adsService;
-    private IScoreService scoreService;
-    private IGameSessionService gameSessionService;
-    
+    public event System.Action NextLevelClicked;
+    public event System.Action MainMenuClicked;
+
     [Inject]
-    public void Construct(
-        MenuStackManager menuStackManager,
-        IAdsService adsService,
-        IScoreService scoreService,
-        IGameSessionService gameSessionService)
-    {
-        this.menuStackManager = menuStackManager;
-        this.adsService = adsService;
-        this.scoreService = scoreService;
-        this.gameSessionService = gameSessionService;
-    }
+    public void Construct() { }
     
     protected override void Awake()
     {
@@ -37,44 +26,29 @@ public class WinPanel : UIMenu
         menuType = MenuType.WinMenu;
         
         // Subscribe to button clicks via code
-        nextLevelButton.onClick.AddListener(OnNextLevelButtonClicked);
-        mainMenuButton.onClick.AddListener(OnMainMenuButtonClicked);
+        nextLevelButton.onClick.AddListener(() => NextLevelClicked?.Invoke());
+        mainMenuButton.onClick.AddListener(() => MainMenuClicked?.Invoke());
     }
     
     private void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
-        nextLevelButton.onClick.RemoveListener(OnNextLevelButtonClicked);
-        mainMenuButton.onClick.RemoveListener(OnMainMenuButtonClicked);
+        nextLevelButton.onClick.RemoveAllListeners();
+        mainMenuButton.onClick.RemoveAllListeners();
     }
     
     public override void Open()
     {
         base.Open();
-        
-        // Update coin count display
-        coinCountText.text = $"x {scoreService.GetTotalScore()}";
-        
-        // Hide next level button if level cap reached
-        nextLevelButton.gameObject.SetActive(!gameSessionService.IsLevelCapReached);
     }
-    
-    private void OnNextLevelButtonClicked()
+
+    public void SetCoinCount(int coins)
     {
-        menuStackManager.PopMenu();
-        Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
+        coinCountText.text = $"x {coins}";
     }
-    
-    private void OnMainMenuButtonClicked()
+
+    public void SetNextLevelButtonVisible(bool isVisible)
     {
-        if (menuStackManager.CanOpenMenu())
-        {
-            confirmationDialog.Setup("Are you sure you want to return to the main menu?", () =>
-            {
-                menuStackManager.ClearStack();
-                Loader.Load(Loader.GameScene.MainMenu);
-            });
-            menuStackManager.PushMenu(confirmationDialog);
-        }
+        nextLevelButton.gameObject.SetActive(isVisible);
     }
 }

@@ -7,8 +7,9 @@ using System;
 
 /// <summary>
 /// Main menu panel displayed in the main menu scene.
+/// Acts as a View in the MVP pattern.
 /// </summary>
-public class MainMenuPanel : UIMenu
+public class MainMenuPanel : UIMenu, IMainMenuView
 {
     [SerializeField] private TextMeshProUGUI versionText;
     [SerializeField] private TextMeshProUGUI coinCountText;
@@ -19,16 +20,15 @@ public class MainMenuPanel : UIMenu
     [SerializeField] private SettingsPanel settingsPanel;
     [SerializeField] private ConfirmationDialog confirmationDialog;
     
-    private ISaveService saveService;
-    private IAdsService adsService;
     private MenuStackManager menuStackManager;
-    private int levelIndex;
+
+    public event Action PlayClicked;
+    public event Action SettingsClicked;
+    public event Action ResetSaveClicked;
     
     [Inject]
-    public void Construct(ISaveService saveService, IAdsService adsService, MenuStackManager menuStackManager)
+    public void Construct(MenuStackManager menuStackManager)
     {
-        this.saveService = saveService;
-        this.adsService = adsService;
         this.menuStackManager = menuStackManager;
     }
     
@@ -50,66 +50,34 @@ public class MainMenuPanel : UIMenu
         IsOpen = true;
         
         // Subscribe to button clicks via code
-        playButton.onClick.AddListener(OnPlayButtonClicked);
-        settingsButton.onClick.AddListener(OnSettingsButtonClicked);
-        resetSaveButton.onClick.AddListener(OnResetSaveButtonClicked);
+        playButton.onClick.AddListener(() => PlayClicked?.Invoke());
+        settingsButton.onClick.AddListener(() => SettingsClicked?.Invoke());
+        resetSaveButton.onClick.AddListener(() => ResetSaveClicked?.Invoke());
     }
     
     private void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
-        playButton.onClick.RemoveListener(OnPlayButtonClicked);
-        settingsButton.onClick.RemoveListener(OnSettingsButtonClicked);
-        resetSaveButton.onClick.RemoveListener(OnResetSaveButtonClicked);
+        playButton.onClick.RemoveAllListeners();
+        settingsButton.onClick.RemoveAllListeners();
+        resetSaveButton.onClick.RemoveAllListeners();
     }
-    
-    private void Start()
+
+    public void SetCoinCount(int coins)
     {
-        levelIndex = saveService.PlayerData.nextLevelIndex;
-        LoadInitialValues();
-        ShowBannerWhenReadyAsync().Forget();
+        coinCountText.text = $"x {coins}";
     }
-    
-    private async UniTaskVoid ShowBannerWhenReadyAsync()
+
+    public void SetLevelIndex(int levelIndex)
     {
-        var token = this.GetCancellationTokenOnDestroy();
-        await UniTask.WaitUntil(() => adsService.IsInitialized, cancellationToken: token);
-        await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: token);
-        adsService.ShowBannerAd();
+        levelText.text = $"Level {levelIndex}";
     }
-    
-    private void LoadInitialValues()
+
+    public void SetVersion(string version)
     {
-        coinCountText.text = $"x {saveService.PlayerData.coins}";
-        levelText.text = $"Level {levelIndex + 1}";
-    }
-    
-    private void OnPlayButtonClicked()
-    {
-        adsService.HideBannerAd();
-        Loader.Load(Loader.GameScene.PlayScene);
-    }
-    
-    private void OnSettingsButtonClicked()
-    {
-        // Toggle settings menu - close if already open, open if closed
-        if (menuStackManager.HasMenuOfType(MenuType.SettingsMenu))
+        if (versionText != null)
         {
-            menuStackManager.PopMenuOfType(MenuType.SettingsMenu);
+            versionText.text = version;
         }
-        else
-        {
-            if (menuStackManager.CanOpenMenu())
-            {
-                menuStackManager.PushMenu(settingsPanel);
-            }
-        }
-    }
-    
-    private void OnResetSaveButtonClicked()
-    {
-        saveService.ResetToDefaults();
-        levelIndex = saveService.PlayerData.nextLevelIndex;
-        LoadInitialValues();
     }
 }

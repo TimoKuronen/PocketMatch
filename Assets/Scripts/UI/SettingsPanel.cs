@@ -4,8 +4,9 @@ using VContainer;
 
 /// <summary>
 /// Unified settings panel that works for both main menu and in-game contexts.
+/// Acts as a View in the MVP pattern.
 /// </summary>
-public class SettingsPanel : UIMenu
+public class SettingsPanel : UIMenu, ISettingsView
 {
     public enum SettingsContext
     {
@@ -21,7 +22,12 @@ public class SettingsPanel : UIMenu
     [SerializeField] private ConfirmationDialog confirmationDialog;
     
     private MenuStackManager menuStackManager;
-    
+
+    public event System.Action CloseClicked;
+    public event System.Action RetryClicked;
+    public event System.Action MenuClicked;
+    public event System.Action<float> SfxVolumeChanged;
+
     [Inject]
     public void Construct(MenuStackManager menuStackManager)
     {
@@ -34,86 +40,56 @@ public class SettingsPanel : UIMenu
         menuType = MenuType.SettingsMenu;
         
         // Configure UI based on context
-        ConfigureForContext();
+        ConfigureForContext(context);
         
         // Subscribe to button clicks via code
-        closeButton.onClick.AddListener(OnCloseButtonClicked);
+        closeButton.onClick.AddListener(() => CloseClicked?.Invoke());
         
         if (retryButton != null)
         {
-            retryButton.onClick.AddListener(OnRetryButtonClicked);
+            retryButton.onClick.AddListener(() => RetryClicked?.Invoke());
         }
         
         if (menuButton != null)
         {
-            menuButton.onClick.AddListener(OnMenuButtonClicked);
+            menuButton.onClick.AddListener(() => MenuClicked?.Invoke());
         }
         
         // Initialize SFX slider
         sfxSlider.value = 1.0f; // Default to full volume
-        sfxSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
+        sfxSlider.onValueChanged.AddListener(value => SfxVolumeChanged?.Invoke(value));
     }
     
     private void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
-        closeButton.onClick.RemoveListener(OnCloseButtonClicked);
+        closeButton.onClick.RemoveAllListeners();
         
         if (retryButton != null)
         {
-            retryButton.onClick.RemoveListener(OnRetryButtonClicked);
+            retryButton.onClick.RemoveAllListeners();
         }
         
         if (menuButton != null)
         {
-            menuButton.onClick.RemoveListener(OnMenuButtonClicked);
+            menuButton.onClick.RemoveAllListeners();
         }
         
-        sfxSlider.onValueChanged.RemoveListener(OnSFXVolumeChanged);
+        sfxSlider.onValueChanged.RemoveAllListeners();
     }
     
-    private void ConfigureForContext()
+    public void ConfigureForContext(SettingsContext contextToApply)
     {
+        context = contextToApply;
         // Hide/show buttons based on context
         if (retryButton != null)
         {
-            retryButton.gameObject.SetActive(context == SettingsContext.InGame);
+            retryButton.gameObject.SetActive(contextToApply == SettingsContext.InGame);
         }
         
         if (menuButton != null)
         {
-            menuButton.gameObject.SetActive(context == SettingsContext.InGame);
+            menuButton.gameObject.SetActive(contextToApply == SettingsContext.InGame);
         }
-    }
-    
-    private void OnCloseButtonClicked()
-    {
-        menuStackManager.PopMenu();
-    }
-    
-    private void OnRetryButtonClicked()
-    {
-        menuStackManager.ClearStack();
-        Loader.Restart();
-    }
-    
-    private void OnMenuButtonClicked()
-    {
-        // Show confirmation dialog before leaving
-        if (menuStackManager.CanOpenMenu())
-        {
-            confirmationDialog.Setup("Are you sure you want to return to the main menu?", () =>
-            {
-                menuStackManager.ClearStack();
-                Loader.Load(Loader.GameScene.MainMenu);
-            });
-            menuStackManager.PushMenu(confirmationDialog);
-        }
-    }
-    
-    private void OnSFXVolumeChanged(float value)
-    {
-        // TODO: Implement SFX volume control
-        Debug.Log($"SFX Volume changed to: {value}");
     }
 }

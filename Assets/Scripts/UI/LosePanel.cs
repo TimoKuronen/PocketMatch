@@ -4,20 +4,19 @@ using VContainer;
 
 /// <summary>
 /// Lose panel menu that appears when player fails a level.
+/// Acts as a View in the MVP pattern.
 /// </summary>
-public class LosePanel : UIMenu
+public class LosePanel : UIMenu, ILoseView
 {
     [SerializeField] private Button restartButton;
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private ConfirmationDialog confirmationDialog;
     
-    private MenuStackManager menuStackManager;
-    
+    public event System.Action RestartClicked;
+    public event System.Action MainMenuClicked;
+
     [Inject]
-    public void Construct(MenuStackManager menuStackManager)
-    {
-        this.menuStackManager = menuStackManager;
-    }
+    public void Construct() { }
     
     protected override void Awake()
     {
@@ -25,33 +24,14 @@ public class LosePanel : UIMenu
         menuType = MenuType.LoseMenu;
         
         // Subscribe to button clicks via code
-        restartButton.onClick.AddListener(OnRestartButtonClicked);
-        mainMenuButton.onClick.AddListener(OnMainMenuButtonClicked);
+        restartButton.onClick.AddListener(() => RestartClicked?.Invoke());
+        mainMenuButton.onClick.AddListener(() => MainMenuClicked?.Invoke());
     }
     
     private void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
-        restartButton.onClick.RemoveListener(OnRestartButtonClicked);
-        mainMenuButton.onClick.RemoveListener(OnMainMenuButtonClicked);
-    }
-    
-    private void OnRestartButtonClicked()
-    {
-        menuStackManager.ClearStack();
-        Loader.Restart();
-    }
-    
-    private void OnMainMenuButtonClicked()
-    {
-        if (menuStackManager.CanOpenMenu())
-        {
-            confirmationDialog.Setup("Are you sure you want to return to the main menu?", () =>
-            {
-                menuStackManager.ClearStack();
-                Loader.Load(Loader.GameScene.MainMenu);
-            });
-            menuStackManager.PushMenu(confirmationDialog);
-        }
+        restartButton.onClick.RemoveAllListeners();
+        mainMenuButton.onClick.RemoveAllListeners();
     }
 }

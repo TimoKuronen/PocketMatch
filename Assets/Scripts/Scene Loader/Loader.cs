@@ -71,6 +71,8 @@ public static class Loader
             while (SceneManager.GetActiveScene().name != GameScene.Loader.ToString())
                 await UniTask.Yield();
 
+            // Ensure the loader scene is visible for at least the specified delay,
+            // even if the target scene loads very quickly.
             if (delay > 0f)
                 await UniTask.Delay(TimeSpan.FromSeconds(delay), DelayType.Realtime);
 
@@ -167,7 +169,8 @@ public static class Loader
             pendingAdService = null;
         }
 
-        await LoadSceneAsync(targetScene.Value, 0f);
+        // Ensure the loader scene is visible for at least half a second
+        await LoadSceneAsync(targetScene.Value, 0.5f);
     }
 
     #endregion

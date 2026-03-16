@@ -30,13 +30,3 @@ public interface IGridController
     Vector2 GridToUIPos(Vector2Int gridPos);
     void DestroyTargetTile(Vector2Int origin);
 }
-
-
-
-
-
-
-
-
-
-

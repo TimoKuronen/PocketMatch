@@ -42,6 +42,7 @@ MonoBehaviour:
   m_BundleRedirectLimit: -1
   m_SharedBundleSettings: 0
   m_SharedBundleSettingsCustomGroupIndex: 0
+  m_simulatedLoadDelay: 0.1
   m_ContiguousBundles: 1
   m_StripUnityVersionFromBundleBuild: 0
   m_DisableVisibleSubAssetRepresentations: 0
@@ -53,8 +54,8 @@ MonoBehaviour:
   m_RemoteCatalogBuildPath:
     m_Id: 1078bb7869d3f6a4b8dd5ef74e6ee115
   m_RemoteCatalogLoadPath:
-    m_Id: e8bb51ff850a1ed499df47782b4c58f7 
-  m_ContentStateBuildPathProfileVariableName: 
+    m_Id: e8bb51ff850a1ed499df47782b4c58f7
+  m_ContentStateBuildPathProfileVariableName: <default settings path>
   m_CustomContentStateBuildPath: 
   m_ContentStateBuildPath: 
   m_BuildAddressablesWithPlayerBuild: 0

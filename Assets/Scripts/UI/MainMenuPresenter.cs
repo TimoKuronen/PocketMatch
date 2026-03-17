@@ -79,4 +79,10 @@ public class MainMenuPresenter : IStartable
         view.SetCoinCount(playerData.coins);
         view.SetLevelIndex(levelIndex + 1);
     }
+
+    private void OnDebugLoggingToggled(bool enabled)
+    {
+        // Nothing extra for now; the toggle already writes PlayerPrefs via BoardDebugConfig.
+        // This hook exists so we can later tie analytics or UI feedback here if needed.
+    }
 }

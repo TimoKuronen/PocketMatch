@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Pool;
+using DG.Tweening;
 
 public class TilePoolManager
 {
@@ -82,6 +83,20 @@ public class TilePoolManager
         };
 
         view.ViewKind = effective;
+        // Hard reset for reused views: stop all tweens and normalize scale.
+        if (view != null)
+        {
+            view.transform.DOKill();
+            var rect = view.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.localScale = Vector3.one;
+            }
+            else
+            {
+                view.transform.localScale = Vector3.one;
+            }
+        }
         return view;
     }
 

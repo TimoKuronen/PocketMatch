@@ -17,6 +17,7 @@ public class MainMenuPanel : UIMenu, IMainMenuView
     [SerializeField] private Button playButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button resetSaveButton;
+    [SerializeField] private Toggle debugLoggingToggle;
     [SerializeField] private SettingsPanel settingsPanel;
     [SerializeField] private ConfirmationDialog confirmationDialog;
     
@@ -25,6 +26,7 @@ public class MainMenuPanel : UIMenu, IMainMenuView
     public event Action PlayClicked;
     public event Action SettingsClicked;
     public event Action ResetSaveClicked;
+    public event Action<bool> DebugLoggingToggled;
     
     [Inject]
     public void Construct(MenuStackManager menuStackManager)
@@ -53,6 +55,13 @@ public class MainMenuPanel : UIMenu, IMainMenuView
         playButton.onClick.AddListener(() => PlayClicked?.Invoke());
         settingsButton.onClick.AddListener(() => SettingsClicked?.Invoke());
         resetSaveButton.onClick.AddListener(() => ResetSaveClicked?.Invoke());
+
+        if (debugLoggingToggle != null)
+        {
+            // Initialize toggle from saved PlayerPrefs value
+            debugLoggingToggle.isOn = BoardDebugConfig.IsEnabled;
+            debugLoggingToggle.onValueChanged.AddListener(OnDebugLoggingToggleChanged);
+        }
     }
     
     private void OnDestroy()
@@ -61,6 +70,10 @@ public class MainMenuPanel : UIMenu, IMainMenuView
         playButton.onClick.RemoveAllListeners();
         settingsButton.onClick.RemoveAllListeners();
         resetSaveButton.onClick.RemoveAllListeners();
+        if (debugLoggingToggle != null)
+        {
+            debugLoggingToggle.onValueChanged.RemoveListener(OnDebugLoggingToggleChanged);
+        }
     }
 
     public void SetCoinCount(int coins)
@@ -79,5 +92,11 @@ public class MainMenuPanel : UIMenu, IMainMenuView
         {
             versionText.text = version;
         }
+    }
+
+    private void OnDebugLoggingToggleChanged(bool isOn)
+    {
+        BoardDebugConfig.IsEnabled = isOn;
+        DebugLoggingToggled?.Invoke(isOn);
     }
 }

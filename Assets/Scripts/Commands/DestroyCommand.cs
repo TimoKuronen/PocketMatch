@@ -39,6 +39,7 @@ public class DestroyCommand : ICommand
     {
         var powersToTrigger = new List<TileData>();
         var powerWorldPositions = new Dictionary<TileData, Vector3>();
+        var positionsToVisuallyDestroy = new HashSet<Vector2Int>();
 
         // --- Phase 1: collect any power tiles that will trigger after destruction ---
         foreach (var pos in matchPositions)
@@ -57,13 +58,26 @@ public class DestroyCommand : ICommand
                     powerWorldPositions[data] = worldPos;
                 }
             }
+
+            // Decide whether this tile will actually be cleared from the grid.
+            if (data != null)
+            {
+                if (data.State == TileState.Normal)
+                {
+                    positionsToVisuallyDestroy.Add(pos);
+                }
+                else if (data.State == TileState.Destroyable && data is DestroyableTileData destroyableData && destroyableData.IsDestroyed)
+                {
+                    positionsToVisuallyDestroy.Add(pos);
+                }
+            }
         }
 
         // --- Phase 2: play shrink animation for visuals and spawn effects ---
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];
-            if (view != null && view.Data.State != TileState.Blocked)
+            if (view != null && positionsToVisuallyDestroy.Contains(pos))
             {
                 view.transform.DOKill();
                 view.transform.DOScale(Vector3.zero, destroyDuration).SetEase(Ease.InBack);

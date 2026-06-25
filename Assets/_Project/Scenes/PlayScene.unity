@@ -129,7 +129,6 @@ GameObject:
   m_Component:
   - component: {fileID: 350001610}
   - component: {fileID: 350001611}
-  - component: {fileID: 350001612}
   m_Layer: 0
   m_Name: Testing
   m_TagString: Untagged
@@ -167,20 +166,6 @@ MonoBehaviour:
   gridController: {fileID: 1259283715}
   enableHotkey: 1
   hotkey: 290
---- !u!114 &350001612
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 350001609}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16d7d15f1c217e34aba11279a557d240, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TileViewSceneScanner
-  gridController: {fileID: 1259283715}
-  scanInterval: 2
 --- !u!1 &594297175
 GameObject:
   m_ObjectHideFlags: 0

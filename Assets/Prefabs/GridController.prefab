@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 485272160429731552}
   - component: {fileID: 7581541996355293963}
   - component: {fileID: -97883846079608384}
-  - component: {fileID: 5896938846211833892}
   m_Layer: 0
   m_Name: GridController
   m_TagString: Untagged
@@ -170,18 +169,3 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &5896938846211833892
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4022155451497631031}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb0aaa7f5ed84b64ab2ba89a37303b3a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  debugTilePrefab: {fileID: 8310119463221299713, guid: 7c413104f4a493245879e2daa2244e2a, type: 3}
-  tileSize: 1
-  gridOffset: {x: 0, y: 0, z: 0}

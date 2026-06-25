@@ -122,7 +122,7 @@ public class GridController : MonoBehaviour, IGridController
         await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: token);
 
         BoardUpdated?.Invoke(gridData);
-        BoardDebugService.OnBoardInitialized(this, gridData);
+        BoardDebugHooks.NotifyBoardInitialized(this, gridData);
         IsBoardInitialized = true;
     }
 
@@ -268,8 +268,7 @@ public class GridController : MonoBehaviour, IGridController
 
         IsProcessingTiles = false;
         BoardUpdated?.Invoke(gridData);
-        BoardDebugService.OnBoardUpdated(this, gridData);
-
+        BoardDebugHooks.NotifyBoardUpdated(this, gridData);
         if (cycleCount > 2)
         {
             analyticsService.LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
@@ -284,7 +283,7 @@ public class GridController : MonoBehaviour, IGridController
         {
             Debug.Log($"No moves left! (Swaps: {moves.SwapMoveCount}, Power: {moves.PowerTileMoveCount})");
             OnBoardShuffle?.Invoke();
-            BoardDebugService.OnBoardShuffled(this, gridData);
+            BoardDebugHooks.NotifyBoardShuffled(this, gridData);
             boardStateEvaluator.ShuffleBoard();
         }
     }

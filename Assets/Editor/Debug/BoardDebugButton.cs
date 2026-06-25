@@ -3,10 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Attach this to a dev-only HUD button (or keep in scene)
-/// and wire its MarkBug method to a UI Button OnClick().
-/// It logs the current board state and flushes the debug log
-/// so you can immediately grab the file and send it to an AI agent.
+/// Editor-only HUD button for marking board bugs during play mode.
 /// </summary>
 public class BoardDebugButton : MonoBehaviour
 {
@@ -19,9 +16,6 @@ public class BoardDebugButton : MonoBehaviour
     [Tooltip("Key used to mark a bug when enableHotkey is true.")]
     public KeyCode hotkey = KeyCode.F9;
 
-    /// <summary>
-    /// Called from a UI Button's OnClick, or manually from code.
-    /// </summary>
     public void MarkBug()
     {
         if (!BoardDebugConfig.IsEnabled)
@@ -74,4 +68,3 @@ public class BoardDebugButton : MonoBehaviour
         }
     }
 }
-

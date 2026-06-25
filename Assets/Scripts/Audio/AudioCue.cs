@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using UnityEditor;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "AudioCue", menuName = "ScriptableObjects/AudioCue", order = 1)]
@@ -29,7 +28,7 @@ public class AudioCue : ScriptableObject
     [Button]
     void PlayRandomClipInEditor()
     {
-        Assembly unityEditorAssembly = typeof(AudioImporter).Assembly;
+        Assembly unityEditorAssembly = typeof(UnityEditor.AudioImporter).Assembly;
         System.Type audioUtilClass = unityEditorAssembly.GetType("UnityEditor.AudioUtil");
 
         if (audioUtilClass == null)

@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Single entry point for runtime board debugging.
-/// GridController and other systems should call these methods instead of
-/// talking directly to logger / invariants / observers.
+/// Editor-only board debug logging. Subscribes to BoardDebugHooks at editor load.
 /// </summary>
 public static class BoardDebugService
 {
@@ -70,4 +68,3 @@ public static class BoardDebugService
         }
     }
 }
-

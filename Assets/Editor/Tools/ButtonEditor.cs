@@ -1,5 +1,3 @@
-#if UNITY_EDITOR
-using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -11,10 +9,7 @@ public class ButtonEditor : Editor
     {
         DrawDefaultInspector();
 
-        // Get the target object, works for MonoBehaviour & ScriptableObject
         var targetObject = target;
-
-        // Get all methods of the target object
         var methods = targetObject.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
         foreach (var method in methods)
@@ -30,7 +25,3 @@ public class ButtonEditor : Editor
         }
     }
 }
-
-[AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-public class ButtonAttribute : PropertyAttribute { }
-#endif

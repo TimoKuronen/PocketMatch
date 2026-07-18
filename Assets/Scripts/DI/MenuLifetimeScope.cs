@@ -14,5 +14,6 @@ public class MenuLifetimeScope : LifetimeScope
         builder.RegisterComponentInHierarchy<ConfirmationDialog>();
 
         builder.Register<MainMenuPresenter>(Lifetime.Scoped).As<IStartable>();
+        builder.Register<SettingsPresenter>(Lifetime.Scoped).As<IStartable>();
     }
 }

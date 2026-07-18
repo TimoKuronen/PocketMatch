@@ -11,6 +11,7 @@ public class DestroyCommand : ICommand
     private readonly TileData[,] gridData;
     private readonly TilePoolManager pool;
     private readonly Action<TileData> TileDestroyed;
+    private readonly Action onDestroyBatch;
     private readonly GridContext context;
 
     private float destroyDuration = 0.2f;
@@ -22,7 +23,8 @@ public class DestroyCommand : ICommand
         TilePoolManager pool,
         Action<TileData> onDestroy,
         GridContext context = null,
-        bool isFromPowerTile = false)
+        bool isFromPowerTile = false,
+        Action onDestroyBatch = null)
     {
         matchPositions = positions;
         gridViews = views;
@@ -30,6 +32,7 @@ public class DestroyCommand : ICommand
         this.pool = pool;
         TileDestroyed = onDestroy;
         this.context = context;
+        this.onDestroyBatch = onDestroyBatch;
         
         // Double duration if this destruction is from a power tile activation
         destroyDuration = isFromPowerTile ? 0.4f : 0.2f;
@@ -72,6 +75,9 @@ public class DestroyCommand : ICommand
                 }
             }
         }
+
+        if (positionsToVisuallyDestroy.Count > 0)
+            onDestroyBatch?.Invoke();
 
         // --- Phase 2: play shrink animation for visuals and spawn effects ---
         foreach (var pos in matchPositions)

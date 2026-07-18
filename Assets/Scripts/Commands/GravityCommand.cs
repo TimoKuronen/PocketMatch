@@ -12,9 +12,18 @@ public class GravityCommand : ICommand
     private readonly Func<Vector2Int, Vector2> GridToUIPos;
     private readonly Func<int, int, TileView> CreateTileAt;
     private readonly MapData mapData;
+    private readonly Action onTileDrop;
     private const float stepDuration = 0.20f;
 
-    public GravityCommand(TileData[,] data, TileView[,] views, int w, int h, Func<Vector2Int, Vector2> toUI, Func<int, int, TileView> createFn, MapData mapData)
+    public GravityCommand(
+        TileData[,] data,
+        TileView[,] views,
+        int w,
+        int h,
+        Func<Vector2Int, Vector2> toUI,
+        Func<int, int, TileView> createFn,
+        MapData mapData,
+        Action onTileDrop = null)
     {
         gridData = data;
         gridViews = views;
@@ -23,6 +32,7 @@ public class GravityCommand : ICommand
         GridToUIPos = toUI;
         CreateTileAt = createFn;
         this.mapData = mapData;
+        this.onTileDrop = onTileDrop;
     }
 
     public async UniTask ExecuteAsync()
@@ -82,6 +92,7 @@ public class GravityCommand : ICommand
             {
                 var delaySeq = DOTween.Sequence().AppendInterval(stepDuration);
                 await delaySeq.AsyncWaitForCompletion();
+                onTileDrop?.Invoke();
             }
 
         } while (boardChanged);

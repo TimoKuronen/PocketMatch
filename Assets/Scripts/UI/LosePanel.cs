@@ -33,5 +33,6 @@ public class LosePanel : UIMenu, ILoseView
         // Unsubscribe to prevent memory leaks
         restartButton.onClick.RemoveAllListeners();
         mainMenuButton.onClick.RemoveAllListeners();
+        base.OnDestroy();
     }
 }

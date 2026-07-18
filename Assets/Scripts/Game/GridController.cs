@@ -45,12 +45,13 @@ public class GridController : MonoBehaviour, IGridController
     #endregion
 
     #region Events
-    //public event Action TileDrop;
+    public event Action TileDrop;
     public event Action ActionTaken;
     public event Action TileMoved;
     public event Action TileSwapped;
     public event Action TileSwapError;
     public event Action<TileData> TileDestroyed;
+    public event Action TilesDestroyed;
     public event Action<TileData[,]> BoardUpdated;
     public event Action<TileData> PowerTileCreated;
     public event Action OnBoardShuffle;
@@ -112,7 +113,8 @@ public class GridController : MonoBehaviour, IGridController
             height,
             tilePoolManager,
             commandInvoker,
-            TileDestroyed
+            TileDestroyed,
+            () => TilesDestroyed?.Invoke()
         );
         GridContext.GridController = this;
         GridContext.EffectService = effectService;
@@ -196,7 +198,7 @@ public class GridController : MonoBehaviour, IGridController
         {
             changed = false;
 
-            await new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData)
+            await new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData, () => TileDrop?.Invoke())
                 .ExecuteAsync();
             await UniTask.WaitUntil(() => !AnyTileTweening(), cancellationToken: token);
 
@@ -255,7 +257,7 @@ public class GridController : MonoBehaviour, IGridController
                 }
 
                 TileSwapped?.Invoke();
-                await new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext)
+                await new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext, onDestroyBatch: () => TilesDestroyed?.Invoke())
                     .ExecuteAsync();
             }
 
@@ -309,7 +311,7 @@ public class GridController : MonoBehaviour, IGridController
 
         TileSwapped?.Invoke();
 
-        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext));
+        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext, onDestroyBatch: () => TilesDestroyed?.Invoke()));
         commandInvoker.ExecuteAll();
 
         MatchCycleAsync().Forget();
@@ -371,10 +373,7 @@ public class GridController : MonoBehaviour, IGridController
         await UniTask.WaitUntil(() => commandInvoker.IsEmpty(), cancellationToken: token);
         await UniTask.WaitUntil(() => !AnyTileTweening(), cancellationToken: token);
 
-        // Treat gravity after a power activation as a tile-move action for audio purposes
-        TileMoved?.Invoke();
-
-        commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData));
+        commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData, () => TileDrop?.Invoke()));
         commandInvoker.ExecuteAll();
 
         await UniTask.WaitUntil(() => commandInvoker.IsEmpty(), cancellationToken: token);

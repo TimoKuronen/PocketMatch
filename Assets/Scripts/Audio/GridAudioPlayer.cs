@@ -17,6 +17,7 @@ public class GridAudioPlayer : MonoBehaviour
     [SerializeField] private AudioCue shuffleAudio;
 
     private AudioSource audioSource;
+    private AudioSource hitAudioSource;
     private IAudioService audioService;
     private ILevelManager levelManager;
     private IGridController gridController;
@@ -32,6 +33,8 @@ public class GridAudioPlayer : MonoBehaviour
     public void Start()
     {
         audioSource = GetComponent<AudioSource>();
+        hitAudioSource = gameObject.AddComponent<AudioSource>();
+        hitAudioSource.playOnAwake = false;
 
         // Subscribe to board initialization event instead of polling
         if (gridController != null)
@@ -59,10 +62,10 @@ public class GridAudioPlayer : MonoBehaviour
         gridController.BoardUpdated -= OnBoardInitialized;
 
         // Subscribe to grid controller events
-        //gridController.TileDrop += PlayHitAudio;
+        gridController.TileDrop += PlayHitAudio;
         gridController.TileSwapped += PlayMatchAudio;
         gridController.TileSwapError += PlaySwitchErrorAudio;
-        gridController.TileDestroyed += PlayDestroyAudio;
+        gridController.TilesDestroyed += PlayDestroyAudio;
         gridController.TileMoved += PlayTileMoveAudio;
         gridController.PowerTileCreated += PlayPowerTileCreationAudio;
         gridController.GridContext.OnSpecialTileTriggered += PlaySpecialTileAudio;
@@ -97,11 +100,10 @@ public class GridAudioPlayer : MonoBehaviour
 
     private void PlayTileMoveAudio()
     {
-        Debug.Log("Playing tile move audio");
         audioService.Play(tileMoveAudio, audioSource);
     }
 
-    private void PlayDestroyAudio(TileData data)
+    private void PlayDestroyAudio()
     {
         audioService.Play(tileDestroyAudio, audioSource);
     }
@@ -118,8 +120,7 @@ public class GridAudioPlayer : MonoBehaviour
 
     private void PlayHitAudio()
     {
-        Debug.Log("Playing hit audio");
-        audioService.Play(tileHitAudio, audioSource);
+        audioService.PlayExclusive(tileHitAudio, hitAudioSource);
     }
 
     private void PlayLevelLostAudio()
@@ -141,10 +142,10 @@ public class GridAudioPlayer : MonoBehaviour
     {
         if (gridController != null)
         {
-            //gridController.TileDrop -= PlayHitAudio;
+            gridController.TileDrop -= PlayHitAudio;
             gridController.TileSwapped -= PlayMatchAudio;
             gridController.TileSwapError -= PlaySwitchErrorAudio;
-            gridController.TileDestroyed -= PlayDestroyAudio;
+            gridController.TilesDestroyed -= PlayDestroyAudio;
             gridController.TileMoved -= PlayTileMoveAudio;
             gridController.PowerTileCreated -= PlayPowerTileCreationAudio;
             gridController.GridContext.OnSpecialTileTriggered -= PlaySpecialTileAudio;

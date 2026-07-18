@@ -35,6 +35,7 @@ public class WinPanel : UIMenu, IWinView
         // Unsubscribe to prevent memory leaks
         nextLevelButton.onClick.RemoveAllListeners();
         mainMenuButton.onClick.RemoveAllListeners();
+        base.OnDestroy();
     }
     
     public override void Open()

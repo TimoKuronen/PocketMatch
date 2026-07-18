@@ -55,9 +55,15 @@ public class SettingsPanel : UIMenu, ISettingsView
             menuButton.onClick.AddListener(() => MenuClicked?.Invoke());
         }
         
-        // Initialize SFX slider
-        sfxSlider.value = 1.0f; // Default to full volume
+        // Initialize SFX slider (presenter may overwrite with saved volume in Start)
+        sfxSlider.value = 1.0f;
         sfxSlider.onValueChanged.AddListener(value => SfxVolumeChanged?.Invoke(value));
+    }
+
+    public void SetSfxVolume(float value)
+    {
+        if (sfxSlider != null)
+            sfxSlider.SetValueWithoutNotify(Mathf.Clamp01(value));
     }
     
     private void OnDestroy()
@@ -76,6 +82,7 @@ public class SettingsPanel : UIMenu, ISettingsView
         }
         
         sfxSlider.onValueChanged.RemoveAllListeners();
+        base.OnDestroy();
     }
     
     public void ConfigureForContext(SettingsContext contextToApply)

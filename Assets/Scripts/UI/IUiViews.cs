@@ -32,6 +32,7 @@ public interface ISettingsView
     event Action<float> SfxVolumeChanged;
 
     void ConfigureForContext(SettingsPanel.SettingsContext context);
+    void SetSfxVolume(float value);
 }
 
 public interface IWinView

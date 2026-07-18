@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 public abstract class UIMenu : MonoBehaviour, IMenu
 {
@@ -12,6 +13,8 @@ public abstract class UIMenu : MonoBehaviour, IMenu
     public event Action OnMenuOpened;
     public event Action OnMenuClosed;
     public event Action OnButtonPressed;
+
+    private Button[] wiredButtons;
     
     protected virtual void Awake()
     {
@@ -25,6 +28,13 @@ public abstract class UIMenu : MonoBehaviour, IMenu
         {
             menuPanel.SetActive(false);
         }
+    }
+
+    protected virtual void Start()
+    {
+        wiredButtons = GetComponentsInChildren<Button>(true);
+        foreach (var button in wiredButtons)
+            button.onClick.AddListener(RaiseButtonPressed);
     }
     
     public virtual void Open()
@@ -56,5 +66,22 @@ public abstract class UIMenu : MonoBehaviour, IMenu
     public virtual bool CanOpen()
     {
         return true; // Override in derived classes if needed
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (wiredButtons == null)
+            return;
+
+        foreach (var button in wiredButtons)
+        {
+            if (button != null)
+                button.onClick.RemoveListener(RaiseButtonPressed);
+        }
+    }
+
+    private void RaiseButtonPressed()
+    {
+        OnButtonPressed?.Invoke();
     }
 }

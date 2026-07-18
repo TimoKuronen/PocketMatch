@@ -16,7 +16,6 @@ public class UIAudioPlayer : MonoBehaviour
     public void Construct(IAudioService audioService)
     {
         this.audioService = audioService;
-        Debug.Log(gameObject + "UIAudioPlayer Constructed with IAudioService dependency.");
     }
 
     void Start()
@@ -27,12 +26,16 @@ public class UIAudioPlayer : MonoBehaviour
         uiMenu.OnMenuClosed += OnMenuClosed;
         uiMenu.OnButtonPressed += OnButtonClicked;
     }
+
     private void OnMenuOpened() => audioService.Play(openMenuSFX, audioSource);
     private void OnMenuClosed() => audioService.Play(closeMenuSFX, audioSource);
     private void OnButtonClicked() => audioService.Play(buttonPressSFX, audioSource);
 
     private void OnDestroy()
     {
+        if (uiMenu == null)
+            return;
+
         uiMenu.OnMenuOpened -= OnMenuOpened;
         uiMenu.OnMenuClosed -= OnMenuClosed;
         uiMenu.OnButtonPressed -= OnButtonClicked;

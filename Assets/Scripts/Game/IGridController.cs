@@ -12,12 +12,13 @@ public interface IGridController
     BoardStateEvaluator BoardEvaluator { get; }
 
     // Events
-    //event Action TileDrop;
+    event Action TileDrop;
     event Action ActionTaken;
     event Action TileMoved;
     event Action TileSwapped;
     event Action TileSwapError;
     event Action<TileData> TileDestroyed;
+    event Action TilesDestroyed;
     event Action<TileData[,]> BoardUpdated;
     event Action<TileData> PowerTileCreated;
     event Action OnBoardShuffle;

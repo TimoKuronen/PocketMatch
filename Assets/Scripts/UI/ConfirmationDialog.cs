@@ -37,6 +37,7 @@ public class ConfirmationDialog : UIMenu
         // Unsubscribe to prevent memory leaks
         yesButton.onClick.RemoveListener(OnYesButtonClicked);
         noButton.onClick.RemoveListener(OnNoButtonClicked);
+        base.OnDestroy();
     }
     
     /// <summary>

@@ -28,11 +28,13 @@ public class StubGridController : IGridController
     public bool IsProcessingTiles => false;
     public GridContext GridContext => null;
     public BoardStateEvaluator BoardEvaluator => null;
+    public event System.Action TileDrop;
     public event System.Action ActionTaken;
     public event System.Action TileMoved;
     public event System.Action TileSwapped;
     public event System.Action TileSwapError;
     public event System.Action<TileData> TileDestroyed;
+    public event System.Action TilesDestroyed;
     public event System.Action<TileData[,]> BoardUpdated;
     public event System.Action<TileData> PowerTileCreated;
     public event System.Action OnBoardShuffle;

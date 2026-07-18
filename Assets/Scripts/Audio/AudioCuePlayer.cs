@@ -1,70 +1,126 @@
 ﻿using UnityEngine;
 
-public class AudioCuePlayer : MonoBehaviour
+public static class AudioCuePlayer
 {
-    public static int Play(AudioCue cue, AudioSource audioSource, int _previousClip = -1)
+    public static int Play(AudioCue cue, AudioSource audioSource, int previousClip = -1, float volumeScale = 1f)
     {
-        if (!cue || !audioSource || !audioSource.isActiveAndEnabled)
+        if (!TryPrepare(cue, audioSource, previousClip, volumeScale, out int clipIndex, out AudioClip clip))
             return -1;
 
-        if (cue.clips.Length < 1)
-            return -1;
+        bool useDedicatedVoice = cue.loop || cue.stopPrevious;
 
-        float vol = UnityEngine.Random.Range(cue.minVolume, cue.maxVolume) * cue.volumeMultiplier;
-        int clipIndex;
-
-        if (!cue.dontAdjustVolume)
-            audioSource.volume = vol;
-        else vol = audioSource.volume;
-
-        if (cue.forcedPitch == 1)
-            audioSource.pitch = UnityEngine.Random.Range(cue.minPitch, cue.maxPitch);
-        else audioSource.pitch = cue.forcedPitch;
-
-        clipIndex = UnityEngine.Random.Range(0, cue.clips.Length);
-
-        if (clipIndex == _previousClip)
-            clipIndex++;
-
-        if (clipIndex >= cue.clips.Length)
-            clipIndex = 0;
-
-        if (cue.clips[clipIndex] == null)
-            return -1;
-
-        if (cue.loop)
+        if (useDedicatedVoice)
         {
-            if (cue.stopPrevious)
-                audioSource.Stop();
-
-            audioSource.loop = true;
-            audioSource.clip = cue.clips[clipIndex];
+            audioSource.Stop();
+            audioSource.loop = cue.loop;
+            audioSource.clip = clip;
             audioSource.Play();
         }
         else
         {
             audioSource.loop = false;
-            audioSource.PlayOneShot(cue.clips[clipIndex]);
+            audioSource.PlayOneShot(clip);
 
-            if (cue.overlayClips.Length > 0)
-                audioSource.PlayOneShot(cue.overlayClips[UnityEngine.Random.Range(0, cue.overlayClips.Length)]);
+            if (cue.overlayClips != null && cue.overlayClips.Length > 0)
+            {
+                var overlay = cue.overlayClips[Random.Range(0, cue.overlayClips.Length)];
+                if (overlay != null)
+                    audioSource.PlayOneShot(overlay);
+            }
         }
+
         return clipIndex;
     }
 
-    public static void Stop(AudioCue cue, AudioSource audioSource)
+    /// <summary>
+    /// Plays a cue on a dedicated voice: always stops the source first so sounds do not stack.
+    /// </summary>
+    public static int PlayExclusive(AudioCue cue, AudioSource audioSource, float volumeScale = 1f)
+    {
+        if (!TryPrepare(cue, audioSource, -1, volumeScale, out int clipIndex, out AudioClip clip))
+            return -1;
+
+        audioSource.Stop();
+        audioSource.loop = false;
+        audioSource.clip = clip;
+        audioSource.Play();
+        return clipIndex;
+    }
+
+    public static void Stop(AudioSource audioSource)
     {
         if (audioSource == null || !audioSource.isActiveAndEnabled)
         {
             Debug.LogWarning("AudioSource is null or not active. Cannot stop sound.");
             return;
         }
+
         audioSource.loop = false;
         audioSource.Stop();
     }
 
     public static bool IsPlaying(AudioSource audioSource)
     {
-        return audioSource.isPlaying;
+        return audioSource != null && audioSource.isPlaying;
+    }
+
+    public static float GetPlayDuration(AudioCue cue, int clipIndex)
+    {
+        if (cue == null)
+            return 0f;
+
+        if (clipIndex >= 0 && cue.clips != null && clipIndex < cue.clips.Length && cue.clips[clipIndex] != null)
+            return cue.clips[clipIndex].length;
+
+        if (cue.playDuration > 0f)
+            return cue.playDuration;
+
+        return 0.5f;
+    }
+
+    private static bool TryPrepare(
+        AudioCue cue,
+        AudioSource audioSource,
+        int previousClip,
+        float volumeScale,
+        out int clipIndex,
+        out AudioClip clip)
+    {
+        clipIndex = -1;
+        clip = null;
+
+        if (!cue || !audioSource || !audioSource.isActiveAndEnabled)
+            return false;
+
+        if (cue.clips == null || cue.clips.Length < 1)
+            return false;
+
+        float vol = Random.Range(cue.minVolume, cue.maxVolume) * cue.volumeMultiplier * Mathf.Clamp01(volumeScale);
+        if (!cue.dontAdjustVolume)
+            audioSource.volume = vol;
+
+        if (Mathf.Approximately(cue.forcedPitch, 1f))
+            audioSource.pitch = Random.Range(cue.minPitch, cue.maxPitch);
+        else
+            audioSource.pitch = cue.forcedPitch;
+
+        clipIndex = PickClipIndex(cue, previousClip);
+        clip = cue.clips[clipIndex];
+        return clip != null;
+    }
+
+    private static int PickClipIndex(AudioCue cue, int previousClip)
+    {
+        if (!cue.randomize)
+            return 0;
+
+        if (cue.clips.Length == 1)
+            return 0;
+
+        int clipIndex = Random.Range(0, cue.clips.Length);
+        if (clipIndex == previousClip)
+            clipIndex = (clipIndex + 1) % cue.clips.Length;
+
+        return clipIndex;
     }
 }

@@ -7,17 +7,41 @@ using Cysharp.Threading.Tasks;
 
 public class AudioService : IAudioService, IDisposable
 {
-    private int maxSimultaneousUISounds = 5;
+    private const string SfxVolumePrefKey = "SfxVolume";
+    private const int MaxSimultaneousUISounds = 5;
 
     private Dictionary<SoundType, List<PlayingSound>> activeSounds;
+    private float sfxVolume = 1f;
+
+    public float SfxVolume
+    {
+        get => sfxVolume;
+        set
+        {
+            sfxVolume = Mathf.Clamp01(value);
+            PlayerPrefs.SetFloat(SfxVolumePrefKey, sfxVolume);
+            PlayerPrefs.Save();
+        }
+    }
 
     [Inject]
     public void Construct()
     {
         activeSounds = new Dictionary<SoundType, List<PlayingSound>>();
+        sfxVolume = PlayerPrefs.GetFloat(SfxVolumePrefKey, 1f);
     }
 
     public void Play(AudioCue data, AudioSource audioSource)
+    {
+        PlayInternal(data, audioSource, exclusive: false);
+    }
+
+    public void PlayExclusive(AudioCue data, AudioSource audioSource)
+    {
+        PlayInternal(data, audioSource, exclusive: true);
+    }
+
+    private void PlayInternal(AudioCue data, AudioSource audioSource, bool exclusive)
     {
         if (data == null)
         {
@@ -31,47 +55,53 @@ public class AudioService : IAudioService, IDisposable
             return;
         }
 
-        if (!activeSounds.TryGetValue(data.soundType, out List<PlayingSound> soundList))
-        {
-            soundList = new List<PlayingSound>();
-            activeSounds[data.soundType] = soundList;
-        }
-        int maxSounds = GetMaxSimultaneousSounds(data.soundType);
-
-        float now = Time.time;
-        soundList.RemoveAll(s => now - s.StartTime > s.Cue.playDuration);
-
-        if (soundList.Count >= maxSounds)
-        {
-            var oldest = soundList.OrderBy(s => s.StartTime).FirstOrDefault();
-            if (oldest != null)
-            {
-                //Debug.Log("Stopping oldest sound because count is " + soundList.Count + " and max sound count is " + maxSounds);
-                AudioCuePlayer.Stop(oldest.Cue, oldest.Source);
-                soundList.Remove(oldest);
-            }
-        }
-
-        PlaySoundAsync(audioSource, data).Forget();
-        soundList.Add(new PlayingSound
-        {
-            Cue = data,
-            Source = audioSource,
-            StartTime = Time.time
-        });
-    }
-
-    private async UniTask PlaySoundAsync(AudioSource audioSource, AudioCue audioCue)
-    {
         if (audioSource == null)
         {
             Debug.LogWarning("AudioSource is NULL. Cannot play sound.");
             return;
         }
 
-        AudioCuePlayer.Play(audioCue, audioSource);
+        if (!activeSounds.TryGetValue(data.soundType, out List<PlayingSound> soundList))
+        {
+            soundList = new List<PlayingSound>();
+            activeSounds[data.soundType] = soundList;
+        }
 
-        await UniTask.Delay(TimeSpan.FromSeconds(audioCue.playDuration));
+        float now = Time.time;
+        soundList.RemoveAll(s => now - s.StartTime > s.Duration);
+
+        if (soundList.Count >= MaxSimultaneousUISounds)
+        {
+            var oldest = soundList.OrderBy(s => s.StartTime).FirstOrDefault();
+            if (oldest != null)
+            {
+                AudioCuePlayer.Stop(oldest.Source);
+                soundList.Remove(oldest);
+            }
+        }
+
+        int clipIndex = exclusive
+            ? AudioCuePlayer.PlayExclusive(data, audioSource, sfxVolume)
+            : AudioCuePlayer.Play(data, audioSource, volumeScale: sfxVolume);
+
+        if (clipIndex < 0)
+            return;
+
+        float duration = AudioCuePlayer.GetPlayDuration(data, clipIndex);
+        soundList.Add(new PlayingSound
+        {
+            Cue = data,
+            Source = audioSource,
+            StartTime = Time.time,
+            Duration = duration
+        });
+
+        ClearAfterDurationAsync(data, audioSource, duration).Forget();
+    }
+
+    private async UniTaskVoid ClearAfterDurationAsync(AudioCue audioCue, AudioSource audioSource, float duration)
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(duration));
 
         if (activeSounds.TryGetValue(audioCue.soundType, out List<PlayingSound> soundList))
         {
@@ -81,22 +111,13 @@ public class AudioService : IAudioService, IDisposable
         }
     }
 
-    private int GetMaxSimultaneousSounds(SoundType soundType)
-    {
-        return soundType switch
-        {
-            SoundType.UI => maxSimultaneousUISounds,
-            _ => maxSimultaneousUISounds,
-        };
-    }
-
     public void Dispose()
     {
         foreach (var list in activeSounds.Values)
         {
             foreach (var sound in list)
             {
-                AudioCuePlayer.Stop(sound.Cue, sound.Source);
+                AudioCuePlayer.Stop(sound.Source);
             }
             list.Clear();
         }
@@ -107,6 +128,7 @@ public class AudioService : IAudioService, IDisposable
         public AudioCue Cue;
         public AudioSource Source;
         public float StartTime;
+        public float Duration;
     }
 }
 

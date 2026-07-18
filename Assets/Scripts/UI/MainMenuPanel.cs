@@ -74,6 +74,7 @@ public class MainMenuPanel : UIMenu, IMainMenuView
         {
             debugLoggingToggle.onValueChanged.RemoveListener(OnDebugLoggingToggleChanged);
         }
+        base.OnDestroy();
     }
 
     public void SetCoinCount(int coins)

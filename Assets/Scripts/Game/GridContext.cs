@@ -13,6 +13,7 @@ public class GridContext
     public TilePoolManager Pool { get; }
     public CommandInvoker CommandInvoker { get; }
     public Action<TileData> OnDestroy { get; set; }
+    public Action OnDestroyBatch { get; set; }
     public Action<TileData> OnSpecialTileTriggered;
     public IGridController GridController { get; set; }
     public IEffectService EffectService { get; set; }
@@ -34,7 +35,8 @@ public class GridContext
         int height,
         TilePoolManager pool,
         CommandInvoker invoker,
-        Action<TileData> onDestroy)
+        Action<TileData> onDestroy,
+        Action onDestroyBatch = null)
     {
         Data = data;
         Views = views;
@@ -43,6 +45,7 @@ public class GridContext
         Pool = pool;
         CommandInvoker = invoker;
         OnDestroy = onDestroy;
+        OnDestroyBatch = onDestroyBatch;
     }
 
     #endregion
@@ -119,7 +122,7 @@ public class GridContext
         if (toDestroy.Count > 0)
         {
             CommandInvoker.AddCommand(
-                new DestroyCommand(toDestroy, Views, Data, Pool, OnDestroy, this, isFromPowerTile));
+                new DestroyCommand(toDestroy, Views, Data, Pool, OnDestroy, this, isFromPowerTile, OnDestroyBatch));
         }
     }
 

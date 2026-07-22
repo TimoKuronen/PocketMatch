@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Unity.Services.LevelPlay;
@@ -194,7 +195,6 @@ public class AdsService : IAdsService, IDisposable
     private void OnInterstitialDisplayed(LevelPlayAdInfo adInfo)
     {
         Debug.Log($"[AdsService] Interstitial displayed. AdInfo: {adInfo}");
-        LogEventSafe("interstitial_ad_started");
     }
 
     private void OnInterstitialClosed(LevelPlayAdInfo adInfo)
@@ -202,14 +202,19 @@ public class AdsService : IAdsService, IDisposable
         InterstitialAdCompleted = true;
         Debug.Log($"[AdsService] Interstitial closed. AdInfo: {adInfo}");
         LogAdsState("Interstitial closed");
-        LogEventSafe("interstitial_ad_completed");
+        LogEventSafe(AnalyticsEvents.AdWatched, new Dictionary<string, object>
+        {
+            { "ad_format", "interstitial" },
+            { "placement", InterstitialPlacementName },
+            { "result", "completed" }
+        });
         OnInterstitialAdClosed?.Invoke();
         LoadInterstitialAd();
     }
 
     private void OnInterstitialClicked(LevelPlayAdInfo adInfo)
     {
-        LogEventSafe("interstitial_ad_clicked");
+        Debug.Log($"[AdsService] Interstitial clicked. AdInfo: {adInfo}");
     }
 
     private void OnInterstitialLoadFailed(LevelPlayAdError error)
@@ -224,6 +229,12 @@ public class AdsService : IAdsService, IDisposable
         Debug.LogError($"[AdsService] Interstitial display failed: {error}");
         Debug.LogError($"[AdsService] Interstitial display failure AdInfo: {adInfo}");
         LogAdsState("Interstitial display failed");
+        LogEventSafe(AnalyticsEvents.AdSkipped, new Dictionary<string, object>
+        {
+            { "ad_format", "interstitial" },
+            { "placement", InterstitialPlacementName },
+            { "reason", "display_failed" }
+        });
         InterstitialAdCompleted = true;
         OnInterstitialAdClosed?.Invoke();
     }
@@ -244,12 +255,24 @@ public class AdsService : IAdsService, IDisposable
 #if UNITY_EDITOR
         Debug.Log("[AdsService] Simulating interstitial ad completion in Editor.");
         InterstitialAdCompleted = true;
+        LogEventSafe(AnalyticsEvents.AdWatched, new Dictionary<string, object>
+        {
+            { "ad_format", "interstitial" },
+            { "placement", InterstitialPlacementName },
+            { "result", "editor_simulated" }
+        });
         OnInterstitialAdClosed?.Invoke();
         return;
 #else
         if (!IsInitialized || interstitialAd == null)
         {
             Debug.LogWarning($"[AdsService] ShowInterstitialAd ignored. IsInitialized={IsInitialized}, HasInterstitial={interstitialAd != null}");
+            LogEventSafe(AnalyticsEvents.AdSkipped, new Dictionary<string, object>
+            {
+                { "ad_format", "interstitial" },
+                { "placement", InterstitialPlacementName },
+                { "reason", "not_initialized" }
+            });
             return;
         }
 
@@ -263,6 +286,12 @@ public class AdsService : IAdsService, IDisposable
         else
         {
             Debug.LogWarning("[AdsService] Interstitial show requested before ready. Triggering load instead.");
+            LogEventSafe(AnalyticsEvents.AdSkipped, new Dictionary<string, object>
+            {
+                { "ad_format", "interstitial" },
+                { "placement", InterstitialPlacementName },
+                { "reason", "not_ready" }
+            });
             LoadInterstitialAd();
         }
 #endif
@@ -385,7 +414,7 @@ public class AdsService : IAdsService, IDisposable
 
     private void OnBannerClicked(LevelPlayAdInfo adInfo)
     {
-        LogEventSafe("banner_ad_clicked");
+        Debug.Log($"[AdsService] Banner clicked. AdInfo: {adInfo}");
     }
 
     public void ShowBannerAd()
@@ -479,11 +508,11 @@ public class AdsService : IAdsService, IDisposable
         bannerAd = null;
     }
 
-    private void LogEventSafe(string eventName)
+    private void LogEventSafe(string eventName, Dictionary<string, object> parameters = null)
     {
         try
         {
-            analyticsService?.LogEvent(eventName);
+            analyticsService?.LogEvent(eventName, parameters);
         }
         catch (Exception e)
         {

@@ -31,7 +31,7 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
             if (status == DependencyStatus.Available)
             {
                 firebaseReady = true;
-                FirebaseAnalytics.LogEvent("app_started");
+                FirebaseAnalytics.LogEvent(AnalyticsEvents.AppStarted);
                 FlushEvents();
             }
             else
@@ -172,8 +172,19 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
             { "level_name", e.LevelName },
             { "moves_spent", e.MovesSpent },
             { "total_score", e.TotalScore },
-            { "matchDuration", e.GameTimeInSeconds }
+            { "match_duration_sec", e.GameTimeInSeconds }
         });
+
+        // SaveService adds TotalScore to coins when the level cap is not reached.
+        if (!e.IsLevelCapReached && e.TotalScore > 0)
+        {
+            LogEvent(AnalyticsEvents.CoinsEarned, new Dictionary<string, object>
+            {
+                { "amount", e.TotalScore },
+                { "source", "level_complete" },
+                { "level_name", e.LevelName }
+            });
+        }
     }
 
     private void OnLevelFailed(object sender, LevelFailedEventArgs e)
@@ -181,7 +192,7 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         LogEvent(AnalyticsEvents.LevelFailed, new Dictionary<string, object>
         {
             { "level_name", e.LevelName },
-            { "matchDuration", e.GameTimeInSeconds }
+            { "match_duration_sec", e.GameTimeInSeconds }
         });
     }
 

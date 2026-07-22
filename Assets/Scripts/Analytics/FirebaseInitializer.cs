@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 
-public class FirebaseInitializer
+public class FirebaseInitializer : IDisposable
 {
     private IAnalyticsService analyticsService;
 
@@ -13,10 +14,10 @@ public class FirebaseInitializer
 
         this.analyticsService = analyticsService;
 
-        analyticsService.LogEvent("session_started", new Dictionary<string, object>
+        analyticsService.LogEvent(AnalyticsEvents.SessionStarted, new Dictionary<string, object>
         {
             { "device", SystemInfo.deviceModel },
-            { "appVersion", Application.version }
+            { "app_version", Application.version }
         });
     }
 
@@ -24,10 +25,10 @@ public class FirebaseInitializer
     {
         Debug.Log("FirebaseInitializer Dispose called.");
 
-        analyticsService?.LogEvent("session_ended", new Dictionary<string, object>
+        analyticsService?.LogEvent(AnalyticsEvents.SessionEnded, new Dictionary<string, object>
         {
             { "device", SystemInfo.deviceModel },
-            { "appVersion", Application.version }
+            { "app_version", Application.version }
         });
     }
 }

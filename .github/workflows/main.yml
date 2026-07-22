@@ -11,7 +11,7 @@ env:
   UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
   UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
 
-  UNITY_VERSION: 6000.3.6f1 
+  UNITY_VERSION: 6000.3.14f1
 
 jobs:
   buildAndroid:
@@ -33,7 +33,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Library
-          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-${{ env.UNITY_VERSION }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-
 

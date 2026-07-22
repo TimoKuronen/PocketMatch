@@ -42,11 +42,17 @@ Unity-generated folders such as `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `
 
 Open the project in Unity Hub with the pinned editor version, then enter Play Mode from the Loader flow (editor bootstrap mirrors device cold start).
 
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [`docs/analytics-events.md`](docs/analytics-events.md) | Firebase Analytics event names, parameters, and trigger conditions |
+
 ## What this repo is (and is not)
 
-**Is:** a portfolio-oriented Unity client showing Match-3 systems plus common mobile service wiring.
+**Is:** a Unity mobile Match-3 client with production-style service wiring (local and cloud save, ads mediation, analytics).
 
-**Is not:** a shipped live-ops product. IAP, remote config, and a full meta loop are intentionally thin or absent. Local scratch notes and longer learning writeups under `Assets/` are kept out of Git on purpose so the public tree stays code-first.
+**Is not:** a shipped live-ops product. In-app purchases, remote config, and a full meta progression loop are not implemented yet. Local scratch notes under `Assets/` are gitignored; project documentation lives in `docs/` and the root README.
 
 ## Build / CI
 

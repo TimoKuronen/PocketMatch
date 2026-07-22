@@ -92,10 +92,11 @@ build/
 *.jar
 
 # Markdown: keep local notes, scratch guides, and session writeups out of Git.
-# Only the root README is tracked for portfolio front matter.
+# Root README and docs/ project documentation are tracked.
 *.md
 *.md.meta
 !/README.md
+!/docs/**/*.md
 
 /Assets/TextMesh Pro/Fonts/*
 !/Assets/TextMesh Pro/Fonts/.gitkeep

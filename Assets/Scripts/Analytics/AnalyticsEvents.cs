@@ -24,6 +24,6 @@ public static class AnalyticsEvents
     public const string TileMatched = "tile_matched";
     // Reserved until inventory boosters exist (power tiles from matches are not boosters).
     public const string BoosterUsed = "booster_used";
-    // Reserved: IAP is Won't for this portfolio build.
+    // Reserved: in-app purchases are not implemented in the current build.
     public const string IAPPurchased = "iap_purchased";
 }

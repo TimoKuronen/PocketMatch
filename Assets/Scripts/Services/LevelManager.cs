@@ -185,7 +185,8 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
             movesSpent,
             totalScore,
             GameTimeInSeconds,
-            gameSessionService.IsLevelCapReached));
+            gameSessionService.IsLevelCapReached,
+            GameSignals.ActiveLevelIndex));
 
         OnLevelWon?.Invoke();
     }

@@ -234,17 +234,24 @@ public class SaveService : ISaveService, IStartable, IDisposable
 
     private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
     {
-        // Only update save data if level cap is not reached
-        if (!e.IsLevelCapReached)
+        if (e.IsLevelCapReached)
+        {
+            Debug.Log("[SaveService] Level cap reached, not incrementing level index.");
+            return;
+        }
+
+        if (e.CompletedLevelIndex == PlayerData.nextLevelIndex)
         {
             PlayerData.nextLevelIndex++;
-            PlayerData.coins += e.TotalScore;
-            Save();
+            Debug.Log($"[SaveService] Progress advanced. Next unlocked level: {PlayerData.nextLevelIndex + 1}");
         }
         else
         {
-            Debug.Log("[SaveService] Level cap reached, not incrementing level index.");
+            Debug.Log($"[SaveService] Replay win on level {e.CompletedLevelIndex + 1}. Progress unchanged.");
         }
+
+        PlayerData.coins += e.TotalScore;
+        Save();
     }
 
     public void Dispose()

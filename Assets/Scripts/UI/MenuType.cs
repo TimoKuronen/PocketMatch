@@ -5,5 +5,6 @@ public enum MenuType
     ConfirmationPrompt,
     PauseMenu,
     WinMenu,
-    LoseMenu
+    LoseMenu,
+    LevelSelectMenu
 }

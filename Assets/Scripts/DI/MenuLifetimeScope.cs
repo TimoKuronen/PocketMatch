@@ -1,6 +1,8 @@
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
+[DefaultExecutionOrder(100)]
 public class MenuLifetimeScope : LifetimeScope
 {
     protected override void Configure(IContainerBuilder builder)
@@ -12,8 +14,12 @@ public class MenuLifetimeScope : LifetimeScope
         builder.RegisterComponentInHierarchy<SettingsPanel>()
                .As<ISettingsView>();
         builder.RegisterComponentInHierarchy<ConfirmationDialog>();
+        builder.RegisterComponentInHierarchy<LevelSelectPanel>()
+               .AsSelf()
+               .As<ILevelSelectView>();
 
         builder.Register<MainMenuPresenter>(Lifetime.Scoped).As<IStartable>();
         builder.Register<SettingsPresenter>(Lifetime.Scoped).As<IStartable>();
+        builder.Register<LevelSelectPresenter>(Lifetime.Scoped).As<IStartable>();
     }
 }

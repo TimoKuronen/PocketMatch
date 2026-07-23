@@ -2,23 +2,26 @@ using Cysharp.Threading.Tasks;
 using System;
 using VContainer.Unity;
 
-/// <summary>
-/// Presenter for the main menu. Orchestrates between save data, ads, and the main menu view.
-/// </summary>
-public class MainMenuPresenter : IStartable
+public class MainMenuPresenter : IStartable, IDisposable
 {
     private readonly IMainMenuView view;
     private readonly ISaveService saveService;
     private readonly IAdsService adsService;
+    private readonly MenuStackManager menuStackManager;
+    private readonly LevelSelectPanel levelSelectPanel;
 
     public MainMenuPresenter(
         IMainMenuView view,
         ISaveService saveService,
-        IAdsService adsService)
+        IAdsService adsService,
+        MenuStackManager menuStackManager,
+        LevelSelectPanel levelSelectPanel)
     {
         this.view = view;
         this.saveService = saveService;
         this.adsService = adsService;
+        this.menuStackManager = menuStackManager;
+        this.levelSelectPanel = levelSelectPanel;
     }
 
     public void Start()
@@ -34,10 +37,8 @@ public class MainMenuPresenter : IStartable
     private void InitializeView()
     {
         var playerData = saveService.PlayerData;
-        var levelIndex = playerData.nextLevelIndex;
 
         view.SetCoinCount(playerData.coins);
-        view.SetLevelIndex(levelIndex + 1);
         view.SetVersion($"v{UnityEngine.Application.version}");
     }
 
@@ -61,8 +62,13 @@ public class MainMenuPresenter : IStartable
 
     private void OnPlayClicked()
     {
-        adsService.HideBannerAd();
-        Loader.Load(Loader.GameScene.PlayScene);
+        if (levelSelectPanel == null)
+        {
+            UnityEngine.Debug.LogError("[MainMenuPresenter] Level select panel is missing.");
+            return;
+        }
+
+        menuStackManager.PushMenu(levelSelectPanel);
     }
 
     private void OnSettingsClicked()
@@ -73,16 +79,13 @@ public class MainMenuPresenter : IStartable
     private void OnResetSaveClicked()
     {
         saveService.ResetToDefaults();
-        var playerData = saveService.PlayerData;
-        var levelIndex = playerData.nextLevelIndex;
-
-        view.SetCoinCount(playerData.coins);
-        view.SetLevelIndex(levelIndex + 1);
+        view.SetCoinCount(saveService.PlayerData.coins);
     }
 
-    private void OnDebugLoggingToggled(bool enabled)
+    public void Dispose()
     {
-        // Nothing extra for now; the toggle already writes PlayerPrefs via BoardDebugConfig.
-        // This hook exists so we can later tie analytics or UI feedback here if needed.
+        view.PlayClicked -= OnPlayClicked;
+        view.SettingsClicked -= OnSettingsClicked;
+        view.ResetSaveClicked -= OnResetSaveClicked;
     }
 }

@@ -7,7 +7,6 @@ public interface IMainMenuView
     event Action ResetSaveClicked;
 
     void SetCoinCount(int coins);
-    void SetLevelIndex(int levelIndex);
     void SetVersion(string versionText);
 }
 
@@ -54,5 +53,8 @@ public interface ILevelSelectView
 {
     event Action<int> LevelSelected;
     event Action BackClicked;
+    event Action DisplayRequested;
+
+    void BindLevels(int totalLevels, int unlockedThroughIndex, int highlightedIndex);
 }
 

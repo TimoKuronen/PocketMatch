@@ -22,6 +22,9 @@ public class LosePresenter : IStartable, IDisposable
 
     private void OnRestartClicked()
     {
+        if (GameSignals.ActiveLevelIndex >= 0)
+            GameSignals.SetPendingLevelIndex(GameSignals.ActiveLevelIndex);
+
         menuStackManager.ClearStack();
         Loader.Restart();
     }

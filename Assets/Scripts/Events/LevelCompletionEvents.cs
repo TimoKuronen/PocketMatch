@@ -12,6 +12,7 @@ public class LevelCompletedEventArgs : EventArgs
     public int TotalScore { get; }
     public int GameTimeInSeconds { get; }
     public bool IsLevelCapReached { get; }
+    public int CompletedLevelIndex { get; }
 
     public LevelCompletedEventArgs(
         string levelName,
@@ -19,7 +20,8 @@ public class LevelCompletedEventArgs : EventArgs
         int movesSpent,
         int totalScore,
         int gameTimeInSeconds,
-        bool isLevelCapReached)
+        bool isLevelCapReached,
+        int completedLevelIndex)
     {
         LevelName = levelName;
         MovesRemaining = movesRemaining;
@@ -27,6 +29,7 @@ public class LevelCompletedEventArgs : EventArgs
         TotalScore = totalScore;
         GameTimeInSeconds = gameTimeInSeconds;
         IsLevelCapReached = isLevelCapReached;
+        CompletedLevelIndex = completedLevelIndex;
     }
 }
 

@@ -49,7 +49,9 @@ public class GameHudPresenter : IStartable, IDisposable
     private void InitializeAfterSessionLoaded()
     {
         var mapData = gameSessionService.CurrentMapData;
-        var levelIndex = saveService.PlayerData.nextLevelIndex + 1;
+        var levelIndex = GameSignals.ActiveLevelIndex >= 0
+            ? GameSignals.ActiveLevelIndex + 1
+            : saveService.PlayerData.nextLevelIndex + 1;
 
         view.SetLevelIndex(levelIndex);
         view.InitializeVictoryConditions(mapData.VictoryConditions);

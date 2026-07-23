@@ -158,10 +158,14 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
 
     private void OnLevelStarted(object sender, LevelStartedEventArgs e)
     {
+        int levelIndex = GameSignals.ActiveLevelIndex >= 0
+            ? GameSignals.ActiveLevelIndex + 1
+            : saveService.PlayerData.nextLevelIndex + 1;
+
         LogEvent(AnalyticsEvents.LevelStarted, new Dictionary<string, object>
         {
             { "level_name", e.LevelName },
-            { "level_index", saveService.PlayerData.nextLevelIndex + 1 }
+            { "level_index", levelIndex }
         });
     }
 
@@ -175,7 +179,7 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
             { "match_duration_sec", e.GameTimeInSeconds }
         });
 
-        // SaveService adds TotalScore to coins when the level cap is not reached.
+        // Mirrors SaveService coin grant on level_complete wins.
         if (!e.IsLevelCapReached && e.TotalScore > 0)
         {
             LogEvent(AnalyticsEvents.CoinsEarned, new Dictionary<string, object>

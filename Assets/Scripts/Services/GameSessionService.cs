@@ -7,8 +7,6 @@ using VContainer;
 
 public class GameSessionService : IGameSessionService, IDisposable
 {
-    private const string defaultAddress = "Assets/Addressables/Levels/MapData_";
-
     private ISaveService saveService;
     private AsyncOperationHandle<MapData>? currentHandle;
     private int totalLevels;
@@ -38,20 +36,8 @@ public class GameSessionService : IGameSessionService, IDisposable
 
     public async UniTask LoadTotalLevelsAsync()
     {
-        var handle = Addressables.LoadResourceLocationsAsync("Levels", typeof(MapData));
-        await handle.Task;
-
-        if (handle.Status == AsyncOperationStatus.Succeeded)
-        {
-            totalLevels = handle.Result.Count;
-            Debug.Log($"[GameSessionService] Total levels found: {totalLevels}");
-        }
-        else
-        {
-            Debug.LogError("[GameSessionService] Failed to load level locations.");
-        }
-
-        Addressables.Release(handle);
+        totalLevels = await LevelCatalog.GetTotalLevelsAsync();
+        Debug.Log($"[GameSessionService] Total levels found: {totalLevels}");
     }
 
     public async UniTask LoadCurrentLevelDataAsync()
@@ -63,18 +49,21 @@ public class GameSessionService : IGameSessionService, IDisposable
             currentHandle = null;
         }
 
-        int levelIndex = saveService.PlayerData.nextLevelIndex + 1;
-        string levelStr = levelIndex.ToString().PadLeft(4, '0');
-        string address = $"{defaultAddress}{levelStr}.asset";
+        int levelIndex = GameSignals.ResolveLevelIndex(saveService.PlayerData.nextLevelIndex);
+        GameSignals.ConsumePendingLevelIndex();
+
+        string address = LevelCatalog.GetAddress(levelIndex);
 
         try
         {
             currentHandle = Addressables.LoadAssetAsync<MapData>(address);
             CurrentMapData = await currentHandle.Value.Task;
 
-            Debug.Log($"[GameSessionService] MapData loaded: {CurrentMapData.name}");
+            Debug.Log($"[GameSessionService] MapData loaded: {CurrentMapData.name} (index {levelIndex})");
 
-            IsLevelCapReached = levelIndex >= totalLevels;
+            int levelNumber = levelIndex + 1;
+            IsLevelCapReached = levelNumber >= totalLevels;
+            GameSignals.SetActiveLevelIndex(levelIndex);
             Debug.Log($"[GameSessionService] Level cap reached: {IsLevelCapReached}");
 
             GameSignals.MarkSessionLoaded();

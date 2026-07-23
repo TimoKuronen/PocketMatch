@@ -8,6 +8,7 @@ public class WinPresenter : IStartable, IDisposable
     private readonly IAdsService adsService;
     private readonly IScoreService scoreService;
     private readonly IGameSessionService gameSessionService;
+    private readonly ISaveService saveService;
     private readonly ConfirmationDialog confirmationDialog;
 
     public WinPresenter(
@@ -16,6 +17,7 @@ public class WinPresenter : IStartable, IDisposable
         IAdsService adsService,
         IScoreService scoreService,
         IGameSessionService gameSessionService,
+        ISaveService saveService,
         ConfirmationDialog confirmationDialog)
     {
         this.view = view;
@@ -23,6 +25,7 @@ public class WinPresenter : IStartable, IDisposable
         this.adsService = adsService;
         this.scoreService = scoreService;
         this.gameSessionService = gameSessionService;
+        this.saveService = saveService;
         this.confirmationDialog = confirmationDialog;
     }
 
@@ -43,6 +46,7 @@ public class WinPresenter : IStartable, IDisposable
     private void OnNextLevelClicked()
     {
         menuStackManager.PopMenu();
+        GameSignals.SetPendingLevelIndex(saveService.PlayerData.nextLevelIndex);
         Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
     }
 

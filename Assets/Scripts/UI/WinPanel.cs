@@ -30,7 +30,7 @@ public class WinPanel : UIMenu, IWinView
         mainMenuButton.onClick.AddListener(() => MainMenuClicked?.Invoke());
     }
     
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
         nextLevelButton.onClick.RemoveAllListeners();

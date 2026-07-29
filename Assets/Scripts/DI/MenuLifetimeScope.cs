@@ -15,7 +15,6 @@ public class MenuLifetimeScope : LifetimeScope
                .As<ISettingsView>();
         builder.RegisterComponentInHierarchy<ConfirmationDialog>();
         builder.RegisterComponentInHierarchy<LevelSelectPanel>()
-               .AsSelf()
                .As<ILevelSelectView>();
 
         builder.Register<MainMenuPresenter>(Lifetime.Scoped).As<IStartable>();

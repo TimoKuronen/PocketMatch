@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using System;
+using UnityEngine;
 using VContainer.Unity;
 
 public class MainMenuPresenter : IStartable, IDisposable
@@ -8,20 +9,23 @@ public class MainMenuPresenter : IStartable, IDisposable
     private readonly ISaveService saveService;
     private readonly IAdsService adsService;
     private readonly MenuStackManager menuStackManager;
-    private readonly LevelSelectPanel levelSelectPanel;
+    private readonly ILevelSelectView levelSelectView;
+    private readonly ISettingsView settingsView;
 
     public MainMenuPresenter(
         IMainMenuView view,
         ISaveService saveService,
         IAdsService adsService,
         MenuStackManager menuStackManager,
-        LevelSelectPanel levelSelectPanel)
+        ILevelSelectView levelSelectView,
+        ISettingsView settingsView)
     {
         this.view = view;
         this.saveService = saveService;
         this.adsService = adsService;
         this.menuStackManager = menuStackManager;
-        this.levelSelectPanel = levelSelectPanel;
+        this.levelSelectView = levelSelectView;
+        this.settingsView = settingsView;
     }
 
     public void Start()
@@ -62,18 +66,31 @@ public class MainMenuPresenter : IStartable, IDisposable
 
     private void OnPlayClicked()
     {
-        if (levelSelectPanel == null)
+        if (levelSelectView is not IMenu levelSelectMenu)
         {
             UnityEngine.Debug.LogError("[MainMenuPresenter] Level select panel is missing.");
             return;
         }
 
-        menuStackManager.PushMenu(levelSelectPanel);
+        menuStackManager.PushMenu(levelSelectMenu);
     }
 
     private void OnSettingsClicked()
     {
+        if (settingsView is not IMenu settingsMenu)
+        {
+            UnityEngine.Debug.LogError("[MainMenuPresenter] Settings panel is missing.");
+            return;
+        }
 
+        if (menuStackManager.HasMenuOfType(MenuType.SettingsMenu))
+        {
+            menuStackManager.PopMenuOfType(MenuType.SettingsMenu);
+            return;
+        }
+
+        settingsView.ConfigureForContext(SettingsContext.MainMenu);
+        menuStackManager.PushMenu(settingsMenu);
     }
 
     private void OnResetSaveClicked()

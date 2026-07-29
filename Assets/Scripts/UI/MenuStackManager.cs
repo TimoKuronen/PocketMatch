@@ -120,7 +120,7 @@ public class MenuStackManager : IDisposable
         
         menuStack.Push(menu);
         menu.Open();
-        
+
         Debug.Log($"[MenuStackManager] Pushed menu: {menu.MenuType}. Stack size: {menuStack.Count}");
         return true;
     }

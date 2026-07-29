@@ -55,6 +55,7 @@ public class MainMenuPanel : UIMenu, IMainMenuView
             debugLoggingToggle.onValueChanged.AddListener(OnDebugLoggingToggleChanged);
         }
     }
+
     public void SetCoinCount(int coins)
     {
         coinCountText.text = $"x {coins}";
@@ -72,7 +73,7 @@ public class MainMenuPanel : UIMenu, IMainMenuView
         DebugLoggingToggled?.Invoke(isOn);
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         playButton.onClick.RemoveAllListeners();
         settingsButton.onClick.RemoveAllListeners();

@@ -1,5 +1,11 @@
 using System;
 
+public enum SettingsContext
+{
+    MainMenu,
+    InGame
+}
+
 public interface IMainMenuView
 {
     event Action PlayClicked;
@@ -30,7 +36,7 @@ public interface ISettingsView
     event Action MenuClicked;
     event Action<float> SfxVolumeChanged;
 
-    void ConfigureForContext(SettingsPanel.SettingsContext context);
+    void ConfigureForContext(SettingsContext context);
     void SetSfxVolume(float value);
 }
 

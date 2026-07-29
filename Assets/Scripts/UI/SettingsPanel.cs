@@ -2,18 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
 
-/// <summary>
-/// Unified settings panel that works for both main menu and in-game contexts.
-/// Acts as a View in the MVP pattern.
-/// </summary>
 public class SettingsPanel : UIMenu, ISettingsView
 {
-    public enum SettingsContext
-    {
-        MainMenu,
-        InGame
-    }
-    
     [SerializeField] private SettingsContext context = SettingsContext.InGame;
     [SerializeField] private Button retryButton; // Only shown in InGame context
     [SerializeField] private Button menuButton; // Only shown in InGame context
@@ -41,8 +31,7 @@ public class SettingsPanel : UIMenu, ISettingsView
         
         // Configure UI based on context
         ConfigureForContext(context);
-        
-        // Subscribe to button clicks via code
+
         closeButton.onClick.AddListener(() => CloseClicked?.Invoke());
         
         if (retryButton != null)
@@ -54,9 +43,7 @@ public class SettingsPanel : UIMenu, ISettingsView
         {
             menuButton.onClick.AddListener(() => MenuClicked?.Invoke());
         }
-        
-        // Initialize SFX slider (presenter may overwrite with saved volume in Start)
-        sfxSlider.value = 1.0f;
+
         sfxSlider.onValueChanged.AddListener(value => SfxVolumeChanged?.Invoke(value));
     }
 
@@ -66,7 +53,7 @@ public class SettingsPanel : UIMenu, ISettingsView
             sfxSlider.SetValueWithoutNotify(Mathf.Clamp01(value));
     }
     
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
         closeButton.onClick.RemoveAllListeners();
@@ -88,15 +75,17 @@ public class SettingsPanel : UIMenu, ISettingsView
     public void ConfigureForContext(SettingsContext contextToApply)
     {
         context = contextToApply;
-        // Hide/show buttons based on context
+
         if (retryButton != null)
-        {
             retryButton.gameObject.SetActive(contextToApply == SettingsContext.InGame);
-        }
-        
+
         if (menuButton != null)
-        {
             menuButton.gameObject.SetActive(contextToApply == SettingsContext.InGame);
-        }
+    }
+
+    public override void Open()
+    {
+        ConfigureForContext(context);
+        base.Open();
     }
 }

@@ -32,7 +32,7 @@ public class ConfirmationDialog : UIMenu
         noButton.onClick.AddListener(OnNoButtonClicked);
     }
     
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
         yesButton.onClick.RemoveListener(OnYesButtonClicked);

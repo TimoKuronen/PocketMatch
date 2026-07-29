@@ -28,7 +28,7 @@ public class LosePanel : UIMenu, ILoseView
         mainMenuButton.onClick.AddListener(() => MainMenuClicked?.Invoke());
     }
     
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         // Unsubscribe to prevent memory leaks
         restartButton.onClick.RemoveAllListeners();

@@ -88,13 +88,17 @@ public class GameHudPresenter : IStartable, IDisposable
         if (menuStackManager.HasMenuOfType(MenuType.SettingsMenu))
         {
             menuStackManager.PopMenuOfType(MenuType.SettingsMenu);
+            return;
         }
-        else if (menuStackManager.CanOpenMenu())
+
+        if (!menuStackManager.CanOpenMenu())
+            return;
+
+        settingsView.ConfigureForContext(SettingsContext.InGame);
+
+        if (settingsView is IMenu menu)
         {
-            if (settingsView is IMenu menu)
-            {
-                menuStackManager.PushMenu(menu);
-            }
+            menuStackManager.PushMenu(menu);
         }
     }
 

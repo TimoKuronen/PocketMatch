@@ -21,6 +21,12 @@ MonoBehaviour:
     m_SerializedLabels:
     - TileVFX
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa38e8576b04fbd4c9679e73961a4fbd
+    m_Address: Effects/MiniExplosion
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - TileVFX
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 7811e86d7a8c3844b932acf2033f2179, type: 2}
   m_SchemaSet:

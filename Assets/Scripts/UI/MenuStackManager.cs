@@ -121,7 +121,7 @@ public class MenuStackManager : IDisposable
         menuStack.Push(menu);
         menu.Open();
 
-        Debug.Log($"[MenuStackManager] Pushed menu: {menu.MenuType}. Stack size: {menuStack.Count}");
+        //Debug.Log($"[MenuStackManager] Pushed menu: {menu.MenuType}. Stack size: {menuStack.Count}");
         return true;
     }
     
@@ -139,7 +139,7 @@ public class MenuStackManager : IDisposable
         var menu = menuStack.Pop();
         menu.Close();
         
-        Debug.Log($"[MenuStackManager] Popped menu: {menu.MenuType}. Stack size: {menuStack.Count}");
+        //Debug.Log($"[MenuStackManager] Popped menu: {menu.MenuType}. Stack size: {menuStack.Count}");
         return true;
     }
     

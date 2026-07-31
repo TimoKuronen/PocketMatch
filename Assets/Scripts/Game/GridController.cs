@@ -11,6 +11,7 @@ public class GridController : MonoBehaviour, IGridController
 
     [Header("Settings")]
     [SerializeField] private GridControllerSettings settings;
+    [SerializeField] private PowerVfxSettings powerVfxSettings;
     [SerializeField] private RectTransform tileContainer;
 
     private TileData[,] gridData;
@@ -88,7 +89,7 @@ public class GridController : MonoBehaviour, IGridController
 
         await UniTask.WaitUntil(() => GameSignals.IsSessionLoaded, cancellationToken: token);
 
-        Debug.Log("GridController starting with map data: " + gameSessionService.CurrentMapData);
+        //Debug.Log("GridController starting with map data: " + gameSessionService.CurrentMapData);
 
         commandInvoker = new CommandInvoker();
         MatchFinder = new MatchFinder(width, height);
@@ -118,6 +119,7 @@ public class GridController : MonoBehaviour, IGridController
         );
         GridContext.GridController = this;
         GridContext.EffectService = effectService;
+        GridContext.PowerVfxSettings = powerVfxSettings;
 
         boardStateEvaluator = new BoardStateEvaluator(gridData, gridViews, width, height, this);
 

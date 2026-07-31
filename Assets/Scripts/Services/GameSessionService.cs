@@ -64,7 +64,7 @@ public class GameSessionService : IGameSessionService, IDisposable
             int levelNumber = levelIndex + 1;
             IsLevelCapReached = levelNumber >= totalLevels;
             GameSignals.SetActiveLevelIndex(levelIndex);
-            Debug.Log($"[GameSessionService] Level cap reached: {IsLevelCapReached}");
+            //Debug.Log($"[GameSessionService] Level cap reached: {IsLevelCapReached}");
 
             GameSignals.MarkSessionLoaded();
         }

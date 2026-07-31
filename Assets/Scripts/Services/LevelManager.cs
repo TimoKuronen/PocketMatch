@@ -58,7 +58,7 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
 
         MovesRemaining = LocalMapData.VictoryConditions.MoveLimit;
 
-        Debug.Log($"LevelManager {LocalMapData.name} initialized with MoveLimit: {MovesRemaining}");
+        //Debug.Log($"LevelManager {LocalMapData.name} initialized with MoveLimit: {MovesRemaining}");
         VictoryConditions = LocalMapData.VictoryConditions;
 
         // Wait for grid controller to be initialized before subscribing to events

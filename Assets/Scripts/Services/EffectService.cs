@@ -12,6 +12,7 @@ public class EffectService : IEffectService, IStartable, IDisposable
 {
     private readonly Dictionary<string, ObjectPool<GameObject>> pools = new();
     private readonly Dictionary<string, AsyncOperationHandle<GameObject>> handles = new();
+    private readonly Dictionary<string, Vector3> baseScales = new();
     private Transform canvas;
     private const int DefaultSize = 10;
 
@@ -29,7 +30,6 @@ public class EffectService : IEffectService, IStartable, IDisposable
 
     private async UniTask PreloadByLabelAsync(string label)
     {
-        // First get all locations with this label
         var locationsHandle = Addressables.LoadResourceLocationsAsync(label, typeof(GameObject));
         await locationsHandle.Task;
 
@@ -41,7 +41,6 @@ public class EffectService : IEffectService, IStartable, IDisposable
         }
 
         var tasks = new List<UniTask>();
-        // Load each asset by its key
         foreach (var location in locationsHandle.Result)
         {
             var key = location.PrimaryKey;
@@ -72,8 +71,16 @@ public class EffectService : IEffectService, IStartable, IDisposable
     {
         if (pools.ContainsKey(key)) return;
 
+        Vector3 prefabScale = prefab.transform.localScale;
+        baseScales[key] = prefabScale;
+
         var pool = new ObjectPool<GameObject>(
-            createFunc: () => UnityEngine.Object.Instantiate(prefab, canvas),
+            createFunc: () =>
+            {
+                var instance = UnityEngine.Object.Instantiate(prefab, canvas);
+                instance.transform.localScale = prefabScale;
+                return instance;
+            },
             actionOnGet: obj => obj.SetActive(true),
             actionOnRelease: obj => obj.SetActive(false),
             actionOnDestroy: UnityEngine.Object.Destroy,
@@ -97,7 +104,7 @@ public class EffectService : IEffectService, IStartable, IDisposable
             pool.Release(obj);
     }
 
-    public void PlayEffect(string effectKey, Vector3 position, Quaternion rotation = default)
+    public void PlayEffect(string effectKey, Vector3 position, Quaternion rotation = default, float scale = 1f)
     {
         if (!pools.TryGetValue(effectKey, out var pool))
         {
@@ -107,6 +114,11 @@ public class EffectService : IEffectService, IStartable, IDisposable
 
         var instance = pool.Get();
         instance.transform.SetPositionAndRotation(position, rotation);
+
+        Vector3 baseScale = baseScales.TryGetValue(effectKey, out var stored)
+            ? stored
+            : Vector3.one;
+        instance.transform.localScale = baseScale * scale;
 
         ReturnToPoolAsync(instance, pool, GetEffectDuration(instance)).Forget();
     }
@@ -135,5 +147,6 @@ public class EffectService : IEffectService, IStartable, IDisposable
 
         pools.Clear();
         handles.Clear();
+        baseScales.Clear();
     }
 }

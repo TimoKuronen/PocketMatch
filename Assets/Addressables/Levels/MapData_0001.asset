@@ -55,7 +55,7 @@ MonoBehaviour:
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1
-  - tilePower: 3
+  - tilePower: 0
     isDestroyable: 0
     isBlocked: 0
     hitPoints: 1

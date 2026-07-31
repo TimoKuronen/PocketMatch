@@ -12,13 +12,6 @@ public class RainbowTile : ITilePowerBehavior
 
     public void Apply(Vector2Int origin, GridContext context, TileType matchedWithTile)
     {
-        // Spawn rainbow activation effect at the rainbow tile position
-        if (context.EffectService != null)
-        {
-            Vector3 worldPos = context.GetWorldPosition(origin);
-            context.EffectService.PlayEffect(EffectKeys.RainbowActivation, worldPos);
-        }
-
         TileType targetType;
 
         if (matchedWithTile == TileType.None)
@@ -41,10 +34,9 @@ public class RainbowTile : ITilePowerBehavior
             }
         }
 
-        toDestroy.Add(origin); // Also destroy the rainbow tile itself
+        toDestroy.Add(origin);
 
-        context.CommandInvoker.AddCommand(
-            new DestroyCommand(toDestroy, context.Views, context.Data, context.Pool, context.OnDestroy, context, isFromPowerTile: true, context.OnDestroyBatch));
+        context.EnqueueStaggeredDestroy(toDestroy, origin, lineAxis: null);
     }
 
     private TileType GetMostCommonType(TileData[,] data, int width, int height)

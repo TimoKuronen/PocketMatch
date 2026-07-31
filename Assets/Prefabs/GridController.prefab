@@ -47,6 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   settings: {fileID: 11400000, guid: 23fddc01ffb5cb74590bbbdf02e2cfc3, type: 2}
+  powerVfxSettings: {fileID: 11400000, guid: 5bd35385d47f4b23b566b43e220fc1de, type: 2}
   tileContainer: {fileID: 0}
 --- !u!114 &7581541996355293963
 MonoBehaviour:

@@ -1,30 +1,10 @@
 /// <summary>
-/// Centralized constants for Addressable effect keys.
-/// These must match the addresses assigned in the Addressables Groups window.
+/// Addressable keys for tile VFX. Must match addresses in the Tile Effects Addressables group.
 /// </summary>
 public static class EffectKeys
 {
-    // Tile Power Effects
-    public const string RainbowActivation = "Effects/RainbowActivation";
     public const string BombExplosion = "Effects/BombExplosion";
-    public const string LineClearHorizontal = "Effects/LineClearHorizontal";
-    public const string LineClearVertical = "Effects/LineClearVertical";
-    
-    // General Effects
-    public const string TileDestroy = "Effects/TileDestroy";
-    public const string TileMatch = "Effects/TileMatch";
+    public const string MiniExplosion = "Effects/MiniExplosion";
 
-    // Label for bulk preloading
     public const string EffectsLabel = "TileVFX";
-
-    // Array of all effect keys for easy preloading
-    public static readonly string[] AllEffects = new[]
-    {
-        RainbowActivation,
-        BombExplosion,
-        LineClearHorizontal,
-        LineClearVertical,
-        TileDestroy,
-        TileMatch
-    };
 }

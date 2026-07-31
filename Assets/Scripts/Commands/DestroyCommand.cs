@@ -79,7 +79,7 @@ public class DestroyCommand : ICommand
         if (positionsToVisuallyDestroy.Count > 0)
             onDestroyBatch?.Invoke();
 
-        // --- Phase 2: play shrink animation for visuals and spawn effects ---
+        // --- Phase 2: play shrink animation for visuals ---
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];
@@ -87,14 +87,6 @@ public class DestroyCommand : ICommand
             {
                 view.transform.DOKill();
                 view.transform.DOScale(Vector3.zero, destroyDuration).SetEase(Ease.InBack);
-
-                // Spawn destroy effect for regular matches (not power tiles, as they have their own effects)
-                // For future implementation, no effects now
-                //if (context != null && context.EffectService != null && !isFromPowerTile)
-                //{
-                //    Vector3 worldPos = context.GetWorldPosition(pos);
-                //    context.EffectService.PlayEffect(EffectKeys.TileDestroy, worldPos);
-                //}
             }
         }
 

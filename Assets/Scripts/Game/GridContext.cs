@@ -17,6 +17,7 @@ public class GridContext
     public Action<TileData> OnSpecialTileTriggered;
     public IGridController GridController { get; set; }
     public IEffectService EffectService { get; set; }
+    public PowerVfxSettings PowerVfxSettings { get; set; }
 
     #endregion
 
@@ -92,7 +93,7 @@ public class GridContext
         TriggerPower(data, matchedWithTile);
     }
 
-    public void DamageTiles(IEnumerable<Vector2Int> positions, int damage, bool isFromPowerTile = false)
+    public List<Vector2Int> ResolveDamageTargets(IEnumerable<Vector2Int> positions, int damage)
     {
         var toDestroy = new List<Vector2Int>();
 
@@ -119,11 +120,61 @@ public class GridContext
             }
         }
 
+        return toDestroy;
+    }
+
+    public void DamageTiles(IEnumerable<Vector2Int> positions, int damage, bool isFromPowerTile = false)
+    {
+        var toDestroy = ResolveDamageTargets(positions, damage);
+
         if (toDestroy.Count > 0)
         {
             CommandInvoker.AddCommand(
                 new DestroyCommand(toDestroy, Views, Data, Pool, OnDestroy, this, isFromPowerTile, OnDestroyBatch));
         }
+    }
+
+    public void EnqueueStaggeredDestroy(
+        IReadOnlyList<Vector2Int> targets,
+        Vector2Int origin,
+        StaggerOrderUtility.LineAxis? lineAxis)
+    {
+        if (targets == null || targets.Count == 0)
+            return;
+
+        var uniqueTargets = new List<Vector2Int>();
+        var seen = new HashSet<Vector2Int>();
+        foreach (var pos in targets)
+        {
+            if (seen.Add(pos))
+                uniqueTargets.Add(pos);
+        }
+
+        List<List<Vector2Int>> waves = lineAxis.HasValue
+            ? StaggerOrderUtility.BuildLineWaves(uniqueTargets, origin, lineAxis.Value)
+            : StaggerOrderUtility.BuildRainbowWaves(uniqueTargets, origin);
+
+        if (waves.Count == 0)
+            return;
+
+        float spread = PowerVfxSettings != null ? PowerVfxSettings.spreadDuration : 0.5f;
+        float destroy = PowerVfxSettings != null ? PowerVfxSettings.destroyDuration : 0.4f;
+        float jitterMin = PowerVfxSettings != null ? PowerVfxSettings.scaleJitterMin : 0.85f;
+        float jitterMax = PowerVfxSettings != null ? PowerVfxSettings.scaleJitterMax : 1f;
+
+        CommandInvoker.AddCommand(
+            new StaggeredDestroyCommand(
+                waves,
+                Views,
+                Data,
+                Pool,
+                OnDestroy,
+                this,
+                spread,
+                destroy,
+                jitterMin,
+                jitterMax,
+                OnDestroyBatch));
     }
 
     public Vector3 GetWorldPosition(Vector2Int gridPos)

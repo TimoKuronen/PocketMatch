@@ -91,12 +91,13 @@ build/
 *.aar
 *.jar
 
-# Markdown: keep local notes, scratch guides, and session writeups out of Git.
-# Root README and docs/ project documentation are tracked.
-*.md
-*.md.meta
-!/README.md
-!/docs/**/*.md
+# Root markdown: README only. Local notes live in .cursor/ (gitignored).
+/.cursor/
+
+# Public project docs are tracked normally under docs/
+
+# Prevent personal learning manual from reappearing under Assets
+Assets/_Project/Documentation/
 
 /Assets/TextMesh Pro/Fonts/*
 !/Assets/TextMesh Pro/Fonts/.gitkeep

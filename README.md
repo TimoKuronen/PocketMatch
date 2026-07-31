@@ -28,6 +28,8 @@ Assets/
 Packages/            UPM manifest
 ProjectSettings/     Unity project settings
 .github/workflows/   Android CI build
+docs/                Tracked project documentation (analytics, architecture, etc.)
+.cursor/             Local agent plan and learning manual (not in git)
 ```
 
 Unity-generated folders such as `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `GeneratedAssets/`, and `ProfilerCaptures/` are gitignored.
@@ -52,7 +54,7 @@ Open the project in Unity Hub with the pinned editor version, then enter Play Mo
 
 **Is:** a Unity mobile Match-3 client with production-style service wiring (local and cloud save, ads mediation, analytics).
 
-**Is not:** a shipped live-ops product. In-app purchases, remote config, and a full meta progression loop are not implemented yet. Local scratch notes under `Assets/` are gitignored; project documentation lives in `docs/` and the root README.
+**Is not:** a shipped live-ops product. In-app purchases, remote config, and a full meta progression loop are not implemented yet. Tracked documentation lives in `docs/` and this README; local agent notes live in `.cursor/` (gitignored).
 
 ## Build / CI
 

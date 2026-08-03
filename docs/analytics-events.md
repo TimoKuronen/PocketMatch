@@ -60,10 +60,6 @@ When Firebase becomes ready, `AnalyticsService` flushes the queue.
 
 ---
 
-## Debug verification (Android)
+## Related docs
 
-1. Enable Firebase Analytics DebugView for package `com.TimoKuronen.PocketMatch`.
-2. Cold start the app and confirm `app_started` and `session_started`.
-3. Complete one level and confirm `level_started`, `level_completed`, and `coins_earned`.
-4. Tap Next Level (Loader interstitial gate) and confirm `ad_watched` or `ad_skipped`.
-5. On app quit, confirm `session_ended` in DebugView or Logcat if the bootstrap scope is disposed cleanly.
+- [Architecture](architecture.md)

@@ -1,10 +1,63 @@
 # PocketMatch
 
-Mobile Match-3 prototype built in **Unity 6**, focused on production-style architecture for a free-to-play client: dependency injection, async boot flow, local + cloud save, ads mediation, and analytics.
+Mobile Match-3 prototype built in **Unity 6** to demonstrate live mobile F2P client engineering: async board commands, VContainer service boundaries, Addressables content, Firebase analytics and cloud save, and LevelPlay ad mediation.
 
-> Display name in player settings is currently `RuneMatch`. The repository and Android application id use `PocketMatch`.
+> Display name in Player Settings is currently `RuneMatch`. The repository and Android application id use `PocketMatch`.
 
-## Stack
+[![Unity 6000.3.14f1](https://img.shields.io/badge/Unity-6000.3.14f1-black.svg)](ProjectSettings/ProjectVersion.txt)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+<p align="center">
+  <img src="docs/images/gameplay-board.png" alt="PocketMatch gameplay board" width="280" />
+</p>
+
+<p align="center">
+  <img src="docs/images/main-menu.png" alt="Main menu" width="180" />
+  <img src="docs/images/level-complete.png" alt="Level complete" width="180" />
+  <img src="docs/images/settings-or-select.png" alt="Level select" width="180" />
+</p>
+
+## Highlights
+
+- Async command-queued board resolution (swap, destroy, gravity, power tiles)
+- Deadlock detection with shuffle-until-playable
+- VContainer scopes for bootstrap, menu, and gameplay lifetimes
+- Addressables level loading and pooled VFX
+- Firebase Analytics with a local offline event queue
+- Encrypted local save plus Firestore cloud sync
+- Unity LevelPlay banner and interstitial mediation
+- Android CI build workflow via GitHub Actions
+
+## Architecture overview
+
+```text
+BootstrapLifetimeScope (DontDestroyOnLoad)
+  Save / Analytics / Ads / Audio / Input / Firebase bootstrap
+        |
+        v
+Loader -> MainMenu (MenuLifetimeScope)
+        |
+        v
+Loader (optional interstitial gate) -> PlayScene (GameLifetimeScope)
+```
+
+Board mutations serialize through `CommandInvoker` and `ICommand` implementations. Live-service hooks enter at bootstrap (analytics/session), level events (start/complete/fail), and Loader transitions (interstitials).
+
+Details: [docs/architecture.md](docs/architecture.md)
+
+## Implemented
+
+- Match-3 core loop, power tiles, level objectives, win/lose flow
+- Level select and basic meta (coins, next unlocked level)
+- Local + cloud save path, analytics event dictionary, banner + interstitial ads
+- Edit Mode tests for potential moves and shuffle
+
+## Not implemented
+
+- In-app purchases, remote config, rewarded ads, Crashlytics
+- Full meta progression loop, large level catalog, iOS target
+
+## Tech stack
 
 | Area | Choice |
 |------|--------|
@@ -14,52 +67,35 @@ Mobile Match-3 prototype built in **Unity 6**, focused on production-style archi
 | Content | Addressables (levels, VFX) |
 | Auth / cloud save | Firebase Anonymous Auth + Firestore |
 | Ads | Unity LevelPlay (IronSource mediation) |
-| Analytics | Firebase Analytics (with local offline queue) |
+| Analytics | Firebase Analytics (offline queue) |
 
-## Project layout (first-party)
+## Getting started
 
-```text
-Assets/
-  _Project/          Scenes and ScriptableObject configs
-  Scripts/           Gameplay, DI, services, UI, save, ads, analytics
-  Prefabs/           Bootstrap and gameplay prefabs
-  Addressables/      Level data and related content
-  StreamingAssets/   Platform config (e.g. google-services.json)
-Packages/            UPM manifest
-ProjectSettings/     Unity project settings
-.github/workflows/   Android CI build
-docs/                Tracked project documentation (analytics, architecture, etc.)
-.cursor/             Local agent plan and learning manual (not in git)
-```
+1. Clone the repository
+2. Open in Unity Hub with editor `6000.3.14f1`
+3. Press Play — editor bootstrap starts from the Loader flow
 
-Unity-generated folders such as `Library/`, `Temp/`, `Logs/`, `UserSettings/`, `GeneratedAssets/`, and `ProfilerCaptures/` are gitignored.
+Gameplay and local save work without Firebase or LevelPlay. Optional SDK configuration files belong in `Assets/StreamingAssets/` and are excluded from version control.
 
-## Scenes
+## Testing
 
-| Build order | Scene | Role |
-|-------------|-------|------|
-| 0 | `Assets/_Project/Scenes/Loader.unity` | Cold-start hub and loading |
-| 1 | `Assets/_Project/Scenes/MainMenu.unity` | Meta / menu |
-| 2 | `Assets/_Project/Scenes/PlayScene.unity` | Match-3 gameplay |
+Edit Mode tests in the Unity Test Runner:
 
-Open the project in Unity Hub with the pinned editor version, then enter Play Mode from the Loader flow (editor bootstrap mirrors device cold start).
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [`docs/analytics-events.md`](docs/analytics-events.md) | Firebase Analytics event names, parameters, and trigger conditions |
-
-## What this repo is (and is not)
-
-**Is:** a Unity mobile Match-3 client with production-style service wiring (local and cloud save, ads mediation, analytics).
-
-**Is not:** a shipped live-ops product. In-app purchases, remote config, and a full meta progression loop are not implemented yet. Tracked documentation lives in `docs/` and this README; local agent notes live in `.cursor/` (gitignored).
+- `PotentialMovesTest`
+- `ShuffleMatchCountTest`
 
 ## Build / CI
 
-Android builds are defined in `.github/workflows/main.yml` (manual or push to `master`). CI expects Unity license secrets configured in the GitHub repo settings. Keep the workflow Unity version in sync with `ProjectSettings/ProjectVersion.txt` when upgrading.
+Android builds are defined in [`.github/workflows/main.yml`](.github/workflows/main.yml) (push to `master` or manual dispatch). CI expects Unity license secrets configured in the GitHub repository settings.
 
-## License / third-party
+## Documentation
 
-Third-party packages and Asset Store plugins remain under their own licenses (DOTween, Firebase, LevelPlay, Cartoon FX, etc.). First-party game code and content in this repository are the author's work unless noted otherwise.
+- [Architecture](docs/architecture.md)
+- [Analytics events](docs/analytics-events.md)
+- [Third-party attribution](docs/third-party.md)
+
+## License
+
+Original first-party code and docs: [MIT](LICENSE).
+
+Third-party packages and Asset Store plugins keep their own licenses — see [docs/third-party.md](docs/third-party.md).

@@ -91,10 +91,10 @@ build/
 *.aar
 *.jar
 
-# Root markdown: README only. Local notes live in .cursor/ (gitignored).
 /.cursor/
 
-# Public project docs are tracked normally under docs/
+/Assets/StreamingAssets/*
+!/Assets/StreamingAssets/.gitkeep
 
 # Prevent personal learning manual from reappearing under Assets
 Assets/_Project/Documentation/

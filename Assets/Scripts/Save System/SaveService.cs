@@ -9,9 +9,12 @@ using VContainer.Unity;
 
 public class SaveService : ISaveService, IStartable, IDisposable
 {
+    private const string ConfigFileName = "save-config.json";
+    private const string EditorFallbackEncryptionKey = "dev-only-pocketmatch-key-0000001";
+
     private readonly string saveFile = Path.Combine(Application.persistentDataPath, "save.dat");
     private readonly string settingsFile = Path.Combine(Application.persistentDataPath, "settings.dat");
-    private readonly string encryptionKey = "kg8hv4j08jiikloijvbjmnhuj8945dxz";
+    private string encryptionKey;
 
     public PlayerData PlayerData { get; private set; }
 
@@ -23,11 +26,26 @@ public class SaveService : ISaveService, IStartable, IDisposable
     public void Construct(IObjectResolver objectResolver)
     {
         this.objectResolver = objectResolver;
+        encryptionKey = ResolveEncryptionKey();
         
         cloud = new CloudSaveService();
 
         Load(); // Load local immediately (never wait for cloud)
         Debug.Log("[SaveService] Local save loaded");
+    }
+
+    private static string ResolveEncryptionKey()
+    {
+        if (LocalJsonConfig.TryLoad(ConfigFileName, out SaveConfig config) &&
+            config != null &&
+            config.IsValid)
+        {
+            return config.encryptionKey.Trim();
+        }
+
+        Debug.LogWarning(
+            "[SaveService] save-config.json missing or invalid. Using a development fallback encryption key.");
+        return EditorFallbackEncryptionKey;
     }
 
     public void Start()

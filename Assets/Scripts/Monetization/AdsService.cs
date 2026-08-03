@@ -9,12 +9,14 @@ using VContainer;
 
 public class AdsService : IAdsService, IDisposable
 {
-    private const string AppKey = "23b074f85";
-    private const string BannerAdId = "dq0x680o73ez3iyt";
-    private const string InterstitialAdId = "adgl52j6cwsc0pge";
-    
+    private const string ConfigFileName = "levelplay-config.json";
     private const string BannerPlacementName = "Banner";
     private const string InterstitialPlacementName = "interstitial";
+
+    private string appKey = string.Empty;
+    private string bannerAdId = string.Empty;
+    private string interstitialAdId = string.Empty;
+    private bool hasValidConfig;
 
     private LevelPlayBannerAd bannerAd;
     private LevelPlayInterstitialAd interstitialAd;
@@ -40,8 +42,25 @@ public class AdsService : IAdsService, IDisposable
     public void Construct(IAnalyticsService analyticsService)
     {
         this.analyticsService = analyticsService;
+        hasValidConfig = TryLoadConfig();
         Debug.Log("[AdsService] Constructed. Starting delayed LevelPlay initialization.");
         DelayedInitAsync().Forget();
+    }
+
+    private bool TryLoadConfig()
+    {
+        if (!LocalJsonConfig.TryLoad(ConfigFileName, out LevelPlayConfig config) || config == null || !config.IsValid)
+        {
+            Debug.LogWarning(
+                "[AdsService] LevelPlay config missing or incomplete. Ads remain disabled until " +
+                "Assets/StreamingAssets/levelplay-config.json is present.");
+            return false;
+        }
+
+        appKey = config.appKey.Trim();
+        bannerAdId = config.bannerAdId.Trim();
+        interstitialAdId = config.interstitialAdId.Trim();
+        return true;
     }
 
     private async UniTaskVoid DelayedInitAsync()
@@ -49,6 +68,12 @@ public class AdsService : IAdsService, IDisposable
         var token = cts.Token;
         // Wait a bit longer to ensure Unity Services are ready
         await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: token);
+
+        if (!hasValidConfig)
+        {
+            Debug.LogWarning("[AdsService] Skipping LevelPlay initialization because local ad config is not present.");
+            return;
+        }
         
         // Check network connectivity before initializing
         if (Application.internetReachability == NetworkReachability.NotReachable)
@@ -62,7 +87,7 @@ public class AdsService : IAdsService, IDisposable
             }
         }
 
-        Debug.Log($"[AdsService] Initializing LevelPlay SDK with AppKey: {AppKey} on platform: {Application.platform}");
+        Debug.Log($"[AdsService] Initializing LevelPlay SDK on platform: {Application.platform}");
         Debug.Log($"[AdsService] Bundle ID: {Application.identifier}");
         Debug.Log($"[AdsService] Internet reachability: {Application.internetReachability}");
         
@@ -74,7 +99,7 @@ public class AdsService : IAdsService, IDisposable
         try
         {
             Debug.Log("[AdsService] Calling LevelPlay.Init...");
-            LevelPlay.Init(AppKey);
+            LevelPlay.Init(appKey);
         }
         catch (Exception e)
         {
@@ -100,14 +125,14 @@ public class AdsService : IAdsService, IDisposable
         Debug.Log($"[AdsService] Scheduling SDK init retry in {delay:0.0}s");
         await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: token);
         
-        if (!IsInitialized && Application.internetReachability != NetworkReachability.NotReachable)
+        if (hasValidConfig && !IsInitialized && Application.internetReachability != NetworkReachability.NotReachable)
         {
             Debug.Log("[AdsService] Retrying SDK initialization...");
             LevelPlay.OnInitSuccess += OnSdkInitSuccess;
             LevelPlay.OnInitFailed += OnSdkInitFailed;
             try
             {
-                LevelPlay.Init(AppKey);
+                LevelPlay.Init(appKey);
             }
             catch (Exception e)
             {
@@ -153,8 +178,8 @@ public class AdsService : IAdsService, IDisposable
         
         try
         {
-            Debug.Log($"[AdsService] Creating interstitial ad with unit ID: {InterstitialAdId}");
-            interstitialAd = new LevelPlayInterstitialAd(InterstitialAdId);
+            Debug.Log("[AdsService] Creating interstitial ad object.");
+            interstitialAd = new LevelPlayInterstitialAd(interstitialAdId);
 
             interstitialAd.OnAdLoaded += OnInterstitialLoaded;
             interstitialAd.OnAdClosed += OnInterstitialClosed;
@@ -180,7 +205,7 @@ public class AdsService : IAdsService, IDisposable
             return;
         }
 
-        Debug.Log($"[AdsService] Requesting interstitial load for unit ID: {InterstitialAdId}");
+        Debug.Log("[AdsService] Requesting interstitial load.");
         interstitialAd.LoadAd();
         InterstitialAdCompleted = false;
         LogAdsState("Interstitial load requested");
@@ -280,7 +305,7 @@ public class AdsService : IAdsService, IDisposable
 
         if (interstitialAd.IsAdReady())
         {
-            Debug.Log($"[AdsService] Showing interstitial with placement name '{InterstitialPlacementName}' and unit ID {InterstitialAdId}");
+            Debug.Log($"[AdsService] Showing interstitial with placement name '{InterstitialPlacementName}'.");
             interstitialAd.ShowAd(InterstitialPlacementName);
         }
         else
@@ -310,7 +335,7 @@ public class AdsService : IAdsService, IDisposable
         }
         
         CleanupBannerAd();
-        Debug.Log($"[AdsService] Creating banner ad with unit ID: {BannerAdId} and placement name '{BannerPlacementName}'");
+        Debug.Log($"[AdsService] Creating banner ad with placement name '{BannerPlacementName}'.");
 
         var configBuilder = new LevelPlayBannerAd.Config.Builder()
             .SetSize(LevelPlayAdSize.BANNER)
@@ -319,7 +344,7 @@ public class AdsService : IAdsService, IDisposable
             .SetRespectSafeArea(false)
             .SetPlacementName(BannerPlacementName);
 
-        bannerAd = new LevelPlayBannerAd(BannerAdId, configBuilder.Build());
+        bannerAd = new LevelPlayBannerAd(bannerAdId, configBuilder.Build());
 
         bannerAd.OnAdLoaded += OnBannerLoaded;
         bannerAd.OnAdLoadFailed += OnBannerLoadFailed;
@@ -357,11 +382,10 @@ public class AdsService : IAdsService, IDisposable
         if (errorString.Contains("626") || errorString.Contains("Invalid ad unit id"))
         {
             Debug.LogError($"[AdsService] CRITICAL: Invalid ad unit ID error (626)!");
-            Debug.LogError($"[AdsService] Placement ID used: {BannerAdId}");
             Debug.LogError($"[AdsService] Bundle ID: {Application.identifier}");
             Debug.LogError($"[AdsService] Platform: {Application.platform}");
             Debug.LogError($"[AdsService] Please verify in LevelPlay dashboard:");
-            Debug.LogError($"[AdsService]   1. Placement '{BannerAdId}' exists and is ACTIVE");
+            Debug.LogError($"[AdsService]   1. Banner unit from {ConfigFileName} exists and is ACTIVE");
             Debug.LogError($"[AdsService]   2. Placement is configured for BANNER ad type (not interstitial)");
             Debug.LogError($"[AdsService]   3. Placement is linked to app with bundle ID: {Application.identifier}");
             Debug.LogError($"[AdsService]   4. Placement is enabled for ANDROID platform");
@@ -444,7 +468,7 @@ public class AdsService : IAdsService, IDisposable
             Debug.Log("[AdsService] Banner not ready yet. Loading banner instead of showing.");
             if (bannerAd != null)
             {
-                Debug.Log($"[AdsService] Calling LoadAd() on banner with unit ID: {BannerAdId}");
+                Debug.Log("[AdsService] Calling LoadAd() on banner.");
                 bannerAd.LoadAd();
             }
             else
@@ -461,7 +485,7 @@ public class AdsService : IAdsService, IDisposable
         await UniTask.Delay(TimeSpan.FromSeconds(delay), cancellationToken: token);
         if (bannerAd != null && IsInitialized && !isBannerLoaded)
         {
-            Debug.Log($"[AdsService] Retrying banner load for unit ID: {BannerAdId}");
+            Debug.Log("[AdsService] Retrying banner load.");
             bannerAd.LoadAd();
         }
     }
@@ -527,10 +551,10 @@ public class AdsService : IAdsService, IDisposable
             $"Initialized={IsInitialized}, " +
             $"Internet={Application.internetReachability}, " +
             $"BundleId={Application.identifier}, " +
-            $"BannerUnit={BannerAdId}, " +
+            $"HasBannerConfig={!string.IsNullOrEmpty(bannerAdId)}, " +
             $"BannerLoaded={isBannerLoaded}, " +
             $"HasBanner={bannerAd != null}, " +
-            $"InterstitialUnit={InterstitialAdId}, " +
+            $"HasInterstitialConfig={!string.IsNullOrEmpty(interstitialAdId)}, " +
             $"InterstitialReady={InterstitialAdReady}, " +
             $"InterstitialCompleted={InterstitialAdCompleted}, " +
             $"HasInterstitial={interstitialAd != null}");

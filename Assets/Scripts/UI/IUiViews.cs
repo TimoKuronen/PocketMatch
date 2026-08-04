@@ -38,6 +38,7 @@ public interface ISettingsView
 
     void ConfigureForContext(SettingsContext context);
     void SetSfxVolume(float value);
+    void SetVersion(string versionText);
 }
 
 public interface IWinView

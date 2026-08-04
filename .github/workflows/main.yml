@@ -55,6 +55,8 @@ jobs:
           unityLicense: ${{ secrets.UNITY_LICENSE }}
           androidExportType: androidPackage
           allowDirtyBuild: true
+          versioning: None
+          androidVersionCode: ${{ github.run_number }}
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4

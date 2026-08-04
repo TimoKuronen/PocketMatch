@@ -25,7 +25,7 @@ public class SettingsPresenter : IStartable, IDisposable
     public void Start()
     {
         if (settingsMenu != null)
-            settingsMenu.OnMenuOpened += SyncSfxVolumeToView;
+            settingsMenu.OnMenuOpened += OnSettingsOpened;
 
         view.CloseClicked += OnCloseClicked;
         view.RetryClicked += OnRetryClicked;
@@ -33,9 +33,10 @@ public class SettingsPresenter : IStartable, IDisposable
         view.SfxVolumeChanged += OnSfxVolumeChanged;
     }
 
-    private void SyncSfxVolumeToView()
+    private void OnSettingsOpened()
     {
         view.SetSfxVolume(audioService.SfxVolume);
+        view.SetVersion(BuildInfo.FormatVersionLabel());
     }
 
     private void OnCloseClicked()
@@ -80,7 +81,7 @@ public class SettingsPresenter : IStartable, IDisposable
     public void Dispose()
     {
         if (settingsMenu != null)
-            settingsMenu.OnMenuOpened -= SyncSfxVolumeToView;
+            settingsMenu.OnMenuOpened -= OnSettingsOpened;
 
         view.CloseClicked -= OnCloseClicked;
         view.RetryClicked -= OnRetryClicked;

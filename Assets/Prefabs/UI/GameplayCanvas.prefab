@@ -2628,7 +2628,7 @@ GameObject:
   - component: {fileID: 661038947036685099}
   - component: {fileID: 5698018774649320206}
   m_Layer: 5
-  m_Name: SettingsPanel
+  m_Name: PauseSettingsPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2721,17 +2721,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 6000678252502804017}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b346314837f356a41ba25bbdff6f273f, type: 3}
+  m_Script: {fileID: 11500000, guid: 0e80f5c8e61045d1a5cd5cbae6c6af61, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SettingsPanel
+  m_EditorClassIdentifier: Assembly-CSharp::PauseSettingsPanel
   menuPanel: {fileID: 6000678252502804017}
-  menuType: 0
-  context: 1
+  menuType: 3
   retryButton: {fileID: 7267522945908729769}
   menuButton: {fileID: 1431469850340095077}
   closeButton: {fileID: 5860282357753348916}
   sfxSlider: {fileID: 2705186462287857879}
-  confirmationDialog: {fileID: 4681369563184402879}
   versionText: {fileID: 8812345678901234564}
 --- !u!1 &6051978452464154588
 GameObject:

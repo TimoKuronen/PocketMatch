@@ -11,7 +11,7 @@ public class GameHudPresenter : IStartable, IDisposable
     private readonly MenuStackManager menuStackManager;
     private readonly IWinView winView;
     private readonly ILoseView loseView;
-    private readonly ISettingsView settingsView;
+    private readonly IPauseSettingsView settingsView;
 
     public GameHudPresenter(
         IGameHudView view,
@@ -22,7 +22,7 @@ public class GameHudPresenter : IStartable, IDisposable
         MenuStackManager menuStackManager,
         IWinView winView,
         ILoseView loseView,
-        ISettingsView settingsView)
+        IPauseSettingsView settingsView)
     {
         this.view = view;
         this.levelManager = levelManager;
@@ -85,16 +85,14 @@ public class GameHudPresenter : IStartable, IDisposable
 
     private void OnSettingsClicked()
     {
-        if (menuStackManager.HasMenuOfType(MenuType.SettingsMenu))
+        if (menuStackManager.HasMenuOfType(MenuType.PauseMenu))
         {
-            menuStackManager.PopMenuOfType(MenuType.SettingsMenu);
+            menuStackManager.PopMenuOfType(MenuType.PauseMenu);
             return;
         }
 
         if (!menuStackManager.CanOpenMenu())
             return;
-
-        settingsView.ConfigureForContext(SettingsContext.InGame);
 
         if (settingsView is IMenu menu)
         {

@@ -11,14 +11,14 @@ public class MenuLifetimeScope : LifetimeScope
         
         builder.RegisterComponentInHierarchy<MainMenuPanel>()
                .As<IMainMenuView>();
-        builder.RegisterComponentInHierarchy<SettingsPanel>()
-               .As<ISettingsView>();
+        builder.RegisterComponentInHierarchy<MainMenuSettingsPanel>()
+               .As<IMainMenuSettingsView>();
         builder.RegisterComponentInHierarchy<ConfirmationDialog>();
         builder.RegisterComponentInHierarchy<LevelSelectPanel>()
                .As<ILevelSelectView>();
 
         builder.Register<MainMenuPresenter>(Lifetime.Scoped).As<IStartable>();
-        builder.Register<SettingsPresenter>(Lifetime.Scoped).As<IStartable>();
+        builder.Register<MainMenuSettingsPresenter>(Lifetime.Scoped).As<IStartable>();
         builder.Register<LevelSelectPresenter>(Lifetime.Scoped).As<IStartable>();
     }
 }

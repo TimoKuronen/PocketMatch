@@ -13,8 +13,8 @@ public class GameLifetimeScope : LifetimeScope
 
         builder.RegisterComponentInHierarchy<UIGameHUD>()
                .As<IGameHudView>();
-        builder.RegisterComponentInHierarchy<SettingsPanel>()
-               .As<ISettingsView>();
+        builder.RegisterComponentInHierarchy<PauseSettingsPanel>()
+               .As<IPauseSettingsView>();
         builder.RegisterComponentInHierarchy<WinPanel>()
                .As<IWinView>();
         builder.RegisterComponentInHierarchy<LosePanel>()
@@ -25,7 +25,7 @@ public class GameLifetimeScope : LifetimeScope
         builder.RegisterComponentInHierarchy<GridAudioPlayer>();
         
         builder.Register<GameHudPresenter>(Lifetime.Scoped).As<IStartable>();
-        builder.Register<SettingsPresenter>(Lifetime.Scoped).As<IStartable>();
+        builder.Register<PauseSettingsPresenter>(Lifetime.Scoped).As<IStartable>();
         builder.Register<WinPresenter>(Lifetime.Scoped).As<IStartable>();
         builder.Register<LosePresenter>(Lifetime.Scoped).As<IStartable>();
 

@@ -647,7 +647,7 @@ GameObject:
   - component: {fileID: 1252980388702796769}
   - component: {fileID: 4051858905453307668}
   m_Layer: 5
-  m_Name: SettingsPanel
+  m_Name: MainMenuSettingsPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -738,17 +738,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 7870955330580896895}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b346314837f356a41ba25bbdff6f273f, type: 3}
+  m_Script: {fileID: 11500000, guid: aded0afc12ae4ab693d25522b4918927, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SettingsPanel
+  m_EditorClassIdentifier: Assembly-CSharp::MainMenuSettingsPanel
   menuPanel: {fileID: 7870955330580896895}
   menuType: 0
-  context: 0
-  retryButton: {fileID: 0}
-  menuButton: {fileID: 0}
   closeButton: {fileID: 3485624768759845311}
   sfxSlider: {fileID: 8800138689518938639}
-  confirmationDialog: {fileID: 0}
   versionText: {fileID: 5128471930482719387}
 --- !u!1 &7945577476986751059
 GameObject:

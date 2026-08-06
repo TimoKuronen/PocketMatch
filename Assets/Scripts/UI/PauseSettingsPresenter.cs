@@ -1,16 +1,16 @@
 using System;
 using VContainer.Unity;
 
-public class SettingsPresenter : IStartable, IDisposable
+public class PauseSettingsPresenter : IStartable, IDisposable
 {
-    private readonly ISettingsView view;
+    private readonly IPauseSettingsView view;
     private readonly IMenu settingsMenu;
     private readonly MenuStackManager menuStackManager;
     private readonly IAudioService audioService;
     private readonly ConfirmationDialog confirmationDialog;
 
-    public SettingsPresenter(
-        ISettingsView view,
+    public PauseSettingsPresenter(
+        IPauseSettingsView view,
         MenuStackManager menuStackManager,
         IAudioService audioService,
         ConfirmationDialog confirmationDialog)

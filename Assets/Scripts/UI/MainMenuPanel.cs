@@ -12,7 +12,6 @@ public class MainMenuPanel : UIMenu, IMainMenuView
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button resetSaveButton;
     [SerializeField] private Toggle debugLoggingToggle;
-    [SerializeField] private SettingsPanel settingsPanel;
     [SerializeField] private ConfirmationDialog confirmationDialog;
     
     private MenuStackManager menuStackManager;

@@ -1,11 +1,5 @@
 using System;
 
-public enum SettingsContext
-{
-    MainMenu,
-    InGame
-}
-
 public interface IMainMenuView
 {
     event Action PlayClicked;
@@ -29,14 +23,22 @@ public interface IGameHudView
     void HideVictoryConditions();
 }
 
-public interface ISettingsView
+public interface IMainMenuSettingsView
+{
+    event Action CloseClicked;
+    event Action<float> SfxVolumeChanged;
+
+    void SetSfxVolume(float value);
+    void SetVersion(string versionText);
+}
+
+public interface IPauseSettingsView
 {
     event Action CloseClicked;
     event Action RetryClicked;
     event Action MenuClicked;
     event Action<float> SfxVolumeChanged;
 
-    void ConfigureForContext(SettingsContext context);
     void SetSfxVolume(float value);
     void SetVersion(string versionText);
 }
@@ -64,4 +66,3 @@ public interface ILevelSelectView
 
     void BindLevels(int totalLevels, int unlockedThroughIndex, int highlightedIndex);
 }
-

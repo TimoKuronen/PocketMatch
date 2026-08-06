@@ -10,7 +10,7 @@ public class MainMenuPresenter : IStartable, IDisposable
     private readonly IAdsService adsService;
     private readonly MenuStackManager menuStackManager;
     private readonly ILevelSelectView levelSelectView;
-    private readonly ISettingsView settingsView;
+    private readonly IMainMenuSettingsView settingsView;
 
     public MainMenuPresenter(
         IMainMenuView view,
@@ -18,7 +18,7 @@ public class MainMenuPresenter : IStartable, IDisposable
         IAdsService adsService,
         MenuStackManager menuStackManager,
         ILevelSelectView levelSelectView,
-        ISettingsView settingsView)
+        IMainMenuSettingsView settingsView)
     {
         this.view = view;
         this.saveService = saveService;
@@ -89,7 +89,6 @@ public class MainMenuPresenter : IStartable, IDisposable
             return;
         }
 
-        settingsView.ConfigureForContext(SettingsContext.MainMenu);
         menuStackManager.PushMenu(settingsMenu);
     }
 

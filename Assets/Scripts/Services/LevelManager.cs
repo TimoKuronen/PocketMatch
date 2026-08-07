@@ -5,7 +5,7 @@ using VContainer;
 using VContainer.Unity;
 using Cysharp.Threading.Tasks;
 
-public class LevelManager : ILevelManager, IDisposable, IStartable
+public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStartable
 {
     public int MovesRemaining { get; private set; }
     public bool IsLevelEnded { get; private set; }
@@ -20,17 +20,20 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
     private IGameSessionService gameSessionService;
     private IGridController gridController;
     private ILevelEarningsService levelEarningsService;
+    private IDebugToolsService debugToolsService;
     private readonly CancellationTokenSource cts = new();
 
     [Inject]
     public void Construct(
         IGameSessionService gameSessionService,
         IGridController gridController,
-        ILevelEarningsService levelEarningsService)
+        ILevelEarningsService levelEarningsService,
+        IDebugToolsService debugToolsService)
     {
         this.gameSessionService = gameSessionService;
         this.gridController = gridController;
         this.levelEarningsService = levelEarningsService;
+        this.debugToolsService = debugToolsService;
     }
 
     public void Start()
@@ -91,8 +94,7 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
         gridController.TileDestroyed += OnTileDestroyed;
         gridController.GridContext.OnDestroy += OnTileDestroyed;
 
-        UIGameHUD.OnCheatButtonClicked += ToggleWinEvent;
-        UIGameHUD.OnCheatFailClicked += ToggleLoseEvent;
+        debugToolsService?.RegisterLevelTarget(this);
     }
 
     private void OnTileDestroyed(TileData data)
@@ -172,6 +174,16 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
         OnLevelContinued?.Invoke();
     }
 
+    public void ForceWin()
+    {
+        ToggleWinEvent();
+    }
+
+    public void ForceLose()
+    {
+        ToggleLoseEvent();
+    }
+
     private void ToggleWinEvent()
     {
         if (IsLevelEnded)
@@ -220,8 +232,7 @@ public class LevelManager : ILevelManager, IDisposable, IStartable
             gridController.GridContext.OnDestroy -= OnTileDestroyed;
         }
 
-        UIGameHUD.OnCheatButtonClicked -= ToggleWinEvent;
-        UIGameHUD.OnCheatFailClicked -= ToggleLoseEvent;
+        debugToolsService?.UnregisterLevelTarget(this);
 
         if (!cts.IsCancellationRequested)
             cts.Cancel();

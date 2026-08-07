@@ -65,6 +65,13 @@ public class EconomyService : IEconomyService, IStartable, IDisposable
         OnBalanceChanged?.Invoke(saveService.PlayerData.coins);
     }
 
+    public void SetBalance(int balance)
+    {
+        saveService.PlayerData.coins = Mathf.Max(0, balance);
+        saveService.Save();
+        OnBalanceChanged?.Invoke(saveService.PlayerData.coins);
+    }
+
     public void Dispose()
     {
         LevelEvents.OnLevelCompleted -= OnLevelCompleted;

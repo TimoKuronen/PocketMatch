@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class BoardShaker : MonoBehaviour
 {
@@ -32,13 +31,6 @@ public class BoardShaker : MonoBehaviour
 
     private void Update()
     {
-        // Debug trigger
-        if (Keyboard.current.sKey.wasPressedThisFrame)
-        {
-            Debug.Log("Requesting board shake (debug)");
-            RequestShake(new BoardShakeData { Intensity = 20f, Duration = 0.25f });
-        }
-
         boardRoot.anchoredPosition = originalAnchoredPos;
 
         // Apply shake offset

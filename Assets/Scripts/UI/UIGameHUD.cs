@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
@@ -20,16 +19,11 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
     [SerializeField] private TextMeshProUGUI coinCountText;
     [SerializeField] private TextMeshProUGUI currentLevelText;
     [SerializeField] private Button settingsButton;
-    [SerializeField] private Button cheatWinButton;
 
     private readonly List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
     private readonly StringBuilder sb = new StringBuilder(32);
 
-    public static event Action OnCheatButtonClicked;
-    public static event Action OnCheatFailClicked;
-
     public event Action SettingsClicked;
-    public event Action CheatWinClicked;
 
     #endregion
 
@@ -38,19 +32,6 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
     public void Start()
     {
         settingsButton.onClick.AddListener(() => SettingsClicked?.Invoke());
-        cheatWinButton.onClick.AddListener(() =>
-        {
-            CheatWinClicked?.Invoke();
-            OnCheatButtonClicked?.Invoke();
-        });
-    }
-
-    private void Update()
-    {
-#if UNITY_EDITOR
-        if (Keyboard.current != null && Keyboard.current.lKey.wasPressedThisFrame)
-            OnCheatFailClicked?.Invoke();
-#endif
     }
 
     #endregion
@@ -150,7 +131,6 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
     public void Dispose()
     {
         settingsButton.onClick.RemoveAllListeners();
-        cheatWinButton.onClick.RemoveAllListeners();
     }
 
     #endregion

@@ -4,7 +4,6 @@ public interface IMainMenuView
 {
     event Action PlayClicked;
     event Action SettingsClicked;
-    event Action ResetSaveClicked;
 
     void SetCoinCount(int coins);
     void SetVersion(string versionText);
@@ -13,7 +12,6 @@ public interface IMainMenuView
 public interface IGameHudView
 {
     event Action SettingsClicked;
-    event Action CheatWinClicked;
 
     void SetMoves(int moves);
     void SetWalletBalance(int balance);

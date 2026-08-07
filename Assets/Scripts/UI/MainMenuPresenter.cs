@@ -6,7 +6,6 @@ using VContainer.Unity;
 public class MainMenuPresenter : IStartable, IDisposable
 {
     private readonly IMainMenuView view;
-    private readonly ISaveService saveService;
     private readonly IEconomyService economyService;
     private readonly IAdsService adsService;
     private readonly MenuStackManager menuStackManager;
@@ -15,7 +14,6 @@ public class MainMenuPresenter : IStartable, IDisposable
 
     public MainMenuPresenter(
         IMainMenuView view,
-        ISaveService saveService,
         IEconomyService economyService,
         IAdsService adsService,
         MenuStackManager menuStackManager,
@@ -23,7 +21,6 @@ public class MainMenuPresenter : IStartable, IDisposable
         IMainMenuSettingsView settingsView)
     {
         this.view = view;
-        this.saveService = saveService;
         this.economyService = economyService;
         this.adsService = adsService;
         this.menuStackManager = menuStackManager;
@@ -35,7 +32,6 @@ public class MainMenuPresenter : IStartable, IDisposable
     {
         view.PlayClicked += OnPlayClicked;
         view.SettingsClicked += OnSettingsClicked;
-        view.ResetSaveClicked += OnResetSaveClicked;
         economyService.OnBalanceChanged += OnBalanceChanged;
 
         InitializeView();
@@ -99,17 +95,10 @@ public class MainMenuPresenter : IStartable, IDisposable
         view.SetCoinCount(balance);
     }
 
-    private void OnResetSaveClicked()
-    {
-        saveService.ResetToDefaults();
-        view.SetCoinCount(economyService.Balance);
-    }
-
     public void Dispose()
     {
         view.PlayClicked -= OnPlayClicked;
         view.SettingsClicked -= OnSettingsClicked;
-        view.ResetSaveClicked -= OnResetSaveClicked;
         economyService.OnBalanceChanged -= OnBalanceChanged;
     }
 }

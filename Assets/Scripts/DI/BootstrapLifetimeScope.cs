@@ -18,6 +18,13 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.Register<IAdsService, AdsService>(Lifetime.Singleton);
         builder.Register<FirebaseInitializer>(Lifetime.Singleton);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        builder.Register<IDebugToolsService, DebugToolsService>(Lifetime.Singleton).
+            As<IStartable>();
+        builder.RegisterComponentInHierarchy<DebugToolsBootstrap>();
+#else
+        builder.Register<IDebugToolsService, NullDebugToolsService>(Lifetime.Singleton);
+#endif
         builder.RegisterComponentInHierarchy<CloudSaveBootstrap>();
     }
 

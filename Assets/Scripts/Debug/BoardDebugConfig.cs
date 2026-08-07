@@ -2,8 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Global toggle for board debug logging, backed by PlayerPrefs.
-/// Lives in runtime so the main menu toggle can read/write it.
-/// Editor-only logging code subscribes via BoardDebugHooks.
+/// Editor logging code subscribes via BoardDebugHooks.
 /// </summary>
 public static class BoardDebugConfig
 {

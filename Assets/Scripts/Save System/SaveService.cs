@@ -268,7 +268,6 @@ public class SaveService : ISaveService, IStartable, IDisposable
             Debug.Log($"[SaveService] Replay win on level {e.CompletedLevelIndex + 1}. Progress unchanged.");
         }
 
-        PlayerData.coins += e.TotalScore;
         Save();
     }
 

@@ -6,7 +6,8 @@ public class WinPresenter : IStartable, IDisposable
     private readonly IWinView view;
     private readonly MenuStackManager menuStackManager;
     private readonly IAdsService adsService;
-    private readonly IScoreService scoreService;
+    private readonly ILevelEarningsService levelEarningsService;
+    private readonly ILevelManager levelManager;
     private readonly IGameSessionService gameSessionService;
     private readonly ISaveService saveService;
     private readonly ConfirmationDialog confirmationDialog;
@@ -15,7 +16,8 @@ public class WinPresenter : IStartable, IDisposable
         IWinView view,
         MenuStackManager menuStackManager,
         IAdsService adsService,
-        IScoreService scoreService,
+        ILevelEarningsService levelEarningsService,
+        ILevelManager levelManager,
         IGameSessionService gameSessionService,
         ISaveService saveService,
         ConfirmationDialog confirmationDialog)
@@ -23,7 +25,8 @@ public class WinPresenter : IStartable, IDisposable
         this.view = view;
         this.menuStackManager = menuStackManager;
         this.adsService = adsService;
-        this.scoreService = scoreService;
+        this.levelEarningsService = levelEarningsService;
+        this.levelManager = levelManager;
         this.gameSessionService = gameSessionService;
         this.saveService = saveService;
         this.confirmationDialog = confirmationDialog;
@@ -33,13 +36,13 @@ public class WinPresenter : IStartable, IDisposable
     {
         view.NextLevelClicked += OnNextLevelClicked;
         view.MainMenuClicked += OnMainMenuClicked;
-
-        InitializeView();
+        levelManager.OnLevelWon += OnLevelWon;
     }
 
-    private void InitializeView()
+    private void OnLevelWon()
     {
-        view.SetCoinCount(scoreService.GetTotalScore());
+        var earnings = levelEarningsService.GetLevelEarnings(levelManager.MovesRemaining).Total;
+        view.SetEarnedCoins(earnings);
         view.SetNextLevelButtonVisible(!gameSessionService.IsLevelCapReached);
     }
 
@@ -67,5 +70,6 @@ public class WinPresenter : IStartable, IDisposable
     {
         view.NextLevelClicked -= OnNextLevelClicked;
         view.MainMenuClicked -= OnMainMenuClicked;
+        levelManager.OnLevelWon -= OnLevelWon;
     }
 }

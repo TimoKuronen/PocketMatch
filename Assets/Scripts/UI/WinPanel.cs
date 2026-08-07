@@ -43,9 +43,9 @@ public class WinPanel : UIMenu, IWinView
         base.Open();
     }
 
-    public void SetCoinCount(int coins)
+    public void SetEarnedCoins(int coins)
     {
-        coinCountText.text = $"x {coins}";
+        coinCountText.text = $"+{coins} coins earned";
     }
 
     public void SetNextLevelButtonVisible(bool isVisible)

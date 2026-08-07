@@ -49,13 +49,14 @@ Details: [docs/architecture.md](docs/architecture.md)
 
 - Match-3 core loop, power tiles, level objectives, win/lose flow
 - Level select and basic meta (coins, next unlocked level)
+- Coin economy: earn on win, spend to continue after fail (+3 moves for 300 coins, once per attempt)
 - Local + cloud save path, analytics event dictionary, banner + interstitial ads
 - Edit Mode tests for potential moves and shuffle
 
 ## Not implemented
 
-- In-app purchases, remote config, rewarded ads, Crashlytics
-- Full meta progression loop, large level catalog, iOS target
+- Rewarded ad continue, in-app purchases, remote config, Crashlytics
+- Star ratings per level, booster shop, full meta progression loop, large level catalog, iOS target
 
 ## Tech stack
 

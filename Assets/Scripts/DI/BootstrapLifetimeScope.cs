@@ -7,6 +7,8 @@ public class BootstrapLifetimeScope : LifetimeScope
     {
         builder.Register<ISaveService, SaveService>(Lifetime.Singleton).
             As<IStartable>();
+        builder.Register<IEconomyService, EconomyService>(Lifetime.Singleton).
+            As<IStartable>();
         builder.Register<IAnalyticsService, AnalyticsService>(Lifetime.Singleton).
             As<IStartable>();
         builder.Register<IInputService, InputService>(Lifetime.Singleton).

@@ -13,7 +13,7 @@ public static class AnalyticsEvents
 
     // Economy
     public const string CoinsEarned = "coins_earned";
-    // Reserved until a coin sink exists (retry fee or booster shop).
+    // Fired when EconomyService.TrySpendCoins succeeds (retry fee, booster shop, etc.).
     public const string CoinsSpent = "coins_spent";
 
     // Monetization

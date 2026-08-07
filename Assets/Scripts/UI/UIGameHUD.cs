@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
@@ -25,6 +26,7 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
     private readonly StringBuilder sb = new StringBuilder(32);
 
     public static event Action OnCheatButtonClicked;
+    public static event Action OnCheatFailClicked;
 
     public event Action SettingsClicked;
     public event Action CheatWinClicked;
@@ -43,6 +45,14 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
         });
     }
 
+    private void Update()
+    {
+#if UNITY_EDITOR
+        if (Keyboard.current != null && Keyboard.current.lKey.wasPressedThisFrame)
+            OnCheatFailClicked?.Invoke();
+#endif
+    }
+
     #endregion
 
     #region Public Methods
@@ -52,9 +62,15 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
         UpdateMovesText(moves);
     }
 
-    public void SetCoinCount(int coins)
+    public void SetWalletBalance(int balance)
     {
-        UpdateCoinCountText(coins);
+        if (coinCountText == null)
+            return;
+
+        sb.Clear();
+        sb.Append("x ");
+        sb.Append(balance);
+        coinCountText.text = sb.ToString();
     }
 
     public void SetLevelIndex(int levelIndex)
@@ -116,8 +132,18 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
     {
         HideAllVictoryConditions();
         if (movesText != null)
-        {
             movesText.gameObject.SetActive(false);
+    }
+
+    public void ShowVictoryConditions()
+    {
+        if (movesText != null)
+            movesText.gameObject.SetActive(true);
+
+        foreach (var item in victoryConditions)
+        {
+            if (item != null)
+                item.gameObject.SetActive(true);
         }
     }
 
@@ -155,14 +181,6 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
         sb.Append("Moves: ");
         sb.Append(moves);
         movesText.text = sb.ToString();
-    }
-
-    private void UpdateCoinCountText(int coins)
-    {
-        sb.Clear();
-        sb.Append("x ");
-        sb.Append(coins);
-        coinCountText.text = sb.ToString();
     }
 
     private void HideAllVictoryConditions()

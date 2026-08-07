@@ -2,39 +2,27 @@ using System;
 using VContainer;
 using VContainer.Unity;
 
-public class ScoreService : IScoreService, IStartable, IDisposable
+public class LevelEarningsService : ILevelEarningsService, IStartable, IDisposable
 {
-    private EventScoring eventScoring;
+    private readonly EventScoring eventScoring = new EventScoring();
     private int collectedScore;
-    private int movesRemaining;
-    private int initialMoveLimit;
     private IGridController gridController;
 
     [Inject]
     public void Construct(IGridController gridController)
     {
         this.gridController = gridController;
-        eventScoring = new EventScoring();
     }
 
     public void Start()
     {
         gridController.PowerTileCreated += OnPowerTileCreated;
-        gridController.ActionTaken += OnActionTaken;
         LevelEvents.OnLevelStarted += OnLevelStarted;
     }
 
     private void OnLevelStarted(object sender, LevelStartedEventArgs e)
     {
-        // Reset score tracking for new level
         collectedScore = 0;
-        initialMoveLimit = e.MoveLimit;
-        movesRemaining = e.MoveLimit;
-    }
-
-    private void OnActionTaken()
-    {
-        movesRemaining--;
     }
 
     private void OnPowerTileCreated(TileData tilePowerType)
@@ -45,8 +33,6 @@ public class ScoreService : IScoreService, IStartable, IDisposable
                 collectedScore += eventScoring.pointsForBomb;
                 break;
             case TilePower.RowClearer:
-                collectedScore += eventScoring.pointsForLineDestroyer;
-                break;
             case TilePower.ColumnClearer:
                 collectedScore += eventScoring.pointsForLineDestroyer;
                 break;
@@ -56,20 +42,17 @@ public class ScoreService : IScoreService, IStartable, IDisposable
         }
     }
 
-    public int GetTotalScore()
+    public LevelEarningsResult GetLevelEarnings(int movesRemaining)
     {
-        // Calculate bonus for unused moves
-        int bonusScore = movesRemaining * eventScoring.pointsPerUnusedMovement;
-        return collectedScore + bonusScore;
+        int bonus = Math.Max(0, movesRemaining) * eventScoring.pointsPerUnusedMovement;
+        return new LevelEarningsResult(collectedScore, bonus);
     }
 
     public void Dispose()
     {
         if (gridController != null)
-        {
             gridController.PowerTileCreated -= OnPowerTileCreated;
-            gridController.ActionTaken -= OnActionTaken;
-        }
+
         LevelEvents.OnLevelStarted -= OnLevelStarted;
     }
 }

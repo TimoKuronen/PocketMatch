@@ -16,11 +16,12 @@ public interface IGameHudView
     event Action CheatWinClicked;
 
     void SetMoves(int moves);
-    void SetCoinCount(int coins);
+    void SetWalletBalance(int balance);
     void SetLevelIndex(int levelIndex);
     void InitializeVictoryConditions(VictoryConditions victoryConditions);
     void UpdateVictoryConditions(VictoryConditions victoryConditions, int movesRemaining);
     void HideVictoryConditions();
+    void ShowVictoryConditions();
 }
 
 public interface IMainMenuSettingsView
@@ -48,7 +49,7 @@ public interface IWinView
     event Action NextLevelClicked;
     event Action MainMenuClicked;
 
-    void SetCoinCount(int coins);
+    void SetEarnedCoins(int coins);
     void SetNextLevelButtonVisible(bool isVisible);
 }
 
@@ -56,6 +57,13 @@ public interface ILoseView
 {
     event Action RestartClicked;
     event Action MainMenuClicked;
+    event Action ContinueWithCoinsClicked;
+    event Action ContinueWithAdClicked;
+    event Action Opened;
+
+    void SetWalletBalance(int balance);
+    void SetContinueWithCoinsAvailable(bool isAvailable);
+    void SetContinueWithAdAvailable(bool isAvailable);
 }
 
 public interface ILevelSelectView

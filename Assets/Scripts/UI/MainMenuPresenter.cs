@@ -7,6 +7,7 @@ public class MainMenuPresenter : IStartable, IDisposable
 {
     private readonly IMainMenuView view;
     private readonly ISaveService saveService;
+    private readonly IEconomyService economyService;
     private readonly IAdsService adsService;
     private readonly MenuStackManager menuStackManager;
     private readonly ILevelSelectView levelSelectView;
@@ -15,6 +16,7 @@ public class MainMenuPresenter : IStartable, IDisposable
     public MainMenuPresenter(
         IMainMenuView view,
         ISaveService saveService,
+        IEconomyService economyService,
         IAdsService adsService,
         MenuStackManager menuStackManager,
         ILevelSelectView levelSelectView,
@@ -22,6 +24,7 @@ public class MainMenuPresenter : IStartable, IDisposable
     {
         this.view = view;
         this.saveService = saveService;
+        this.economyService = economyService;
         this.adsService = adsService;
         this.menuStackManager = menuStackManager;
         this.levelSelectView = levelSelectView;
@@ -33,6 +36,7 @@ public class MainMenuPresenter : IStartable, IDisposable
         view.PlayClicked += OnPlayClicked;
         view.SettingsClicked += OnSettingsClicked;
         view.ResetSaveClicked += OnResetSaveClicked;
+        economyService.OnBalanceChanged += OnBalanceChanged;
 
         InitializeView();
         ShowBannerWhenReadyAsync().Forget();
@@ -40,9 +44,7 @@ public class MainMenuPresenter : IStartable, IDisposable
 
     private void InitializeView()
     {
-        var playerData = saveService.PlayerData;
-
-        view.SetCoinCount(playerData.coins);
+        view.SetCoinCount(economyService.Balance);
         view.SetVersion($"v{UnityEngine.Application.version}");
     }
 
@@ -92,10 +94,15 @@ public class MainMenuPresenter : IStartable, IDisposable
         menuStackManager.PushMenu(settingsMenu);
     }
 
+    private void OnBalanceChanged(int balance)
+    {
+        view.SetCoinCount(balance);
+    }
+
     private void OnResetSaveClicked()
     {
         saveService.ResetToDefaults();
-        view.SetCoinCount(saveService.PlayerData.coins);
+        view.SetCoinCount(economyService.Balance);
     }
 
     public void Dispose()
@@ -103,5 +110,6 @@ public class MainMenuPresenter : IStartable, IDisposable
         view.PlayClicked -= OnPlayClicked;
         view.SettingsClicked -= OnSettingsClicked;
         view.ResetSaveClicked -= OnResetSaveClicked;
+        economyService.OnBalanceChanged -= OnBalanceChanged;
     }
 }

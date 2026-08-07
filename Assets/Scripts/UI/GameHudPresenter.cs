@@ -6,7 +6,7 @@ public class GameHudPresenter : IStartable, IDisposable
     private readonly IGameHudView view;
     private readonly ILevelManager levelManager;
     private readonly IGameSessionService gameSessionService;
-    private readonly IScoreService scoreService;
+    private readonly IEconomyService economyService;
     private readonly ISaveService saveService;
     private readonly MenuStackManager menuStackManager;
     private readonly IWinView winView;
@@ -17,7 +17,7 @@ public class GameHudPresenter : IStartable, IDisposable
         IGameHudView view,
         ILevelManager levelManager,
         IGameSessionService gameSessionService,
-        IScoreService scoreService,
+        IEconomyService economyService,
         ISaveService saveService,
         MenuStackManager menuStackManager,
         IWinView winView,
@@ -27,7 +27,7 @@ public class GameHudPresenter : IStartable, IDisposable
         this.view = view;
         this.levelManager = levelManager;
         this.gameSessionService = gameSessionService;
-        this.scoreService = scoreService;
+        this.economyService = economyService;
         this.saveService = saveService;
         this.menuStackManager = menuStackManager;
         this.winView = winView;
@@ -38,12 +38,15 @@ public class GameHudPresenter : IStartable, IDisposable
     public void Start()
     {
         view.SettingsClicked += OnSettingsClicked;
-
         GameSignals.OnSessionLoaded += InitializeAfterSessionLoaded;
-
         levelManager.OnVictoryConditionsUpdated += HandleVictoryConditionUpdate;
+        levelManager.OnLevelContinued += OnLevelContinued;
         levelManager.OnLevelWon += OnLevelWon;
         levelManager.OnLevelLost += OnLevelLost;
+        economyService.OnBalanceChanged += OnWalletBalanceChanged;
+
+        if (GameSignals.IsSessionLoaded)
+            InitializeAfterSessionLoaded();
     }
 
     private void InitializeAfterSessionLoaded()
@@ -55,32 +58,42 @@ public class GameHudPresenter : IStartable, IDisposable
 
         view.SetLevelIndex(levelIndex);
         view.InitializeVictoryConditions(mapData.VictoryConditions);
+        view.ShowVictoryConditions();
+        UpdateWalletBalance();
         UpdateMoves();
-        UpdateCoins(scoreService.GetTotalScore());
     }
 
     private void HandleVictoryConditionUpdate()
     {
+        UpdateMoves();
+        view.UpdateVictoryConditions(levelManager.VictoryConditions, levelManager.MovesRemaining);
+    }
+
+    private void OnLevelContinued()
+    {
+        view.ShowVictoryConditions();
+        UpdateMoves();
+        UpdateWalletBalance();
         view.UpdateVictoryConditions(levelManager.VictoryConditions, levelManager.MovesRemaining);
     }
 
     private void OnLevelWon()
     {
-        UpdateCoins(scoreService.GetTotalScore());
         view.HideVictoryConditions();
         if (winView is IMenu menu)
-        {
             menuStackManager.PushMenu(menu);
-        }
     }
 
     private void OnLevelLost()
     {
-        view.HideVictoryConditions();
+        UpdateWalletBalance();
         if (loseView is IMenu menu)
-        {
             menuStackManager.PushMenu(menu);
-        }
+    }
+
+    private void OnWalletBalanceChanged(int balance)
+    {
+        view.SetWalletBalance(balance);
     }
 
     private void OnSettingsClicked()
@@ -95,9 +108,7 @@ public class GameHudPresenter : IStartable, IDisposable
             return;
 
         if (settingsView is IMenu menu)
-        {
             menuStackManager.PushMenu(menu);
-        }
     }
 
     private void UpdateMoves()
@@ -105,18 +116,19 @@ public class GameHudPresenter : IStartable, IDisposable
         view.SetMoves(levelManager.MovesRemaining);
     }
 
-    private void UpdateCoins(int coins)
+    private void UpdateWalletBalance()
     {
-        view.SetCoinCount(coins);
+        view.SetWalletBalance(economyService.Balance);
     }
 
     public void Dispose()
     {
         view.SettingsClicked -= OnSettingsClicked;
-
         GameSignals.OnSessionLoaded -= InitializeAfterSessionLoaded;
         levelManager.OnVictoryConditionsUpdated -= HandleVictoryConditionUpdate;
+        levelManager.OnLevelContinued -= OnLevelContinued;
         levelManager.OnLevelWon -= OnLevelWon;
         levelManager.OnLevelLost -= OnLevelLost;
+        economyService.OnBalanceChanged -= OnWalletBalanceChanged;
     }
 }

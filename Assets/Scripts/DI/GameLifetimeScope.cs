@@ -1,3 +1,4 @@
+using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
@@ -7,7 +8,9 @@ public class GameLifetimeScope : LifetimeScope
     {
         builder.Register<IGameSessionService, GameSessionService>(Lifetime.Scoped);
         builder.Register<ILevelManager, LevelManager>(Lifetime.Scoped).As<IStartable>();
-        builder.Register<IScoreService, ScoreService>(Lifetime.Scoped).As<IStartable>();
+        builder.Register<ILevelEarningsService, LevelEarningsService>(Lifetime.Scoped).As<IStartable>();
+        builder.Register<ILevelContinueService, LevelContinueService>(Lifetime.Scoped);
+        builder.Register<ShopOffer>(resolver => CreateContinueOffer(), Lifetime.Scoped);
         builder.Register<IEffectService, EffectService>(Lifetime.Singleton).As<IStartable>();
         builder.Register<MenuStackManager>(Lifetime.Scoped);
 
@@ -35,5 +38,20 @@ public class GameLifetimeScope : LifetimeScope
             var gridController = container.Resolve<IGridController>();
             menuStackManager.SetGridController(gridController);
         });
+    }
+
+    private static ShopOffer CreateContinueOffer()
+    {
+        var loaded = Resources.Load<ShopOffer>("ShopOffers/ContinueExtraMoves");
+        if (loaded != null)
+            return loaded;
+
+        var offer = ScriptableObject.CreateInstance<ShopOffer>();
+        offer.offerId = "continue_extra_moves";
+        offer.coinCost = 300;
+        offer.rewardType = OfferRewardType.ExtraMoves;
+        offer.rewardAmount = 3;
+        offer.allowedPayments = new[] { OfferPaymentMethod.Coins, OfferPaymentMethod.RewardedAd };
+        return offer;
     }
 }

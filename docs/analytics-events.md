@@ -19,6 +19,7 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sen
 | `level_completed` | `level_name` (string), `moves_spent` (int), `total_score` (int), `match_duration_sec` (int) | Victory conditions met | `AnalyticsService` via `LevelEvents.OnLevelCompleted` |
 | `level_failed` | `level_name` (string), `match_duration_sec` (int) | Move limit reached before objectives are cleared | `AnalyticsService` via `LevelEvents.OnLevelFailed` |
 | `coins_earned` | `amount` (int), `source` (string), `level_name` (string) | Coins granted after a level win (`source` = `level_complete`); not fired when the level cap is reached | `AnalyticsService` via `LevelEvents.OnLevelCompleted` |
+| `coins_spent` | `amount` (int), `reason` (string), `level_index` (int) | Coins spent via `EconomyService.TrySpendCoins` (e.g. lose-menu continue) | `AnalyticsService` via `IEconomyService.OnCoinsSpent` |
 | `ad_watched` | `ad_format` (string), `placement` (string), `result` (string) | Interstitial closed after display (`result` = `completed`), or Editor-simulated show (`editor_simulated`) | `AdsService` |
 | `ad_skipped` | `ad_format` (string), `placement` (string), `reason` (string) | Interstitial could not be shown (`display_failed`, `not_ready`, or `not_initialized`); gameplay continues | `AdsService` |
 | `extra_automated_matches` | `level_name` (string), `moves_spent` (int) | Match cascade cycle count exceeds 2 after a player move | `GridController` |
@@ -29,7 +30,6 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sen
 
 | Event name | Status | Notes |
 |------------|--------|-------|
-| `coins_spent` | Not wired | No coin sink implemented yet |
 | `booster_used` | Not wired | No inventory boosters; match-created power tiles are not logged as boosters |
 | `tile_matched` | Not wired | Per-match volume is too high; use aggregates if needed later |
 | `iap_purchased` | Not wired | In-app purchases are not implemented |
@@ -41,7 +41,7 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sen
 ```text
 session_started
   -> level_started
-  -> level_completed + coins_earned  OR  level_failed
+  -> level_completed + coins_earned  OR  level_failed (+ optional coins_spent on continue)
   -> ad_watched OR ad_skipped        (on next-level load via Loader interstitial gate)
 session_ended
 ```

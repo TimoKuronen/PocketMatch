@@ -15,13 +15,13 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
     private List<CachedEvent> eventQueue = new List<CachedEvent>();
     private bool firebaseReady = false;
     private ISaveService saveService;
-    private IObjectResolver objectResolver;
+    private IEconomyService economyService;
 
     [Inject]
-    public void Construct(ISaveService saveService, IObjectResolver objectResolver)
+    public void Construct(ISaveService saveService, IEconomyService economyService)
     {
         this.saveService = saveService;
-        this.objectResolver = objectResolver;
+        this.economyService = economyService;
         
         LoadCache();
 
@@ -50,6 +50,21 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         LevelEvents.OnLevelStarted += OnLevelStarted;
         LevelEvents.OnLevelCompleted += OnLevelCompleted;
         LevelEvents.OnLevelFailed += OnLevelFailed;
+        economyService.OnCoinsSpent += OnCoinsSpent;
+    }
+
+    private void OnCoinsSpent(CoinsSpentEventArgs e)
+    {
+        int levelIndex = GameSignals.ActiveLevelIndex >= 0
+            ? GameSignals.ActiveLevelIndex + 1
+            : saveService.PlayerData.nextLevelIndex + 1;
+
+        LogEvent(AnalyticsEvents.CoinsSpent, new Dictionary<string, object>
+        {
+            { "amount", e.Amount },
+            { "reason", e.Reason },
+            { "level_index", levelIndex }
+        });
     }
 
     public void LogEvent(string eventName, Dictionary<string, object> parameters = null)
@@ -205,6 +220,7 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         LevelEvents.OnLevelStarted -= OnLevelStarted;
         LevelEvents.OnLevelCompleted -= OnLevelCompleted;
         LevelEvents.OnLevelFailed -= OnLevelFailed;
+        economyService.OnCoinsSpent -= OnCoinsSpent;
         SaveCache();
     }
 }

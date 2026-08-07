@@ -42,7 +42,7 @@ public class GameLifetimeScope : LifetimeScope
 
     private static ShopOffer CreateContinueOffer()
     {
-        var loaded = Resources.Load<ShopOffer>("ShopOffers/ContinueExtraMoves");
+        var loaded = Resources.Load<ShopOffer>("ContinueExtraMoves");
         if (loaded != null)
             return loaded;
 

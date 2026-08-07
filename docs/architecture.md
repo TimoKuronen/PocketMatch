@@ -41,9 +41,9 @@ flowchart LR
 
 | Scope | Lifetime | Responsibilities |
 |-------|----------|------------------|
-| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, analytics, input, audio, ads, Firebase bootstrap, cloud-save bootstrap |
+| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, economy, analytics, input, audio, ads, Firebase bootstrap, cloud-save bootstrap |
 | `MenuLifetimeScope` | Main menu scene | Menu presenters and views |
-| `GameLifetimeScope` | Play scene | Session, score, HUD, grid presenters, board wiring |
+| `GameLifetimeScope` | Play scene | Session, level earnings, continue, HUD, grid presenters, board wiring |
 
 Services register through VContainer with constructor / method injection.
 
@@ -52,6 +52,9 @@ Services register through VContainer with constructor / method injection.
 | Service | Responsibility |
 |---------|----------------|
 | `SaveService` | Encrypted local save (`save.dat`), progression updates, cloud upload trigger |
+| `EconomyService` | Wallet ledger (`PlayerData.coins`), spend/add, save trigger, balance events |
+| `LevelEarningsService` | Per-attempt earnings from gameplay (power tiles, unused-move bonus) |
+| `LevelContinueService` | Lose-menu continue gate (once per attempt); applies `ShopOffer` rewards |
 | `CloudSaveService` | Anonymous Firebase Auth + Firestore document sync |
 | `AnalyticsService` | Firebase Analytics with local offline queue (`analytics_cache.json`) |
 | `AdsService` | LevelPlay banner + interstitial mediation |
@@ -85,6 +88,31 @@ Editor builds simulate interstitial completion. Device builds initialize LevelPl
 - Boot loads local save immediately; cloud sync runs when Firebase is available
 - If a cloud document exists on init, it replaces local data (no merge UI)
 - Offline play, local save, and analytics queuing continue when network or Firebase is unavailable
+- `PlayerData.coins` is the wallet field; all mutations go through `EconomyService` and sync with the full save blob
+
+## Economy (current)
+
+```text
+LevelEarningsService (game-scoped, ephemeral)
+  -> computes attempt earnings on win
+  -> LevelEvents.OnLevelCompleted
+EconomyService (bootstrap singleton)
+  -> AddCoins on win / TrySpendCoins on purchases
+  -> SaveService.Save() (local + cloud when online)
+LevelContinueService (game-scoped)
+  -> TryContinueWithCoins via ShopOffer asset
+  -> LevelManager.GrantExtraMoves (resume without scene reload)
+```
+
+| Data | Location |
+|------|----------|
+| Wallet | `PlayerData.coins` (cloud-synced) |
+| Continue offer | `Assets/_Project/Scriptables/Resources/ContinueExtraMoves.asset` (loaded via `Resources.Load("ContinueExtraMoves")`) |
+| Attempt earnings | `LevelEarningsService` only; not persisted until win |
+
+Win UI shows coins earned this level; HUD and lose panel show wallet balance (`x N`). Objectives and moves stay visible on fail so the player can judge whether continue is worthwhile.
+
+Continue is once per attempt (coin or ad, not both). Rewarded-ad continue is planned; the ad button is present but disabled.
 
 ## Live-service hooks
 
@@ -92,6 +120,9 @@ Editor builds simulate interstitial completion. Device builds initialize LevelPl
 |------|-------------|
 | Session analytics | `FirebaseInitializer` / `AnalyticsService` during bootstrap |
 | Level start / complete / fail | `LevelEvents` → `AnalyticsService` |
+| Coins earned | `LevelEvents.OnLevelCompleted` → `EconomyService.AddCoins` → `coins_earned` |
+| Coins spent | `EconomyService.TrySpendCoins` → `OnCoinsSpent` → `coins_spent` |
+| Lose continue | `LosePresenter` → `LevelContinueService` → `EconomyService` + `LevelManager.GrantExtraMoves` |
 | Interstitial gate | `Loader.ShowInterstitialThenContinue` / win path continue |
 | Banner | Gameplay HUD / ads service show-hide around interstitials |
 | Cloud save | `CloudSaveBootstrap` after bootstrap; upload on local save when online |

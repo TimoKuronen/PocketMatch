@@ -12,17 +12,24 @@ using VContainer.Unity;
 public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
 {
     private const string CacheFile = "analytics_cache.json";
+
+    #region Fields
+
     private List<CachedEvent> eventQueue = new List<CachedEvent>();
     private bool firebaseReady = false;
     private ISaveService saveService;
     private IEconomyService economyService;
+
+    #endregion
+
+    #region Lifecycle
 
     [Inject]
     public void Construct(ISaveService saveService, IEconomyService economyService)
     {
         this.saveService = saveService;
         this.economyService = economyService;
-        
+
         LoadCache();
 
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
@@ -46,26 +53,24 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
 
     public void Start()
     {
-        // Subscribe to level events
         LevelEvents.OnLevelStarted += OnLevelStarted;
         LevelEvents.OnLevelCompleted += OnLevelCompleted;
         LevelEvents.OnLevelFailed += OnLevelFailed;
         economyService.OnCoinsSpent += OnCoinsSpent;
     }
 
-    private void OnCoinsSpent(CoinsSpentEventArgs e)
+    public void Dispose()
     {
-        int levelIndex = GameSignals.ActiveLevelIndex >= 0
-            ? GameSignals.ActiveLevelIndex + 1
-            : saveService.PlayerData.nextLevelIndex + 1;
-
-        LogEvent(AnalyticsEvents.CoinsSpent, new Dictionary<string, object>
-        {
-            { "amount", e.Amount },
-            { "reason", e.Reason },
-            { "level_index", levelIndex }
-        });
+        LevelEvents.OnLevelStarted -= OnLevelStarted;
+        LevelEvents.OnLevelCompleted -= OnLevelCompleted;
+        LevelEvents.OnLevelFailed -= OnLevelFailed;
+        economyService.OnCoinsSpent -= OnCoinsSpent;
+        SaveCache();
     }
+
+    #endregion
+
+    #region Public API
 
     public void LogEvent(string eventName, Dictionary<string, object> parameters = null)
     {
@@ -84,6 +89,72 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
             TrySendEvent(newEvent);
         }
     }
+
+    #endregion
+
+    #region Event Handlers
+
+    private void OnCoinsSpent(CoinsSpentEventArgs e)
+    {
+        int levelIndex = GameSignals.ActiveLevelIndex >= 0
+            ? GameSignals.ActiveLevelIndex + 1
+            : saveService.PlayerData.nextLevelIndex + 1;
+
+        LogEvent(AnalyticsEvents.CoinsSpent, new Dictionary<string, object>
+        {
+            { "amount", e.Amount },
+            { "reason", e.Reason },
+            { "level_index", levelIndex }
+        });
+    }
+
+    private void OnLevelStarted(object sender, LevelStartedEventArgs e)
+    {
+        int levelIndex = GameSignals.ActiveLevelIndex >= 0
+            ? GameSignals.ActiveLevelIndex + 1
+            : saveService.PlayerData.nextLevelIndex + 1;
+
+        LogEvent(AnalyticsEvents.LevelStarted, new Dictionary<string, object>
+        {
+            { "level_name", e.LevelName },
+            { "level_index", levelIndex }
+        });
+    }
+
+    private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
+    {
+        LogEvent(AnalyticsEvents.LevelCompleted, new Dictionary<string, object>
+        {
+            { "level_name", e.LevelName },
+            { "moves_spent", e.MovesSpent },
+            { "total_score", e.TotalScore },
+            { "match_duration_sec", e.GameTimeInSeconds }
+        });
+
+        // Mirrors SaveService coin grant on level_complete wins.
+        if (!e.IsLevelCapReached && e.TotalScore > 0)
+        {
+            LogEvent(AnalyticsEvents.CoinsEarned, new Dictionary<string, object>
+            {
+                { "amount", e.TotalScore },
+                { "source", "level_complete" },
+                { "level_name", e.LevelName }
+            });
+        }
+    }
+
+    private void OnLevelFailed(object sender, LevelFailedEventArgs e)
+    {
+        LogEvent(AnalyticsEvents.LevelFailed, new Dictionary<string, object>
+        {
+            { "level_name", e.LevelName },
+            { "match_duration_sec", e.GameTimeInSeconds }
+        });
+    }
+
+    #endregion
+
+    #region Queue & Cache
 
     private void TrySendEvent(CachedEvent cachedEvent)
     {
@@ -171,58 +242,7 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         SaveCache();
     }
 
-    private void OnLevelStarted(object sender, LevelStartedEventArgs e)
-    {
-        int levelIndex = GameSignals.ActiveLevelIndex >= 0
-            ? GameSignals.ActiveLevelIndex + 1
-            : saveService.PlayerData.nextLevelIndex + 1;
-
-        LogEvent(AnalyticsEvents.LevelStarted, new Dictionary<string, object>
-        {
-            { "level_name", e.LevelName },
-            { "level_index", levelIndex }
-        });
-    }
-
-    private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
-    {
-        LogEvent(AnalyticsEvents.LevelCompleted, new Dictionary<string, object>
-        {
-            { "level_name", e.LevelName },
-            { "moves_spent", e.MovesSpent },
-            { "total_score", e.TotalScore },
-            { "match_duration_sec", e.GameTimeInSeconds }
-        });
-
-        // Mirrors SaveService coin grant on level_complete wins.
-        if (!e.IsLevelCapReached && e.TotalScore > 0)
-        {
-            LogEvent(AnalyticsEvents.CoinsEarned, new Dictionary<string, object>
-            {
-                { "amount", e.TotalScore },
-                { "source", "level_complete" },
-                { "level_name", e.LevelName }
-            });
-        }
-    }
-
-    private void OnLevelFailed(object sender, LevelFailedEventArgs e)
-    {
-        LogEvent(AnalyticsEvents.LevelFailed, new Dictionary<string, object>
-        {
-            { "level_name", e.LevelName },
-            { "match_duration_sec", e.GameTimeInSeconds }
-        });
-    }
-
-    public void Dispose()
-    {
-        LevelEvents.OnLevelStarted -= OnLevelStarted;
-        LevelEvents.OnLevelCompleted -= OnLevelCompleted;
-        LevelEvents.OnLevelFailed -= OnLevelFailed;
-        economyService.OnCoinsSpent -= OnCoinsSpent;
-        SaveCache();
-    }
+    #endregion
 }
 
 [Serializable]

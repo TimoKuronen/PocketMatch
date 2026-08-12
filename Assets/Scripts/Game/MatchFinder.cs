@@ -17,7 +17,7 @@ public class MatchFinder
 
     #endregion
 
-    #region Constructor
+    #region Lifecycle
 
     public MatchFinder(int width, int height)
     {
@@ -27,7 +27,7 @@ public class MatchFinder
 
     #endregion
 
-    #region Public Methods
+    #region Public API
 
     public List<List<Vector2Int>> GetMatchGroups(TileData[,] grid)
     {
@@ -148,7 +148,7 @@ public class MatchFinder
 
     #endregion
 
-    #region Private Methods
+    #region Private Helpers
 
     private List<List<Vector2Int>> MergeIntersectingGroups(List<MatchGroup> groups)
     {

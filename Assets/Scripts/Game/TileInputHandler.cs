@@ -19,7 +19,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     #endregion
 
-    #region Unity Lifecycle
+    #region Lifecycle
 
     void OnEnable()
     {
@@ -29,7 +29,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     #endregion
 
-    #region Public Methods
+    #region Public API
 
     public void Construct(IGridController gridController)
     {
@@ -91,7 +91,7 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 
     #endregion
 
-    #region Private Methods
+    #region Private Helpers
 
     private void CheckDoubleTap()
     {

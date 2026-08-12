@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
+/// <summary>
+/// Destroys matched tiles: collect chain powers, animate shrink, clear grid data, then trigger powers.
+/// </summary>
 public class DestroyCommand : ICommand
 {
     private readonly List<Vector2Int> matchPositions;
@@ -44,7 +47,6 @@ public class DestroyCommand : ICommand
         var powerWorldPositions = new Dictionary<TileData, Vector3>();
         var positionsToVisuallyDestroy = new HashSet<Vector2Int>();
 
-        // --- Phase 1: collect any power tiles that will trigger after destruction ---
         foreach (var pos in matchPositions)
         {
             var data = gridData[pos.x, pos.y];
@@ -79,7 +81,6 @@ public class DestroyCommand : ICommand
         if (positionsToVisuallyDestroy.Count > 0)
             onDestroyBatch?.Invoke();
 
-        // --- Phase 2: play shrink animation for visuals ---
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];
@@ -92,7 +93,6 @@ public class DestroyCommand : ICommand
 
         await UniTask.Delay(TimeSpan.FromSeconds(destroyDuration));
 
-        // --- Phase 3: actually destroy tiles and update data ---
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];
@@ -128,7 +128,6 @@ public class DestroyCommand : ICommand
             }
         }
 
-        // --- Phase 4: trigger powers if any were destroyed ---
         if (context != null && powersToTrigger.Count > 0)
         {
             foreach (var tile in powersToTrigger)

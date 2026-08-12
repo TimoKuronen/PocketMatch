@@ -10,13 +10,10 @@ public class MenuStackManager : IDisposable
 {
     private Stack<IMenu> menuStack = new Stack<IMenu>();
     private IGridController gridController;
-    
+
     public bool HasOpenMenus => menuStack.Count > 0;
     public IMenu TopMenu => menuStack.Count > 0 ? menuStack.Peek() : null;
-    
-    /// <summary>
-    /// Check if a menu of the specified type is currently on the stack
-    /// </summary>
+
     public bool HasMenuOfType(MenuType menuType)
     {
         foreach (var menu in menuStack)
@@ -26,72 +23,65 @@ public class MenuStackManager : IDisposable
         }
         return false;
     }
-    
+
     /// <summary>
-    /// Pop menus until the specified menu type is removed (if it exists)
-    /// Closes all menus popped in the process, including the target menu
+    /// Removes the target menu from the stack, closing every menu above it and reopening menus below.
     /// </summary>
     public bool PopMenuOfType(MenuType menuType)
     {
         if (!HasMenuOfType(menuType))
             return false;
-        
-        // Pop menus until we find and remove the target menu
-        // Close everything we pop, including menus above the target
+
         var menusToRestore = new Stack<IMenu>();
         bool found = false;
-        
+
         while (menuStack.Count > 0)
         {
             var menu = menuStack.Pop();
             menu.Close();
-            
+
             if (menu.MenuType == menuType)
             {
                 found = true;
-                break; // Stop here, don't restore menus above settings
+                break; // Do not restore menus that were above the target.
             }
-            
+
             menusToRestore.Push(menu);
         }
-        
-        // Restore menus that were below the target (they were closed, so reopen them)
+
+        // Menus below the target were closed during the pop walk; put them back on the stack opened.
         while (menusToRestore.Count > 0)
         {
             var menu = menusToRestore.Pop();
             menuStack.Push(menu);
             menu.Open();
         }
-        
+
         return found;
     }
-    
+
     [Inject]
     public void Construct() { }
-    
+
     /// <summary>
-    /// Set grid controller reference (called from GameLifetimeScope)
+    /// Supplies the play-scene grid so <see cref="CanOpenMenu"/> can block UI during tile processing.
     /// </summary>
     public void SetGridController(IGridController gridController)
     {
         this.gridController = gridController;
     }
-    
+
     /// <summary>
-    /// Check if a menu can be opened (not during match processing)
+    /// Returns false while the board is resolving matches; main-menu scenes allow menus when no grid is bound.
     /// </summary>
     public bool CanOpenMenu()
     {
-        // If no grid controller (main menu scene), always allow opening menus
         if (gridController == null)
             return true;
-            
+
         return !gridController.IsProcessingTiles;
     }
-    
-    /// <summary>
-    /// Push a menu onto the stack and open it
-    /// </summary>
+
     public bool PushMenu(IMenu menu)
     {
         if (menu == null)
@@ -99,35 +89,30 @@ public class MenuStackManager : IDisposable
             Debug.LogWarning("[MenuStackManager] Attempted to push null menu");
             return false;
         }
-        
+
         if (!CanOpenMenu())
         {
             Debug.LogWarning("[MenuStackManager] Cannot open menu - matches are being processed");
             return false;
         }
-        
+
         if (!menu.CanOpen())
         {
             Debug.LogWarning($"[MenuStackManager] Menu {menu.MenuType} cannot be opened");
             return false;
         }
-        
-        // Ensure menu GameObject is enabled before opening (Awake needs to run)
+
+        // Inactive menu objects must be enabled so Awake runs before Open.
         if (menu is MonoBehaviour menuBehaviour && !menuBehaviour.gameObject.activeSelf)
         {
             menuBehaviour.gameObject.SetActive(true);
         }
-        
+
         menuStack.Push(menu);
         menu.Open();
-
-        //Debug.Log($"[MenuStackManager] Pushed menu: {menu.MenuType}. Stack size: {menuStack.Count}");
         return true;
     }
-    
-    /// <summary>
-    /// Pop the top menu from the stack and close it
-    /// </summary>
+
     public bool PopMenu()
     {
         if (menuStack.Count == 0)
@@ -135,17 +120,12 @@ public class MenuStackManager : IDisposable
             Debug.LogWarning("[MenuStackManager] Attempted to pop from empty stack");
             return false;
         }
-        
+
         var menu = menuStack.Pop();
         menu.Close();
-        
-        //Debug.Log($"[MenuStackManager] Popped menu: {menu.MenuType}. Stack size: {menuStack.Count}");
         return true;
     }
-    
-    /// <summary>
-    /// Pop all menus from the stack
-    /// </summary>
+
     public void PopAllMenus()
     {
         while (menuStack.Count > 0)
@@ -153,9 +133,9 @@ public class MenuStackManager : IDisposable
             PopMenu();
         }
     }
-    
+
     /// <summary>
-    /// Close all menus and clear the stack (useful when leaving level)
+    /// Closes every menu and clears the stack without per-pop warnings; used when leaving a level.
     /// </summary>
     public void ClearStack()
     {
@@ -165,7 +145,7 @@ public class MenuStackManager : IDisposable
             menu.Close();
         }
     }
-    
+
     public void Dispose()
     {
         ClearStack();

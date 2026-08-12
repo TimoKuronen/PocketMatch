@@ -1,8 +1,7 @@
 using System;
-using UnityEngine;
 
 /// <summary>
-/// Event data for when a level is completed (won)
+/// Win payload; <see cref="TotalScore"/> becomes coin rewards unless <see cref="IsLevelCapReached"/> is set.
 /// </summary>
 public class LevelCompletedEventArgs : EventArgs
 {
@@ -33,9 +32,6 @@ public class LevelCompletedEventArgs : EventArgs
     }
 }
 
-/// <summary>
-/// Event data for when a level is failed (lost)
-/// </summary>
 public class LevelFailedEventArgs : EventArgs
 {
     public string LevelName { get; }
@@ -48,9 +44,6 @@ public class LevelFailedEventArgs : EventArgs
     }
 }
 
-/// <summary>
-/// Event data for when a level is started
-/// </summary>
 public class LevelStartedEventArgs : EventArgs
 {
     public string LevelName { get; }
@@ -66,7 +59,7 @@ public class LevelStartedEventArgs : EventArgs
 }
 
 /// <summary>
-/// Static event system for level-related events
+/// Static level lifecycle events (start, win, fail) for analytics, save, and economy subscribers.
 /// </summary>
 public static class LevelEvents
 {

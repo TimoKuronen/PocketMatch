@@ -2,6 +2,9 @@ using Cysharp.Threading.Tasks;
 using System;
 using VContainer.Unity;
 
+/// <summary>
+/// Level-select MVP presenter; refreshes the grid when the view requests display, then loads play on selection.
+/// </summary>
 public class LevelSelectPresenter : IStartable, IDisposable
 {
     private readonly ILevelSelectView view;

@@ -36,7 +36,7 @@ public class AdsService : IAdsService, IDisposable
 
     private readonly CancellationTokenSource cts = new();
 
-    #region Initialization
+    #region Lifecycle
 
     [Inject]
     public void Construct(IAnalyticsService analyticsService)
@@ -504,7 +504,7 @@ public class AdsService : IAdsService, IDisposable
 
     #endregion
 
-    #region Cleanup & Utilities
+    #region Private Helpers
 
     private void CleanupInterstitialAd()
     {

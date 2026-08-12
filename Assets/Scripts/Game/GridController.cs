@@ -7,7 +7,7 @@ using Cysharp.Threading.Tasks;
 
 public class GridController : MonoBehaviour, IGridController
 {
-    #region Fields & Properties
+    #region Fields
 
     [Header("Settings")]
     [SerializeField] private GridControllerSettings settings;
@@ -59,7 +59,7 @@ public class GridController : MonoBehaviour, IGridController
 
     #endregion
 
-    #region Unity Lifecycle
+    #region Lifecycle
 
     [Inject]
     public void Construct(IGameSessionService gameSessionService, IAnalyticsService analyticsService, IEffectService effectService)
@@ -88,8 +88,6 @@ public class GridController : MonoBehaviour, IGridController
         tileSize = settings.tileSize;
 
         await UniTask.WaitUntil(() => GameSignals.IsSessionLoaded, cancellationToken: token);
-
-        //Debug.Log("GridController starting with map data: " + gameSessionService.CurrentMapData);
 
         commandInvoker = new CommandInvoker();
         MatchFinder = new MatchFinder(width, height);
@@ -132,7 +130,7 @@ public class GridController : MonoBehaviour, IGridController
 
     #endregion
 
-    #region Public Methods
+    #region Public API
 
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
     {
@@ -321,7 +319,7 @@ public class GridController : MonoBehaviour, IGridController
 
     #endregion
 
-    #region Private Methods - Tile Operations
+    #region Private Helpers - Tile Operations
 
     private async UniTask CheckSwapMatchAsync(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector2 origPosA, Vector2 origPosB)
     {
@@ -408,7 +406,7 @@ public class GridController : MonoBehaviour, IGridController
 
     #endregion
 
-    #region Private Methods - Grid State
+    #region Private Helpers - Grid State
 
     private bool HasEmptyNormalSlots()
     {
@@ -440,7 +438,7 @@ public class GridController : MonoBehaviour, IGridController
 
     #endregion
 
-    #region Private Methods - Grid Generation
+    #region Private Helpers - Grid Generation
 
     private void GenerateGrid()
     {

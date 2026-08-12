@@ -3,6 +3,9 @@ using System;
 using UnityEngine;
 using VContainer.Unity;
 
+/// <summary>
+/// Main-menu MVP presenter; settings opens as a toggle, and the banner ad waits for ad SDK readiness.
+/// </summary>
 public class MainMenuPresenter : IStartable, IDisposable
 {
     private readonly IMainMenuView view;

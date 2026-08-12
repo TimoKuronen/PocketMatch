@@ -27,16 +27,21 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 
     #endregion
 
-    #region Initialization
+    #region Lifecycle
 
     public void Start()
     {
         settingsButton.onClick.AddListener(() => SettingsClicked?.Invoke());
     }
 
+    public void Dispose()
+    {
+        settingsButton.onClick.RemoveAllListeners();
+    }
+
     #endregion
 
-    #region Public Methods
+    #region Public API
 
     public void SetMoves(int moves)
     {
@@ -128,24 +133,9 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        settingsButton.onClick.RemoveAllListeners();
-    }
-
     #endregion
 
-    #region Event Handlers
-
-    #endregion
-
-    #region Private Methods
-
-    // The following helpers remain for now to update labels and victory conditions
-
-    #endregion
-
-    #region Helper Methods
+    #region Private Helpers
 
     private void UpdatePuzzleIndexText(int levelIndex)
     {

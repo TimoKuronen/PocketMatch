@@ -11,41 +11,34 @@ public class SaveService : ISaveService, IStartable, IDisposable
 {
     private const string ConfigFileName = "save-config.json";
     private const string EditorFallbackEncryptionKey = "dev-only-pocketmatch-key-0000001";
+    private const int CurrentVersion = 1;
+
+    #region Fields
 
     private readonly string saveFile = Path.Combine(Application.persistentDataPath, "save.dat");
     private readonly string settingsFile = Path.Combine(Application.persistentDataPath, "settings.dat");
     private string encryptionKey;
 
-    public PlayerData PlayerData { get; private set; }
-
     private CloudSaveService cloud;
     private bool cloudInitialized = false;
     private IObjectResolver objectResolver;
+
+    public PlayerData PlayerData { get; private set; }
+
+    #endregion
+
+    #region Lifecycle
 
     [Inject]
     public void Construct(IObjectResolver objectResolver)
     {
         this.objectResolver = objectResolver;
         encryptionKey = ResolveEncryptionKey();
-        
+
         cloud = new CloudSaveService();
 
-        Load(); // Load local immediately (never wait for cloud)
+        Load();
         Debug.Log("[SaveService] Local save loaded");
-    }
-
-    private static string ResolveEncryptionKey()
-    {
-        if (LocalJsonConfig.TryLoad(ConfigFileName, out SaveConfig config) &&
-            config != null &&
-            config.IsValid)
-        {
-            return config.encryptionKey.Trim();
-        }
-
-        Debug.LogWarning(
-            "[SaveService] save-config.json missing or invalid. Using a development fallback encryption key.");
-        return EditorFallbackEncryptionKey;
     }
 
     public void Start()
@@ -53,9 +46,36 @@ public class SaveService : ISaveService, IStartable, IDisposable
         LevelEvents.OnLevelCompleted += OnLevelCompleted;
     }
 
-    // ---------------------------------------
-    // Called externally by CloudSaveBootstrap
-    // ---------------------------------------
+    public void Dispose()
+    {
+        LevelEvents.OnLevelCompleted -= OnLevelCompleted;
+    }
+
+    private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
+    {
+        if (e.IsLevelCapReached)
+        {
+            Debug.Log("[SaveService] Level cap reached, not incrementing level index.");
+            return;
+        }
+
+        if (e.CompletedLevelIndex == PlayerData.nextLevelIndex)
+        {
+            PlayerData.nextLevelIndex++;
+            Debug.Log($"[SaveService] Progress advanced. Next unlocked level: {PlayerData.nextLevelIndex + 1}");
+        }
+        else
+        {
+            Debug.Log($"[SaveService] Replay win on level {e.CompletedLevelIndex + 1}. Progress unchanged.");
+        }
+
+        Save();
+    }
+
+    #endregion
+
+    #region Cloud API
+
     public async Task InitializeCloudAsync()
     {
         try
@@ -64,7 +84,6 @@ public class SaveService : ISaveService, IStartable, IDisposable
             cloudInitialized = true;
             Debug.Log("[SaveService] Cloud initialized successfully");
 
-            // Attempt cloud load automatically
             if (Application.internetReachability != NetworkReachability.NotReachable)
             {
                 await TryLoadFromCloud();
@@ -80,37 +99,6 @@ public class SaveService : ISaveService, IStartable, IDisposable
         }
     }
 
-    // ------------------
-    // CLOUD LOAD LOGIC
-    // ------------------
-    private async Task TryLoadFromCloud()
-    {
-        if (!cloudInitialized) return;
-
-        try
-        {
-            var cloudData = await cloud.DownloadAsync();
-
-            if (cloudData != null)
-            {
-                PlayerData = cloudData;
-                SaveLocalOnly();    // sync cloud -> local
-                Debug.Log("[SaveService] Cloud save applied over local");
-            }
-            else
-            {
-                Debug.Log("[SaveService] No cloud save found - using local save");
-            }
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning("[SaveService] Cloud load failed: " + e);
-        }
-    }
-
-    // -----------------
-    // CLOUD PUBLIC API
-    // -----------------
     public async Task UploadCloudAsync()
     {
         if (!cloudInitialized) return;
@@ -130,15 +118,15 @@ public class SaveService : ISaveService, IStartable, IDisposable
         }
     }
 
-    // -----------------
-    // Local Load/Save
-    // -----------------
+    #endregion
+
+    #region Local Persistence
+
     public void Load()
     {
         PlayerData = LoadFile<PlayerData>(saveFile) ?? new PlayerData();
     }
 
-    // Called by gameplay (e.g. completing level)
     public async void Save()
     {
         PlayerData.meta.lastSaveTime = DateTime.UtcNow.ToString("o");
@@ -160,11 +148,6 @@ public class SaveService : ISaveService, IStartable, IDisposable
         }
     }
 
-    private void SaveLocalOnly()
-    {
-        WriteFile(saveFile, PlayerData);
-    }
-
     public async void ResetToDefaults()
     {
         PlayerData = new PlayerData();
@@ -173,14 +156,63 @@ public class SaveService : ISaveService, IStartable, IDisposable
         if (cloudInitialized &&
             Application.internetReachability != NetworkReachability.NotReachable)
         {
-            await cloud.UploadAsync(PlayerData); // overwrite cloud
+            await cloud.UploadAsync(PlayerData);
             Debug.Log("[SaveService] Cloud save reset to defaults.");
         }
     }
 
-    // ------------------
-    // LOCAL FILE HELPERS
-    // ------------------
+    private void SaveLocalOnly()
+    {
+        WriteFile(saveFile, PlayerData);
+    }
+
+    #endregion
+
+    #region Cloud Sync
+
+    private async Task TryLoadFromCloud()
+    {
+        if (!cloudInitialized) return;
+
+        try
+        {
+            var cloudData = await cloud.DownloadAsync();
+
+            if (cloudData != null)
+            {
+                PlayerData = cloudData;
+                SaveLocalOnly();
+                Debug.Log("[SaveService] Cloud save applied over local");
+            }
+            else
+            {
+                Debug.Log("[SaveService] No cloud save found - using local save");
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("[SaveService] Cloud load failed: " + e);
+        }
+    }
+
+    #endregion
+
+    #region Private Helpers
+
+    private static string ResolveEncryptionKey()
+    {
+        if (LocalJsonConfig.TryLoad(ConfigFileName, out SaveConfig config) &&
+            config != null &&
+            config.IsValid)
+        {
+            return config.encryptionKey.Trim();
+        }
+
+        Debug.LogWarning(
+            "[SaveService] save-config.json missing or invalid. Using a development fallback encryption key.");
+        return EditorFallbackEncryptionKey;
+    }
+
     private T LoadFile<T>(string path) where T : class
     {
         try
@@ -250,31 +282,5 @@ public class SaveService : ISaveService, IStartable, IDisposable
         return sr.ReadToEnd();
     }
 
-    private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
-    {
-        if (e.IsLevelCapReached)
-        {
-            Debug.Log("[SaveService] Level cap reached, not incrementing level index.");
-            return;
-        }
-
-        if (e.CompletedLevelIndex == PlayerData.nextLevelIndex)
-        {
-            PlayerData.nextLevelIndex++;
-            Debug.Log($"[SaveService] Progress advanced. Next unlocked level: {PlayerData.nextLevelIndex + 1}");
-        }
-        else
-        {
-            Debug.Log($"[SaveService] Replay win on level {e.CompletedLevelIndex + 1}. Progress unchanged.");
-        }
-
-        Save();
-    }
-
-    public void Dispose()
-    {
-        LevelEvents.OnLevelCompleted -= OnLevelCompleted;
-    }
-
-    private const int CurrentVersion = 1;
+    #endregion
 }

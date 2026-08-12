@@ -58,7 +58,6 @@ public class StaggeredDestroyCommand : ICommand
         var powerWorldPositions = new Dictionary<TileData, Vector3>();
         var positionsToVisuallyDestroy = new HashSet<Vector2Int>();
 
-        // --- Phase 1: collect chain powers and visual targets ---
         foreach (var pos in matchPositions)
         {
             var data = gridData[pos.x, pos.y];
@@ -88,7 +87,6 @@ public class StaggeredDestroyCommand : ICommand
         if (positionsToVisuallyDestroy.Count > 0)
             onDestroyBatch?.Invoke();
 
-        // --- Phase 2: staggered mini VFX + shrink ---
         int waveCount = waves.Count;
         float waveInterval = waveCount <= 1
             ? 0f
@@ -129,7 +127,6 @@ public class StaggeredDestroyCommand : ICommand
 
         await UniTask.Delay(TimeSpan.FromSeconds(destroyDuration));
 
-        // --- Phase 3: clear grid data and release views ---
         foreach (var pos in matchPositions)
         {
             var view = gridViews[pos.x, pos.y];
@@ -162,7 +159,6 @@ public class StaggeredDestroyCommand : ICommand
             }
         }
 
-        // --- Phase 4: chain-trigger collected powers ---
         if (context != null && powersToTrigger.Count > 0)
         {
             foreach (var tile in powersToTrigger)

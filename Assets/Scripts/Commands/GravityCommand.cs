@@ -43,7 +43,6 @@ public class GravityCommand : ICommand
             boardChanged = false;
             List<Tweener> tweens = new();
 
-            // 1. VERTICAL FALL (Always check this for the whole board first)
             for (int y = 1; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -56,7 +55,6 @@ public class GravityCommand : ICommand
                 }
             }
 
-            // 2. REFILL (Always check if spawners can drop a tile vertically first)
             if (!boardChanged)
             {
                 for (int x = 0; x < width; x++)
@@ -69,7 +67,6 @@ public class GravityCommand : ICommand
                 }
             }
 
-            // 3. THE WATERFALL CASCADE (Only if nothing can move or spawn vertically)
             if (!boardChanged)
             {
                 for (int y = height - 1; y >= 0; y--)

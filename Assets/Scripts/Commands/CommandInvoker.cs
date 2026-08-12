@@ -4,14 +4,8 @@ using Cysharp.Threading.Tasks;
 
 public class CommandInvoker
 {
-    #region Fields
-
     private readonly Queue<ICommand> commandQueue = new();
     private bool isProcessingQueue;
-
-    #endregion
-
-    #region Public Methods
 
     public void AddCommand(ICommand command)
     {
@@ -31,10 +25,6 @@ public class CommandInvoker
         return commandQueue.Count == 0 && !isProcessingQueue;
     }
 
-    #endregion
-
-    #region Private Methods
-
     private async UniTaskVoid RunQueueAsync()
     {
         isProcessingQueue = true;
@@ -50,6 +40,4 @@ public class CommandInvoker
 
         isProcessingQueue = false;
     }
-
-    #endregion
 }

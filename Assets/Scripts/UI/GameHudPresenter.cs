@@ -1,6 +1,9 @@
 using System;
 using VContainer.Unity;
 
+/// <summary>
+/// Play-scene HUD presenter; binds after session load and pushes win, lose, and pause overlays onto the menu stack.
+/// </summary>
 public class GameHudPresenter : IStartable, IDisposable
 {
     private readonly IGameHudView view;

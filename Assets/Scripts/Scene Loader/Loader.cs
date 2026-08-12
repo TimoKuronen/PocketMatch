@@ -175,7 +175,7 @@ public static class Loader
 
     #endregion
 
-    #region Utility
+    #region Private Helpers
 
     public static GameScene GetCurrentScene()
     {

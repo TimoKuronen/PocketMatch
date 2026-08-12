@@ -17,7 +17,7 @@ public class BoardStateEvaluator
 
     #endregion
 
-    #region SwapKey Struct
+    #region Nested Types
 
     private struct SwapKey : System.IEquatable<SwapKey>
     {
@@ -44,7 +44,7 @@ public class BoardStateEvaluator
 
     #endregion
 
-    #region Constructor
+    #region Lifecycle
 
     public BoardStateEvaluator(TileData[,] gridData, TileView[,] gridViews, int width, int height, IGridController controller)
     {
@@ -57,7 +57,7 @@ public class BoardStateEvaluator
 
     #endregion
 
-    #region Public Methods
+    #region Public API
 
     public PotentialMovesResult CountPotentialMoves()
     {
@@ -211,7 +211,7 @@ public class BoardStateEvaluator
 
     #endregion
 
-    #region Private Methods
+    #region Private Helpers
 
     private int CountPowerTiles()
     {

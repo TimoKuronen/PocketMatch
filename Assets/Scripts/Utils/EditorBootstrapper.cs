@@ -62,7 +62,6 @@ public static class EditorBootstrapper
         if (loaderScene != null)
         {
             EditorSceneManager.playModeStartScene = loaderScene;
-            //Debug.Log($"[EditorBootstrapper] Play mode start scene set to Loader ({LoaderScenePath}).");
         }
         else
         {

@@ -1,5 +1,6 @@
 using System;
 
+/// <summary>MVP view contract for the main menu screen.</summary>
 public interface IMainMenuView
 {
     event Action PlayClicked;
@@ -9,6 +10,7 @@ public interface IMainMenuView
     void SetVersion(string versionText);
 }
 
+/// <summary>MVP view contract for in-level HUD: moves, wallet, and victory progress.</summary>
 public interface IGameHudView
 {
     event Action SettingsClicked;
@@ -22,6 +24,7 @@ public interface IGameHudView
     void ShowVictoryConditions();
 }
 
+/// <summary>MVP view contract for main-menu audio settings.</summary>
 public interface IMainMenuSettingsView
 {
     event Action CloseClicked;
@@ -31,6 +34,7 @@ public interface IMainMenuSettingsView
     void SetVersion(string versionText);
 }
 
+/// <summary>MVP view contract for pause-menu settings and level exit actions.</summary>
 public interface IPauseSettingsView
 {
     event Action CloseClicked;
@@ -42,6 +46,7 @@ public interface IPauseSettingsView
     void SetVersion(string versionText);
 }
 
+/// <summary>MVP view contract for the level-complete overlay.</summary>
 public interface IWinView
 {
     event Action NextLevelClicked;
@@ -51,6 +56,7 @@ public interface IWinView
     void SetNextLevelButtonVisible(bool isVisible);
 }
 
+/// <summary>MVP view contract for the level-failed overlay and continue offers.</summary>
 public interface ILoseView
 {
     event Action RestartClicked;
@@ -64,6 +70,7 @@ public interface ILoseView
     void SetContinueWithAdAvailable(bool isAvailable);
 }
 
+/// <summary>MVP view contract for the level-select grid.</summary>
 public interface ILevelSelectView
 {
     event Action<int> LevelSelected;

@@ -7,6 +7,8 @@ using Cysharp.Threading.Tasks;
 
 public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStartable
 {
+    #region Properties
+
     public int MovesRemaining { get; private set; }
     public bool IsLevelEnded { get; private set; }
     public MapData LocalMapData { get; private set; }
@@ -17,11 +19,19 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
     public Action OnLevelContinued { get; set; }
     public int GameTimeInSeconds { get; private set; }
 
+    #endregion
+
+    #region Fields
+
     private IGameSessionService gameSessionService;
     private IGridController gridController;
     private ILevelEarningsService levelEarningsService;
     private IDebugToolsService debugToolsService;
     private readonly CancellationTokenSource cts = new();
+
+    #endregion
+
+    #region Lifecycle
 
     [Inject]
     public void Construct(
@@ -44,6 +54,42 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         if (GameSignals.IsSessionLoaded)
             OnSessionLoaded();
     }
+
+    public void Dispose()
+    {
+        GameSignals.OnSessionLoaded -= OnSessionLoaded;
+
+        if (gridController != null)
+        {
+            gridController.ActionTaken -= OnActionTaken;
+            gridController.BoardUpdated -= CheckVictoryConditions;
+            gridController.TileDestroyed -= OnTileDestroyed;
+            gridController.GridContext.OnDestroy -= OnTileDestroyed;
+        }
+
+        debugToolsService?.UnregisterLevelTarget(this);
+
+        if (!cts.IsCancellationRequested)
+            cts.Cancel();
+
+        cts.Dispose();
+    }
+
+    private async UniTaskVoid GameTimerAsync()
+    {
+        var token = cts.Token;
+        GameTimeInSeconds = 0;
+
+        while (true)
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: token);
+            GameTimeInSeconds++;
+        }
+    }
+
+    #endregion
+
+    #region Session Setup
 
     private void OnSessionLoaded()
     {
@@ -75,18 +121,6 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
             LocalMapData.VictoryConditions.MoveLimit));
     }
 
-    private async UniTaskVoid GameTimerAsync()
-    {
-        var token = cts.Token;
-        GameTimeInSeconds = 0;
-
-        while (true)
-        {
-            await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: token);
-            GameTimeInSeconds++;
-        }
-    }
-
     private void SubscribeToEvents()
     {
         gridController.ActionTaken += OnActionTaken;
@@ -96,6 +130,10 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
 
         debugToolsService?.RegisterLevelTarget(this);
     }
+
+    #endregion
+
+    #region Victory Tracking
 
     private void OnTileDestroyed(TileData data)
     {
@@ -163,6 +201,10 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         OnVictoryConditionsUpdated?.Invoke();
     }
 
+    #endregion
+
+    #region Win / Lose
+
     public void GrantExtraMoves(int count)
     {
         if (count <= 0 || !IsLevelEnded)
@@ -220,23 +262,5 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         OnLevelLost?.Invoke();
     }
 
-    public void Dispose()
-    {
-        GameSignals.OnSessionLoaded -= OnSessionLoaded;
-
-        if (gridController != null)
-        {
-            gridController.ActionTaken -= OnActionTaken;
-            gridController.BoardUpdated -= CheckVictoryConditions;
-            gridController.TileDestroyed -= OnTileDestroyed;
-            gridController.GridContext.OnDestroy -= OnTileDestroyed;
-        }
-
-        debugToolsService?.UnregisterLevelTarget(this);
-
-        if (!cts.IsCancellationRequested)
-            cts.Cancel();
-
-        cts.Dispose();
-    }
+    #endregion
 }

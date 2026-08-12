@@ -269,7 +269,7 @@ public static class GridHelperMethods
 
     #endregion
 
-    #region Other
+    #region Private Helpers
 
     public static void UpdateTilePosition(TileData data, TileView view, Vector2Int newPosition)
     {

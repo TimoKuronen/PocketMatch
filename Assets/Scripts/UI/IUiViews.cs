@@ -22,6 +22,7 @@ public interface IGameHudView
     void UpdateVictoryConditions(VictoryConditions victoryConditions, int movesRemaining);
     void HideVictoryConditions();
     void ShowVictoryConditions();
+    void SetGameAreaVisible(bool isVisible);
 }
 
 /// <summary>MVP view contract for main-menu audio settings.</summary>

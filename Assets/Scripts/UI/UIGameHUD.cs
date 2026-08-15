@@ -19,6 +19,7 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
     [SerializeField] private TextMeshProUGUI coinCountText;
     [SerializeField] private TextMeshProUGUI currentLevelText;
     [SerializeField] private Button settingsButton;
+    [SerializeField] private GameObject gameAreaRoot;
 
     private readonly List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
     private readonly StringBuilder sb = new StringBuilder(32);
@@ -131,6 +132,12 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
             if (item != null)
                 item.gameObject.SetActive(true);
         }
+    }
+
+    public void SetGameAreaVisible(bool isVisible)
+    {
+        if (gameAreaRoot != null)
+            gameAreaRoot.SetActive(isVisible);
     }
 
     #endregion

@@ -62,6 +62,7 @@ public class GameHudPresenter : IStartable, IDisposable
         view.SetLevelIndex(levelIndex);
         view.InitializeVictoryConditions(mapData.VictoryConditions);
         view.ShowVictoryConditions();
+        view.SetGameAreaVisible(true);
         UpdateWalletBalance();
         UpdateMoves();
     }
@@ -75,6 +76,7 @@ public class GameHudPresenter : IStartable, IDisposable
     private void OnLevelContinued()
     {
         view.ShowVictoryConditions();
+        view.SetGameAreaVisible(true);
         UpdateMoves();
         UpdateWalletBalance();
         view.UpdateVictoryConditions(levelManager.VictoryConditions, levelManager.MovesRemaining);
@@ -83,6 +85,7 @@ public class GameHudPresenter : IStartable, IDisposable
     private void OnLevelWon()
     {
         view.HideVictoryConditions();
+        view.SetGameAreaVisible(false);
         if (winView is IMenu menu)
             menuStackManager.PushMenu(menu);
     }

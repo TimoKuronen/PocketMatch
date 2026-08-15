@@ -321,7 +321,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ddec495e3643fc44b6faac548369a15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelSelectPanel
-  menuPanel: {fileID: 0}
+  menuPanel: {fileID: 3481155592523713296}
   menuType: 6
   backButton: {fileID: 433844865571312083}
   levelButtonContainer: {fileID: 3054992757858915799}

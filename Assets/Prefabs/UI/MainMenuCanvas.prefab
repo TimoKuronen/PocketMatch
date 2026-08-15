@@ -1413,10 +1413,6 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 4649439586788252143, guid: 85a5f6ec0d1d07549a941cbc9881a02a, type: 3}
-      propertyPath: menuPanel
-      value: 
-      objectReference: {fileID: 1409419441953587478}
     - target: {fileID: 5943467580780543522, guid: 85a5f6ec0d1d07549a941cbc9881a02a, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

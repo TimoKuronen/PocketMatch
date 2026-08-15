@@ -19,6 +19,9 @@ public class LevelSelectPanel : UIMenu, ILevelSelectView
         base.Awake();
         menuType = MenuType.LevelSelectMenu;
 
+        if (menuPanel != null && menuPanel == transform.root.gameObject)
+            menuPanel = gameObject;
+
         if (backButton != null)
             backButton.onClick.AddListener(() => BackClicked?.Invoke());
 

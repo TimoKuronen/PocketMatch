@@ -8,13 +8,8 @@ Mobile Match-3 prototype built in **Unity 6** to demonstrate live mobile F2P cli
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 <p align="center">
-  <img src="docs/images/gameplay-board.png" alt="PocketMatch gameplay board" width="280" />
-</p>
-
-<p align="center">
-  <img src="docs/images/main-menu.png" alt="Main menu" width="180" />
-  <img src="docs/images/level-complete.png" alt="Level complete" width="180" />
-  <img src="docs/images/settings-or-select.png" alt="Level select" width="180" />
+  <img src="docs/images/main-menu.png" alt="Main menu" width="240" />
+  <img src="docs/images/gameplay-board.png" alt="Gameplay" width="240" />
 </p>
 
 ## Highlights

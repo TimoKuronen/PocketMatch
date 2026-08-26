@@ -1,8 +1,6 @@
 # PocketMatch
 
-Mobile Match-3 prototype built in **Unity 6** to demonstrate live mobile F2P client engineering: async board commands, VContainer service boundaries, Addressables content, Firebase analytics and cloud save, and LevelPlay ad mediation.
-
-> Display name in Player Settings is currently `RuneMatch`. The repository and Android application id use `PocketMatch`.
+Mobile Match-3 prototype built in **Unity 6** for live mobile F2P client engineering: async board commands, VContainer service boundaries, Addressables content, Firebase analytics and cloud save, and LevelPlay ad mediation.
 
 [![Unity 6000.3.14f1](https://img.shields.io/badge/Unity-6000.3.14f1-black.svg)](ProjectSettings/ProjectVersion.txt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -14,16 +12,20 @@ Mobile Match-3 prototype built in **Unity 6** to demonstrate live mobile F2P cli
 
 ## Highlights
 
+- Match-3 core loop with power tiles, level objectives, and win/lose flow
 - Async command-queued board resolution (swap, destroy, gravity, power tiles)
 - Deadlock detection with shuffle-until-playable
+- Level select and light meta progression (coins, unlocked levels)
+- Coin economy: earn on win, spend to continue after fail
 - VContainer scopes for bootstrap, menu, and gameplay lifetimes
 - Addressables level loading and pooled VFX
 - Firebase Analytics with a local offline event queue
 - Encrypted local save plus Firestore cloud sync
 - Unity LevelPlay banner and interstitial mediation
-- Android CI build workflow via GitHub Actions
+- Edit Mode tests for potential moves and shuffle
+- Android CI build via GitHub Actions
 
-## Architecture overview
+## Architecture
 
 ```text
 BootstrapLifetimeScope (DontDestroyOnLoad)
@@ -40,20 +42,7 @@ Board mutations serialize through `CommandInvoker` and `ICommand` implementation
 
 Details: [docs/architecture.md](docs/architecture.md)
 
-## Implemented
-
-- Match-3 core loop, power tiles, level objectives, win/lose flow
-- Level select and basic meta (coins, next unlocked level)
-- Coin economy: earn on win, spend to continue after fail (+3 moves for 300 coins, once per attempt)
-- Local + cloud save path, analytics event dictionary, banner + interstitial ads
-- Edit Mode tests for potential moves and shuffle
-
-## Not implemented
-
-- Rewarded ad continue, in-app purchases, remote config, Crashlytics
-- Star ratings per level, booster shop, full meta progression loop, large level catalog, iOS target
-
-## Tech stack
+## Stack
 
 | Area | Choice |
 |------|--------|
@@ -65,26 +54,7 @@ Details: [docs/architecture.md](docs/architecture.md)
 | Ads | Unity LevelPlay (IronSource mediation) |
 | Analytics | Firebase Analytics (offline queue) |
 
-## Getting started
-
-1. Clone the repository
-2. Open in Unity Hub with editor `6000.3.14f1`
-3. Press Play — editor bootstrap starts from the Loader flow
-
-Gameplay and local save work without Firebase or LevelPlay. Optional SDK configuration files belong in `Assets/StreamingAssets/` and are excluded from version control.
-
-## Testing
-
-Edit Mode tests in the Unity Test Runner:
-
-- `PotentialMovesTest`
-- `ShuffleMatchCountTest`
-
-## Build / CI
-
-Android builds are defined in [`.github/workflows/main.yml`](.github/workflows/main.yml) (push to `master` or manual dispatch). CI expects Unity license secrets configured in the GitHub repository settings.
-
-## Documentation
+## Docs
 
 - [Architecture](docs/architecture.md)
 - [Analytics events](docs/analytics-events.md)

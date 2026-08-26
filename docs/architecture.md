@@ -112,7 +112,7 @@ LevelContinueService (game-scoped)
 
 Win UI shows coins earned this level; HUD and lose panel show wallet balance (`x N`). Objectives and moves stay visible on fail so the player can judge whether continue is worthwhile.
 
-Continue is once per attempt (coin or ad, not both). Rewarded-ad continue is planned; the ad button is present but disabled.
+Continue is once per attempt via coins.
 
 ## Live-service hooks
 

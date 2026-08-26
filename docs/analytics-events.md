@@ -8,7 +8,7 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sen
 
 ---
 
-## Active events
+## Events
 
 | Event name | Parameters | When fired | Source |
 |------------|------------|------------|--------|
@@ -23,16 +23,6 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sen
 | `ad_watched` | `ad_format` (string), `placement` (string), `result` (string) | Interstitial closed after display (`result` = `completed`), or Editor-simulated show (`editor_simulated`) | `AdsService` |
 | `ad_skipped` | `ad_format` (string), `placement` (string), `reason` (string) | Interstitial could not be shown (`display_failed`, `not_ready`, or `not_initialized`); gameplay continues | `AdsService` |
 | `extra_automated_matches` | `level_name` (string), `moves_spent` (int) | Match cascade cycle count exceeds 2 after a player move | `GridController` |
-
----
-
-## Defined but not fired
-
-| Event name | Status | Notes |
-|------------|--------|-------|
-| `booster_used` | Not wired | No inventory boosters; match-created power tiles are not logged as boosters |
-| `tile_matched` | Not wired | Per-match volume is too high; use aggregates if needed later |
-| `iap_purchased` | Not wired | In-app purchases are not implemented |
 
 ---
 

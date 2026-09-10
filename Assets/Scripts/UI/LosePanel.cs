@@ -17,6 +17,7 @@ public class LosePanel : UIMenu, ILoseView
     [SerializeField] private TextMeshProUGUI continueWithAdLabel;
     [SerializeField] private ConfirmationDialog confirmationDialog;
 
+    private ILocalizationService localization;
     private Color continueWithCoinsDefaultColor;
     private FontStyles continueWithCoinsDefaultFontStyle;
     private Color continueWithAdDefaultColor;
@@ -29,7 +30,10 @@ public class LosePanel : UIMenu, ILoseView
     public event Action Opened;
 
     [Inject]
-    public void Construct() { }
+    public void Construct(ILocalizationService localization)
+    {
+        this.localization = localization;
+    }
 
     protected override void Awake()
     {
@@ -52,7 +56,13 @@ public class LosePanel : UIMenu, ILoseView
 
     public void SetWalletBalance(int balance)
     {
-        walletBalanceText.text = $"x {balance}";
+        if (localization == null)
+        {
+            walletBalanceText.text = $"x {balance}";
+            return;
+        }
+
+        walletBalanceText.text = localization.Get(LocalizationKeys.CommonCoinBalance, balance);
     }
 
     public void SetContinueWithCoinsAvailable(bool isAvailable)

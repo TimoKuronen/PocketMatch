@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 56070200066099015}
   - component: {fileID: 8155762647061756525}
   - component: {fileID: 2549567227004472374}
+  - component: {fileID: 3275819338420544395}
   m_Layer: 5
   m_Name: CopyrightText
   m_TagString: Untagged
@@ -137,6 +138,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3275819338420544395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 182059603183246599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91d2b928fa52f844920f7f7b89e439c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedTmpLabel
+  entryKey: ui.common.copyright
+  target: {fileID: 2549567227004472374}
 --- !u!1 &650069242067046743
 GameObject:
   m_ObjectHideFlags: 0
@@ -885,6 +900,7 @@ GameObject:
   - component: {fileID: 6688557325365328201}
   - component: {fileID: 2359420414754633240}
   - component: {fileID: 1864730335793499864}
+  - component: {fileID: 1464099132632852134}
   m_Layer: 5
   m_Name: PlayText
   m_TagString: Untagged
@@ -1011,6 +1027,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1464099132632852134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4830586394947605558}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91d2b928fa52f844920f7f7b89e439c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedTmpLabel
+  entryKey: ui.menu.play
+  target: {fileID: 1864730335793499864}
 --- !u!1 &5554785403284824878
 GameObject:
   m_ObjectHideFlags: 0
@@ -1184,6 +1214,7 @@ GameObject:
   - component: {fileID: 6140619584231444209}
   - component: {fileID: 7117600120563151248}
   - component: {fileID: 4380427423096470886}
+  - component: {fileID: 2717150746478695981}
   m_Layer: 5
   m_Name: TitleText
   m_TagString: Untagged
@@ -1310,6 +1341,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &2717150746478695981
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7833616299046984869}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91d2b928fa52f844920f7f7b89e439c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedTmpLabel
+  entryKey: ui.menu.title
+  target: {fileID: 4380427423096470886}
 --- !u!1 &8862244435347213936
 GameObject:
   m_ObjectHideFlags: 0
@@ -1783,13 +1828,79 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5772851992833125802, guid: 4ec13eb5f3073274a84ee895203320a5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 126712709968052002}
+    - targetCorrespondingSourceObject: {fileID: 7276861455026957391, guid: 4ec13eb5f3073274a84ee895203320a5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5739157771800367826}
   m_SourcePrefab: {fileID: 100100000, guid: 4ec13eb5f3073274a84ee895203320a5, type: 3}
 --- !u!224 &279451900715733195 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6634949443341720419, guid: 4ec13eb5f3073274a84ee895203320a5, type: 3}
   m_PrefabInstance: {fileID: 6914366112406113192}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &554416695657362035 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6360609158689257947, guid: 4ec13eb5f3073274a84ee895203320a5, type: 3}
+  m_PrefabInstance: {fileID: 6914366112406113192}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4253748426986629095}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!1 &1146598304995239426 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5772851992833125802, guid: 4ec13eb5f3073274a84ee895203320a5, type: 3}
+  m_PrefabInstance: {fileID: 6914366112406113192}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &126712709968052002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1146598304995239426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91d2b928fa52f844920f7f7b89e439c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedTmpLabel
+  entryKey: ui.common.back
+  target: {fileID: 3406240583540713134}
+--- !u!114 &3406240583540713134 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8120454791693446406, guid: 4ec13eb5f3073274a84ee895203320a5, type: 3}
+  m_PrefabInstance: {fileID: 6914366112406113192}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1146598304995239426}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &4253748426986629095 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7276861455026957391, guid: 4ec13eb5f3073274a84ee895203320a5, type: 3}
+  m_PrefabInstance: {fileID: 6914366112406113192}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5739157771800367826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4253748426986629095}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91d2b928fa52f844920f7f7b89e439c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedTmpLabel
+  entryKey: ui.common.sfx_volume
+  target: {fileID: 554416695657362035}
 --- !u!1001 &7544680251728277821
 PrefabInstance:
   m_ObjectHideFlags: 0

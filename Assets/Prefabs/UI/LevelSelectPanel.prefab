@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4393439346953378954}
   - component: {fileID: 8296699618596674505}
   - component: {fileID: 493570110554873843}
+  - component: {fileID: 6974803634688514000}
   m_Layer: 5
   m_Name: MenuTitleText
   m_TagString: Untagged
@@ -137,6 +138,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &6974803634688514000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 260397423358509575}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91d2b928fa52f844920f7f7b89e439c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedTmpLabel
+  entryKey: ui.menu.levels_title
+  target: {fileID: 493570110554873843}
 --- !u!1 &2219885653936219340
 GameObject:
   m_ObjectHideFlags: 0
@@ -1186,7 +1201,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4579277972073262233, guid: 6c0573c15e63f364bbb934f29e74926d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1811272292797323727}
   m_SourcePrefab: {fileID: 100100000, guid: 6c0573c15e63f364bbb934f29e74926d, type: 3}
 --- !u!114 &433844865571312083 stripped
 MonoBehaviour:
@@ -1199,6 +1217,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &510294317772011376 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 635958030962339070, guid: 6c0573c15e63f364bbb934f29e74926d, type: 3}
+  m_PrefabInstance: {fileID: 1137033079913864078}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3479963658213193495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &3479963658213193495 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4579277972073262233, guid: 6c0573c15e63f364bbb934f29e74926d, type: 3}
+  m_PrefabInstance: {fileID: 1137033079913864078}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1811272292797323727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3479963658213193495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91d2b928fa52f844920f7f7b89e439c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedTmpLabel
+  entryKey: ui.common.back
+  target: {fileID: 510294317772011376}
 --- !u!224 &5584907805596781055 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4775532495737541233, guid: 6c0573c15e63f364bbb934f29e74926d, type: 3}

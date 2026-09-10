@@ -11,18 +11,20 @@ public class MainMenuPanel : UIMenu, IMainMenuView
     [SerializeField] private Button playButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private ConfirmationDialog confirmationDialog;
-    
+
     private MenuStackManager menuStackManager;
+    private ILocalizationService localization;
 
     public event Action PlayClicked;
     public event Action SettingsClicked;
-    
+
     [Inject]
-    public void Construct(MenuStackManager menuStackManager)
+    public void Construct(MenuStackManager menuStackManager, ILocalizationService localization)
     {
         this.menuStackManager = menuStackManager;
+        this.localization = localization;
     }
-    
+
     protected override void Awake()
     {
         // Main menu stays visible on load; base UIMenu Awake would hide menuPanel.
@@ -30,9 +32,9 @@ public class MainMenuPanel : UIMenu, IMainMenuView
         {
             menuPanel = gameObject;
         }
-        
+
         menuType = MenuType.PauseMenu;
-        
+
         if (menuPanel != null)
         {
             menuPanel.SetActive(true);
@@ -46,8 +48,15 @@ public class MainMenuPanel : UIMenu, IMainMenuView
 
     public void SetCoinCount(int coins)
     {
-        coinCountText.text = $"x {coins}";
+        if (localization == null)
+        {
+            coinCountText.text = $"x {coins}";
+            return;
+        }
+
+        coinCountText.text = localization.Get(LocalizationKeys.CommonCoinBalance, coins);
     }
+
     public void SetVersion(string version)
     {
         if (versionText != null)

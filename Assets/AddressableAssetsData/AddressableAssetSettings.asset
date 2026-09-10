@@ -15,7 +15,7 @@ MonoBehaviour:
   m_DefaultGroup: 20d9683ce92423649bc1c0bb4db851ee
   m_currentHash:
     serializedVersion: 2
-    Hash: 929b072bab3e736731967a7e6eac6d8d
+    Hash: 7334b842fcb31b1cef94d33321e7539d
   m_OptimizeCatalogSize: 0
   m_BuildRemoteCatalog: 0
   m_CatalogRequestsTimeout: 0
@@ -64,7 +64,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 05adc75873d4ecb41b849ccbcd02faf6, type: 2}
   - {fileID: 11400000, guid: e617999f5ee754f4d95422b73afbade3, type: 2}
   - {fileID: 11400000, guid: 033bef2242138a54f81cc6af579bcc80, type: 2}
+  - {fileID: 11400000, guid: f20aa0d4199c130459bc185e505b4c6f, type: 2}
+  - {fileID: 11400000, guid: f95fb1b75dbcafc46bff1b17d3394145, type: 2}
+  - {fileID: 11400000, guid: 06096d36984947041b64f37473809b9b, type: 2}
   - {fileID: 11400000, guid: 99bebbe6f586f9c4ca66772e23f61e43, type: 2}
+  - {fileID: 11400000, guid: 87be6607ca5f6e04bb4bd5b7317e2207, type: 2}
   m_BuildSettings:
     m_LogResourceManagerExceptions: 1
     m_BundleBuildPath: Temp/com.unity.addressables/AssetBundles
@@ -106,6 +110,9 @@ MonoBehaviour:
     - default
     - Levels
     - TileVFX
+    - Locale
+    - Locale-en
+    - Locale-es
   m_SchemaTemplates: []
   m_GroupTemplateObjects:
   - {fileID: 11400000, guid: 90802e6904b11904ea06956b43c25f89, type: 2}

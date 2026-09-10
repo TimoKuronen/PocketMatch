@@ -11,6 +11,7 @@ public class WinPresenter : IStartable, IDisposable
     private readonly IGameSessionService gameSessionService;
     private readonly ISaveService saveService;
     private readonly ConfirmationDialog confirmationDialog;
+    private readonly ILocalizationService localization;
 
     public WinPresenter(
         IWinView view,
@@ -20,7 +21,8 @@ public class WinPresenter : IStartable, IDisposable
         ILevelManager levelManager,
         IGameSessionService gameSessionService,
         ISaveService saveService,
-        ConfirmationDialog confirmationDialog)
+        ConfirmationDialog confirmationDialog,
+        ILocalizationService localization)
     {
         this.view = view;
         this.menuStackManager = menuStackManager;
@@ -30,6 +32,7 @@ public class WinPresenter : IStartable, IDisposable
         this.gameSessionService = gameSessionService;
         this.saveService = saveService;
         this.confirmationDialog = confirmationDialog;
+        this.localization = localization;
     }
 
     public void Start()
@@ -58,7 +61,7 @@ public class WinPresenter : IStartable, IDisposable
         if (!menuStackManager.CanOpenMenu())
             return;
 
-        confirmationDialog.Setup("Are you sure you want to return to the main menu?", () =>
+        confirmationDialog.Setup(localization.Get(LocalizationKeys.CommonConfirmMainMenu), () =>
         {
             menuStackManager.ClearStack();
             Loader.Load(Loader.GameScene.MainMenu);

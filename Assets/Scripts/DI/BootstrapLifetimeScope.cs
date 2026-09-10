@@ -16,6 +16,8 @@ public class BootstrapLifetimeScope : LifetimeScope
 
         builder.Register<IAudioService, AudioService>(Lifetime.Singleton);
         builder.Register<IAdsService, AdsService>(Lifetime.Singleton);
+        builder.Register<ILocalizationService, LocalizationService>(Lifetime.Singleton).
+            As<IStartable>();
         builder.Register<FirebaseInitializer>(Lifetime.Singleton);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

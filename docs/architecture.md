@@ -41,7 +41,7 @@ flowchart LR
 
 | Scope | Lifetime | Responsibilities |
 |-------|----------|------------------|
-| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, economy, analytics, input, audio, ads, Firebase bootstrap, cloud-save bootstrap |
+| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, economy, analytics, input, audio, ads, localization, Firebase bootstrap, cloud-save bootstrap |
 | `MenuLifetimeScope` | Main menu scene | Menu presenters and views |
 | `GameLifetimeScope` | Play scene | Session, level earnings, continue, HUD, grid presenters, board wiring |
 
@@ -126,6 +126,19 @@ Continue is once per attempt via coins.
 | Interstitial gate | `Loader.ShowInterstitialThenContinue` / win path continue |
 | Banner | Gameplay HUD / ads service show-hide around interstitials |
 | Cloud save | `CloudSaveBootstrap` after bootstrap; upload on local save when online |
+
+## Localization (current)
+
+- Package: `com.unity.localization` with locales `en` (source) and `es`
+- Player-facing copy lives in the `UI` String Table Collection (`ui.*` keys); placeholders use indexed `{0}`
+- Runtime lookup goes through `ILocalizationService` / `LocalizationService` (bootstrap singleton)
+- Static TMP chrome uses `LocalizedTmpLabel`; dynamic HUD/dialog copy is set from presenters/panels
+- Startup locale: device/system via Unity selectors, with `en` fallback
+- Editor Play Mode: Game View locale dropdown (Unity Localization, on by default)
+- Debug override: `DebugToolsSettings.localeOverride` (DeviceDefault / English / Spanish) for editor and development builds
+- Localizer interchange: Unity String Table CSV only (`Assets/Localization/Export/ui-sample.csv` sample). Catalog JSON stays out of this repo.
+
+Create or refresh assets with **PocketMatch > Localization > Create Foundation**.
 
 ## Related docs
 

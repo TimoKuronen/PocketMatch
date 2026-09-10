@@ -8,18 +8,21 @@ public class PauseSettingsPresenter : IStartable, IDisposable
     private readonly MenuStackManager menuStackManager;
     private readonly IAudioService audioService;
     private readonly ConfirmationDialog confirmationDialog;
+    private readonly ILocalizationService localization;
 
     public PauseSettingsPresenter(
         IPauseSettingsView view,
         MenuStackManager menuStackManager,
         IAudioService audioService,
-        ConfirmationDialog confirmationDialog)
+        ConfirmationDialog confirmationDialog,
+        ILocalizationService localization)
     {
         this.view = view;
         this.settingsMenu = view as IMenu;
         this.menuStackManager = menuStackManager;
         this.audioService = audioService;
         this.confirmationDialog = confirmationDialog;
+        this.localization = localization;
     }
 
     public void Start()
@@ -31,12 +34,27 @@ public class PauseSettingsPresenter : IStartable, IDisposable
         view.RetryClicked += OnRetryClicked;
         view.MenuClicked += OnMenuClicked;
         view.SfxVolumeChanged += OnSfxVolumeChanged;
+        localization.LocaleChanged += OnLocaleChanged;
     }
 
     private void OnSettingsOpened()
     {
         view.SetSfxVolume(audioService.SfxVolume);
-        view.SetVersion(BuildInfo.FormatVersionLabel());
+        RefreshVersion();
+    }
+
+    private void OnLocaleChanged()
+    {
+        if (settingsMenu != null && settingsMenu.IsOpen)
+            RefreshVersion();
+    }
+
+    private void RefreshVersion()
+    {
+        view.SetVersion(localization.Get(
+            LocalizationKeys.CommonVersionBuild,
+            UnityEngine.Application.version,
+            BuildInfo.AndroidVersionCode));
     }
 
     private void OnCloseClicked()
@@ -49,7 +67,7 @@ public class PauseSettingsPresenter : IStartable, IDisposable
         if (!menuStackManager.CanOpenMenu())
             return;
 
-        confirmationDialog.Setup("Are you sure you want to retry this level?", () =>
+        confirmationDialog.Setup(localization.Get(LocalizationKeys.PauseConfirmRetry), () =>
         {
             if (GameSignals.ActiveLevelIndex >= 0)
                 GameSignals.SetPendingLevelIndex(GameSignals.ActiveLevelIndex);
@@ -65,7 +83,7 @@ public class PauseSettingsPresenter : IStartable, IDisposable
         if (!menuStackManager.CanOpenMenu())
             return;
 
-        confirmationDialog.Setup("Are you sure you want to return to the main menu?", () =>
+        confirmationDialog.Setup(localization.Get(LocalizationKeys.CommonConfirmMainMenu), () =>
         {
             menuStackManager.ClearStack();
             Loader.Load(Loader.GameScene.MainMenu);
@@ -87,5 +105,6 @@ public class PauseSettingsPresenter : IStartable, IDisposable
         view.RetryClicked -= OnRetryClicked;
         view.MenuClicked -= OnMenuClicked;
         view.SfxVolumeChanged -= OnSfxVolumeChanged;
+        localization.LocaleChanged -= OnLocaleChanged;
     }
 }

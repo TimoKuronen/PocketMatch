@@ -22,6 +22,7 @@ Mobile Match-3 prototype built in **Unity 6** for live mobile F2P client enginee
 - Firebase Analytics with a local offline event queue
 - Encrypted local save plus Firestore cloud sync
 - Unity LevelPlay banner and interstitial mediation
+- Unity Localization (`en` / `es`) with Localizer CSV interchange
 - Edit Mode tests for potential moves and shuffle
 - Android CI build via GitHub Actions
 
@@ -53,6 +54,7 @@ Details: [docs/architecture.md](docs/architecture.md)
 | Auth / cloud save | Firebase Anonymous Auth + Firestore |
 | Ads | Unity LevelPlay (IronSource mediation) |
 | Analytics | Firebase Analytics (offline queue) |
+| Localization | Unity Localization (`en` source, `es`); CSV bridge to Localizer |
 
 ## Docs
 

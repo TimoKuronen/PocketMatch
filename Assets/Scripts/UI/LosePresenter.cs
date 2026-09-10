@@ -8,19 +8,22 @@ public class LosePresenter : IStartable, IDisposable
     private readonly ConfirmationDialog confirmationDialog;
     private readonly ILevelContinueService levelContinueService;
     private readonly IEconomyService economyService;
+    private readonly ILocalizationService localization;
 
     public LosePresenter(
         ILoseView view,
         MenuStackManager menuStackManager,
         ConfirmationDialog confirmationDialog,
         ILevelContinueService levelContinueService,
-        IEconomyService economyService)
+        IEconomyService economyService,
+        ILocalizationService localization)
     {
         this.view = view;
         this.menuStackManager = menuStackManager;
         this.confirmationDialog = confirmationDialog;
         this.levelContinueService = levelContinueService;
         this.economyService = economyService;
+        this.localization = localization;
     }
 
     public void Start()
@@ -73,7 +76,7 @@ public class LosePresenter : IStartable, IDisposable
         if (!menuStackManager.CanOpenMenu())
             return;
 
-        confirmationDialog.Setup("Are you sure you want to return to the main menu?", () =>
+        confirmationDialog.Setup(localization.Get(LocalizationKeys.CommonConfirmMainMenu), () =>
         {
             menuStackManager.ClearStack();
             Loader.Load(Loader.GameScene.MainMenu);

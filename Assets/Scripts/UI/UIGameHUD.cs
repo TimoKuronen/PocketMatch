@@ -4,6 +4,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 /// <summary>
 /// HUD component for gameplay - displays game information (moves, coins, victory conditions).
@@ -23,12 +24,26 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 
     private readonly List<VictoryConditionUI> victoryConditions = new List<VictoryConditionUI>();
     private readonly StringBuilder sb = new StringBuilder(32);
+    private ILocalizationService localization;
+    private int cachedMoves;
+    private int cachedBalance;
+    private int cachedLevelIndex;
+    private bool hasMoves;
+    private bool hasBalance;
+    private bool hasLevelIndex;
 
     public event Action SettingsClicked;
 
     #endregion
 
     #region Lifecycle
+
+    [Inject]
+    public void Construct(ILocalizationService localization)
+    {
+        this.localization = localization;
+        localization.LocaleChanged += OnLocaleChanged;
+    }
 
     public void Start()
     {
@@ -38,6 +53,8 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
     public void Dispose()
     {
         settingsButton.onClick.RemoveAllListeners();
+        if (localization != null)
+            localization.LocaleChanged -= OnLocaleChanged;
     }
 
     #endregion
@@ -46,6 +63,8 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 
     public void SetMoves(int moves)
     {
+        cachedMoves = moves;
+        hasMoves = true;
         UpdateMovesText(moves);
     }
 
@@ -53,6 +72,15 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
     {
         if (coinCountText == null)
             return;
+
+        cachedBalance = balance;
+        hasBalance = true;
+
+        if (localization != null)
+        {
+            coinCountText.text = localization.Get(LocalizationKeys.CommonCoinBalance, balance);
+            return;
+        }
 
         sb.Clear();
         sb.Append("x ");
@@ -62,19 +90,19 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 
     public void SetLevelIndex(int levelIndex)
     {
+        cachedLevelIndex = levelIndex;
+        hasLevelIndex = true;
         UpdatePuzzleIndexText(levelIndex);
     }
 
     public void InitializeVictoryConditions(VictoryConditions victoryConditions)
     {
-        // Clear existing UI instances
         foreach (var existing in victoryConditionsContainer.GetComponentsInChildren<VictoryConditionUI>())
         {
             Destroy(existing.gameObject);
         }
         this.victoryConditions.Clear();
 
-        // Rebuild from provided data
         UpdateMovesText(victoryConditions.MoveLimit);
 
         if (victoryConditions.RequiredColorMatchCount != null)
@@ -144,8 +172,24 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 
     #region Private Helpers
 
+    private void OnLocaleChanged()
+    {
+        if (hasMoves)
+            UpdateMovesText(cachedMoves);
+        if (hasBalance)
+            SetWalletBalance(cachedBalance);
+        if (hasLevelIndex)
+            UpdatePuzzleIndexText(cachedLevelIndex);
+    }
+
     private void UpdatePuzzleIndexText(int levelIndex)
     {
+        if (localization != null)
+        {
+            currentLevelText.text = localization.Get(LocalizationKeys.HudPuzzleIndex, levelIndex);
+            return;
+        }
+
         sb.Clear();
         sb.Append("Puzzle #");
         sb.Append(levelIndex);
@@ -154,6 +198,15 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 
     private void UpdateMovesText(int moves)
     {
+        cachedMoves = moves;
+        hasMoves = true;
+
+        if (localization != null)
+        {
+            movesText.text = localization.Get(LocalizationKeys.HudMoves, moves);
+            return;
+        }
+
         sb.Clear();
         sb.Append("Moves: ");
         sb.Append(moves);

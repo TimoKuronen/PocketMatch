@@ -13,43 +13,61 @@ public class WinPanel : UIMenu, IWinView
     [SerializeField] private Button mainMenuButton;
     [SerializeField] private TextMeshProUGUI coinCountText;
     [SerializeField] private ConfirmationDialog confirmationDialog;
-    
+
+    private ILocalizationService localization;
+    private int cachedEarnedCoins;
+    private bool hasEarnedCoins;
+
     public event System.Action NextLevelClicked;
     public event System.Action MainMenuClicked;
 
     [Inject]
-    public void Construct() { }
-    
+    public void Construct(ILocalizationService localization)
+    {
+        this.localization = localization;
+        localization.LocaleChanged += OnLocaleChanged;
+    }
+
     protected override void Awake()
     {
         base.Awake();
         menuType = MenuType.WinMenu;
-        
-        // Subscribe to button clicks via code
+
         nextLevelButton.onClick.AddListener(() => NextLevelClicked?.Invoke());
         mainMenuButton.onClick.AddListener(() => MainMenuClicked?.Invoke());
     }
-    
+
     protected override void OnDestroy()
     {
-        // Unsubscribe to prevent memory leaks
         nextLevelButton.onClick.RemoveAllListeners();
         mainMenuButton.onClick.RemoveAllListeners();
+        if (localization != null)
+            localization.LocaleChanged -= OnLocaleChanged;
         base.OnDestroy();
-    }
-    
-    public override void Open()
-    {
-        base.Open();
     }
 
     public void SetEarnedCoins(int coins)
     {
-        coinCountText.text = $"+{coins} coins earned";
+        cachedEarnedCoins = coins;
+        hasEarnedCoins = true;
+
+        if (localization == null)
+        {
+            coinCountText.text = $"+{coins} coins earned";
+            return;
+        }
+
+        coinCountText.text = localization.Get(LocalizationKeys.WinCoinsEarned, coins);
     }
 
     public void SetNextLevelButtonVisible(bool isVisible)
     {
         nextLevelButton.gameObject.SetActive(isVisible);
+    }
+
+    private void OnLocaleChanged()
+    {
+        if (hasEarnedCoins)
+            SetEarnedCoins(cachedEarnedCoins);
     }
 }

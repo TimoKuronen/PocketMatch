@@ -14,6 +14,7 @@ public class MainMenuPresenter : IStartable, IDisposable
     private readonly MenuStackManager menuStackManager;
     private readonly ILevelSelectView levelSelectView;
     private readonly IMainMenuSettingsView settingsView;
+    private readonly ILocalizationService localization;
 
     public MainMenuPresenter(
         IMainMenuView view,
@@ -21,7 +22,8 @@ public class MainMenuPresenter : IStartable, IDisposable
         IAdsService adsService,
         MenuStackManager menuStackManager,
         ILevelSelectView levelSelectView,
-        IMainMenuSettingsView settingsView)
+        IMainMenuSettingsView settingsView,
+        ILocalizationService localization)
     {
         this.view = view;
         this.economyService = economyService;
@@ -29,6 +31,7 @@ public class MainMenuPresenter : IStartable, IDisposable
         this.menuStackManager = menuStackManager;
         this.levelSelectView = levelSelectView;
         this.settingsView = settingsView;
+        this.localization = localization;
     }
 
     public void Start()
@@ -36,6 +39,7 @@ public class MainMenuPresenter : IStartable, IDisposable
         view.PlayClicked += OnPlayClicked;
         view.SettingsClicked += OnSettingsClicked;
         economyService.OnBalanceChanged += OnBalanceChanged;
+        localization.LocaleChanged += OnLocaleChanged;
 
         InitializeView();
         ShowBannerWhenReadyAsync().Forget();
@@ -43,8 +47,25 @@ public class MainMenuPresenter : IStartable, IDisposable
 
     private void InitializeView()
     {
+        if (!localization.IsReady)
+            return;
+
         view.SetCoinCount(economyService.Balance);
-        view.SetVersion($"v{UnityEngine.Application.version}");
+        RefreshVersion();
+    }
+
+    private void OnLocaleChanged()
+    {
+        if (!localization.IsReady)
+            return;
+
+        RefreshVersion();
+        view.SetCoinCount(economyService.Balance);
+    }
+
+    private void RefreshVersion()
+    {
+        view.SetVersion(localization.Get(LocalizationKeys.CommonVersion, Application.version));
     }
 
     private async UniTaskVoid ShowBannerWhenReadyAsync()
@@ -95,6 +116,9 @@ public class MainMenuPresenter : IStartable, IDisposable
 
     private void OnBalanceChanged(int balance)
     {
+        if (!localization.IsReady)
+            return;
+
         view.SetCoinCount(balance);
     }
 
@@ -103,5 +127,6 @@ public class MainMenuPresenter : IStartable, IDisposable
         view.PlayClicked -= OnPlayClicked;
         view.SettingsClicked -= OnSettingsClicked;
         economyService.OnBalanceChanged -= OnBalanceChanged;
+        localization.LocaleChanged -= OnLocaleChanged;
     }
 }

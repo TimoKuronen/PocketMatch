@@ -8,7 +8,7 @@ using UnityEngine;
 /// </summary>
 public static class BoardDataViewValidator
 {
-    private const string MenuPath = "Limekicker/Validate Board Data vs View";
+    private const string MenuPath = "PocketMatch/Debug/Validate Board Data vs View";
 
     [MenuItem(MenuPath)]
     public static void ValidateBoardDataVsView()

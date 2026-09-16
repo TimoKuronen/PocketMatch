@@ -317,14 +317,6 @@ public static class LocalizationFoundationSetup
                 return collection;
         }
 
-        // Legacy handoff name from early Localizer round-trips.
-        if (string.Equals(fileName, "ui-for-localizer", System.StringComparison.OrdinalIgnoreCase))
-        {
-            var ui = LocalizationEditorSettings.GetStringTableCollection(LocalizationKeys.UiTable);
-            if (ui != null)
-                return ui;
-        }
-
         var names = new StringBuilder();
         foreach (var collection in collections)
         {

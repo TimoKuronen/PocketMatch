@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Localization;
@@ -46,19 +47,9 @@ public sealed class LocalizationService : ILocalizationService, IStartable, IDis
         return LocalizationSettings.StringDatabase.GetLocalizedString(LocalizationKeys.UiTable, key, args);
     }
 
-    public void SetLocaleCode(string localeCode)
+    public async UniTask WaitUntilReadyAsync(CancellationToken cancellationToken = default)
     {
-        if (!CanReadTables() || string.IsNullOrEmpty(localeCode))
-            return;
-
-        var locale = LocalizationSettings.AvailableLocales.GetLocale(localeCode);
-        if (locale == null)
-        {
-            Debug.LogWarning($"[Localization] Locale not found: {localeCode}");
-            return;
-        }
-
-        LocalizationSettings.SelectedLocale = locale;
+        await UniTask.WaitUntil(() => isReady || disposed, cancellationToken: cancellationToken);
     }
 
     public void Dispose()

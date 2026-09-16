@@ -6,7 +6,7 @@ public class GameInfoPanel : EditorWindow
 {
     bool subscribedToEvents = false;
 
-    [MenuItem("Limekicker/GameInfoPanel")]
+    [MenuItem("PocketMatch/Debug/Game Info Panel")]
     public static void ShowWindow()
     {
         GetWindow<GameInfoPanel>("Game Info Panel");

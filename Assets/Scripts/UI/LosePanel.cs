@@ -56,7 +56,7 @@ public class LosePanel : UIMenu, ILoseView
 
     public void SetWalletBalance(int balance)
     {
-        if (localization == null)
+        if (localization == null || !localization.IsReady)
         {
             walletBalanceText.text = $"x {balance}";
             return;

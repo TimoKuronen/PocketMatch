@@ -113,6 +113,23 @@ public sealed class LocalizationService : ILocalizationService, IStartable, IDis
         if (disposed || !isReady)
             return;
 
+        // Empty target-locale cells fall back to the project locale; preload it after a switch.
+        var projectLocale = LocalizationSettings.ProjectLocale;
+        var selected = LocalizationSettings.SelectedLocale;
+        if (projectLocale != null && selected != null && projectLocale.Identifier != selected.Identifier)
+        {
+            var fallbackHandle = LocalizationSettings.StringDatabase.GetTableAsync(
+                LocalizationKeys.UiTable,
+                projectLocale);
+            await UniTask.WaitUntil(() => fallbackHandle.IsDone || disposed);
+            if (disposed || !isReady)
+                return;
+        }
+
+        await UniTask.Yield(PlayerLoopTiming.Update);
+        if (disposed || !isReady)
+            return;
+
         LocaleChanged?.Invoke();
     }
 }

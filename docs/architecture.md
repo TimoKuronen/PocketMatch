@@ -134,9 +134,9 @@ Continue is once per attempt via coins.
 - Runtime lookup goes through `ILocalizationService` / `LocalizationService` (bootstrap singleton)
 - Static TMP chrome uses `LocalizedTmpLabel`; dynamic HUD/dialog copy is set from presenters/panels
 - Startup locale: device/system via Unity selectors, with `en` fallback
+- Empty `es` cells fall back to `en` until Localizer-approved CSV import (no player-facing MISSING text)
 - Editor Play Mode: Game View locale dropdown (Unity Localization, on by default)
-- Debug override: `DebugToolsSettings.localeOverride` (DeviceDefault / English / Spanish) for editor and development builds
-- Localizer interchange: Unity String Table CSV only (`Assets/Localization/Export/ui-sample.csv` sample). Catalog JSON stays out of this repo.
+- Localizer interchange: Unity String Table CSV only. Export/import via **PocketMatch > Localization** menus (`Assets/Localization/Export/{TableCollectionName}.csv`). Catalog JSON stays out of this repo.
 
 Create or refresh assets with **PocketMatch > Localization > Create Foundation**.
 

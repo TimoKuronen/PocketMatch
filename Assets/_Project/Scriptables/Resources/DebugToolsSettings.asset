@@ -14,4 +14,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startingCoinsOverride: 500
   applyOnlyOnFreshSave: 1
-  localeOverride: 0

@@ -34,6 +34,15 @@ public class LosePresenter : IStartable, IDisposable
         view.ContinueWithAdClicked += OnContinueWithAdClicked;
         view.Opened += RefreshContinueOptions;
         economyService.OnBalanceChanged += OnBalanceChanged;
+        localization.LocaleChanged += OnLocaleChanged;
+    }
+
+    private void OnLocaleChanged()
+    {
+        if (view is IMenu menu && !menu.IsOpen)
+            return;
+
+        RefreshContinueOptions();
     }
 
     private void RefreshContinueOptions()
@@ -92,5 +101,6 @@ public class LosePresenter : IStartable, IDisposable
         view.ContinueWithAdClicked -= OnContinueWithAdClicked;
         view.Opened -= RefreshContinueOptions;
         economyService.OnBalanceChanged -= OnBalanceChanged;
+        localization.LocaleChanged -= OnLocaleChanged;
     }
 }

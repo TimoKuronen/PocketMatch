@@ -1,6 +1,6 @@
 Key,Id,English(en),Spanish(es)
-ui.win.title,0,You won!,¡Ganaste!
-ui.win.next_level,1,Next Level,Siguiente nivel
-ui.win.coins_earned,2,+{0} coins earned,+{0} monedas ganadas
-ui.lose.title,3,Out of moves!,¡Sin movimientos!
-ui.lose.continue_coins,4,Continue: Buy with coins,Continuar: Comprar con monedas
+ui.win.title,0,You won!,
+ui.win.next_level,1,Next Level,
+ui.win.coins_earned,2,+{0} coins earned,
+ui.lose.title,3,Out of moves!,
+ui.lose.continue_coins,4,Continue: Buy with coins,

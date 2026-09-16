@@ -6,7 +6,7 @@ using UnityEngine.Localization.Settings;
 using VContainer.Unity;
 
 /// <summary>
-/// Boots Unity Localization, applies optional debug locale override, and exposes string lookup.
+/// Boots Unity Localization and exposes string lookup.
 /// Avoids WaitForCompletion inside Addressables callbacks (reentrancy).
 /// </summary>
 public sealed class LocalizationService : ILocalizationService, IStartable, IDisposable
@@ -89,8 +89,6 @@ public sealed class LocalizationService : ILocalizationService, IStartable, IDis
         if (disposed)
             return;
 
-        ApplyDebugLocaleOverride();
-
         var tableHandle = LocalizationSettings.StringDatabase.GetTableAsync(LocalizationKeys.UiTable);
         await UniTask.WaitUntil(() => tableHandle.IsDone || disposed);
         if (disposed)
@@ -103,29 +101,6 @@ public sealed class LocalizationService : ILocalizationService, IStartable, IDis
         LocalizationSettings.SelectedLocaleChanged += OnSelectedLocaleChanged;
         isReady = true;
         LocaleChanged?.Invoke();
-    }
-
-    private void ApplyDebugLocaleOverride()
-    {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (!DebugTools.IsEnabled)
-            return;
-
-        var settings = DebugToolsSettings.Load();
-        var code = settings.GetLocaleOverrideCode();
-        if (string.IsNullOrEmpty(code))
-            return;
-
-        var locale = LocalizationSettings.AvailableLocales.GetLocale(code);
-        if (locale == null)
-        {
-            Debug.LogWarning($"[Localization] Debug locale override '{code}' not found.");
-            return;
-        }
-
-        LocalizationSettings.SelectedLocale = locale;
-        Debug.Log($"[Localization] Applied debug locale override: {code}");
-#endif
     }
 
     private void OnSelectedLocaleChanged(Locale _)

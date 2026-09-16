@@ -15,72 +15,20 @@ MonoBehaviour:
   m_TableCollectionName: UI
   m_TableCollectionNameGuidString: 2ad5a57f67e66d847948ca913c266fea
   m_Entries:
-  - m_Id: 10547617792
-    m_Key: ui.win.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11222900736
-    m_Key: ui.win.next_level
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11222900737
-    m_Key: ui.win.coins_earned
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11227095040
-    m_Key: ui.lose.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483648
-    m_Key: ui.lose.continue_coins
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483649
-    m_Key: ui.lose.continue_ad
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483650
-    m_Key: ui.pause.confirm_retry
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483651
-    m_Key: ui.menu.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483652
-    m_Key: ui.menu.play
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483653
-    m_Key: ui.menu.levels_title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483654
-    m_Key: ui.hud.puzzle_index
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483655
-    m_Key: ui.hud.moves
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483656
-    m_Key: ui.loading.message
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483657
-    m_Key: ui.common.menu
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483658
-    m_Key: ui.common.retry
-    m_Metadata:
-      m_Items: []
   - m_Id: 11235483659
     m_Key: ui.common.back
     m_Metadata:
       m_Items: []
+  - m_Id: 11235483664
+    m_Key: ui.common.coin_balance
+    m_Metadata:
+      m_Items: []
   - m_Id: 11235483660
     m_Key: ui.common.confirm_main_menu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483663
+    m_Key: ui.common.confirm_no
     m_Metadata:
       m_Items: []
   - m_Id: 11235483661
@@ -91,16 +39,20 @@ MonoBehaviour:
     m_Key: ui.common.confirm_yes
     m_Metadata:
       m_Items: []
-  - m_Id: 11235483663
-    m_Key: ui.common.confirm_no
-    m_Metadata:
-      m_Items: []
-  - m_Id: 11235483664
-    m_Key: ui.common.coin_balance
-    m_Metadata:
-      m_Items: []
   - m_Id: 11235483665
     m_Key: ui.common.copyright
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483657
+    m_Key: ui.common.menu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483658
+    m_Key: ui.common.retry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483668
+    m_Key: ui.common.sfx_volume
     m_Metadata:
       m_Items: []
   - m_Id: 11235483666
@@ -111,8 +63,56 @@ MonoBehaviour:
     m_Key: ui.common.version_build
     m_Metadata:
       m_Items: []
-  - m_Id: 11235483668
-    m_Key: ui.common.sfx_volume
+  - m_Id: 11235483655
+    m_Key: ui.hud.moves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483654
+    m_Key: ui.hud.puzzle_index
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483656
+    m_Key: ui.loading.message
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483649
+    m_Key: ui.lose.continue_ad
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483648
+    m_Key: ui.lose.continue_coins
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11227095040
+    m_Key: ui.lose.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483653
+    m_Key: ui.menu.levels_title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483652
+    m_Key: ui.menu.play
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483651
+    m_Key: ui.menu.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483650
+    m_Key: ui.pause.confirm_retry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11222900737
+    m_Key: ui.win.coins_earned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11222900736
+    m_Key: ui.win.next_level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 10547617792
+    m_Key: ui.win.title
     m_Metadata:
       m_Items: []
   m_Metadata:

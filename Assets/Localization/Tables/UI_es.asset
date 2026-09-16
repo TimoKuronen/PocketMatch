@@ -20,109 +20,109 @@ MonoBehaviour:
     - rid: 9210449710821408987
   m_TableData:
   - m_Id: 10547617792
-    m_Localized: "\xA1Ganaste!"
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11222900736
-    m_Localized: Siguiente nivel
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11222900737
-    m_Localized: +{0} monedas ganadas
+    m_Localized: 
     m_Metadata:
       m_Items:
       - rid: 9210449710821408987
   - m_Id: 11227095040
-    m_Localized: "\xA1Sin movimientos!"
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483648
-    m_Localized: 'Continuar: Comprar con monedas'
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483649
-    m_Localized: 'Continuar: Ver anuncio'
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483650
-    m_Localized: "\xBFSeguro que quieres reintentar este nivel?"
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483651
-    m_Localized: Rune Match
+    m_Localized: Same In Spanish
     m_Metadata:
       m_Items: []
   - m_Id: 11235483652
-    m_Localized: Jugar
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483653
-    m_Localized: Niveles
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483654
-    m_Localized: Puzzle #{0}
+    m_Localized: 
     m_Metadata:
       m_Items:
       - rid: 9210449710821408987
   - m_Id: 11235483655
-    m_Localized: 'Movimientos: {0}'
+    m_Localized: 
     m_Metadata:
       m_Items:
       - rid: 9210449710821408987
   - m_Id: 11235483656
-    m_Localized: Cargando
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483657
-    m_Localized: "Men\xFA"
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483658
-    m_Localized: Reintentar
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483659
-    m_Localized: "Atr\xE1s"
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483660
-    m_Localized: "\xBFSeguro que quieres volver al men\xFA principal?"
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483661
-    m_Localized: "\xBFEst\xE1s seguro?"
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483662
-    m_Localized: "S\xED"
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483663
-    m_Localized: No
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483664
-    m_Localized: x {0}
+    m_Localized: 
     m_Metadata:
       m_Items:
       - rid: 9210449710821408987
   - m_Id: 11235483665
-    m_Localized: Copyright @Timo Kuronen
+    m_Localized: 
     m_Metadata:
       m_Items: []
   - m_Id: 11235483666
-    m_Localized: v{0}
+    m_Localized: 
     m_Metadata:
       m_Items:
       - rid: 9210449710821408987
   - m_Id: 11235483667
-    m_Localized: v{0} ({1})
+    m_Localized: 
     m_Metadata:
       m_Items:
       - rid: 9210449710821408987
   - m_Id: 11235483668
-    m_Localized: Volumen SFX
+    m_Localized: 
     m_Metadata:
       m_Items: []
   references:

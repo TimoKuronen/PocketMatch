@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Localization;
@@ -46,19 +47,9 @@ public sealed class LocalizationService : ILocalizationService, IStartable, IDis
         return LocalizationSettings.StringDatabase.GetLocalizedString(LocalizationKeys.UiTable, key, args);
     }
 
-    public void SetLocaleCode(string localeCode)
+    public async UniTask WaitUntilReadyAsync(CancellationToken cancellationToken = default)
     {
-        if (!CanReadTables() || string.IsNullOrEmpty(localeCode))
-            return;
-
-        var locale = LocalizationSettings.AvailableLocales.GetLocale(localeCode);
-        if (locale == null)
-        {
-            Debug.LogWarning($"[Localization] Locale not found: {localeCode}");
-            return;
-        }
-
-        LocalizationSettings.SelectedLocale = locale;
+        await UniTask.WaitUntil(() => isReady || disposed, cancellationToken: cancellationToken);
     }
 
     public void Dispose()
@@ -119,6 +110,23 @@ public sealed class LocalizationService : ILocalizationService, IStartable, IDis
 
         var tableHandle = LocalizationSettings.StringDatabase.GetTableAsync(LocalizationKeys.UiTable);
         await UniTask.WaitUntil(() => tableHandle.IsDone || disposed);
+        if (disposed || !isReady)
+            return;
+
+        // Empty target-locale cells fall back to the project locale; preload it after a switch.
+        var projectLocale = LocalizationSettings.ProjectLocale;
+        var selected = LocalizationSettings.SelectedLocale;
+        if (projectLocale != null && selected != null && projectLocale.Identifier != selected.Identifier)
+        {
+            var fallbackHandle = LocalizationSettings.StringDatabase.GetTableAsync(
+                LocalizationKeys.UiTable,
+                projectLocale);
+            await UniTask.WaitUntil(() => fallbackHandle.IsDone || disposed);
+            if (disposed || !isReady)
+                return;
+        }
+
+        await UniTask.Yield(PlayerLoopTiming.Update);
         if (disposed || !isReady)
             return;
 

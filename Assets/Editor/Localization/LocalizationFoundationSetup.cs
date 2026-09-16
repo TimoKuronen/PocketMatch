@@ -7,6 +7,7 @@ using UnityEditor.Localization;
 using UnityEditor.Localization.Plugins.CSV;
 using UnityEngine;
 using UnityEngine.Localization;
+using UnityEngine.Localization.Metadata;
 using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Tables;
 
@@ -85,6 +86,7 @@ public static class LocalizationFoundationSetup
 
         LocalizationEditorSettings.AddLocale(english);
         LocalizationEditorSettings.AddLocale(spanish);
+        EnsureLocaleFallback(spanish, english);
         LocalizationEditorSettings.ActiveLocalizationSettings = settings;
         LocalizationEditorSettings.ShowLocaleMenuInGameView = true;
 
@@ -190,11 +192,31 @@ public static class LocalizationFoundationSetup
         foreach (var entry in esTable.Values)
             entry.Value = string.Empty;
 
+        var english = LocalizationEditorSettings.GetLocale("en");
+        var spanish = LocalizationEditorSettings.GetLocale("es");
+        EnsureLocaleFallback(spanish, english);
+
         EditorUtility.SetDirty(esTable);
         AssetDatabase.SaveAssets();
         WriteSampleCsv();
         AssetDatabase.Refresh();
-        Debug.Log("[Localization] Cleared Spanish UI entries. Empty es falls back to en until CSV merge.");
+        Debug.Log("[Localization] Cleared Spanish UI entries. Empty es falls back to en via Spanish Fallback Locale metadata until CSV merge.");
+    }
+
+    [MenuItem("PocketMatch/Localization/Ensure Spanish Falls Back to English")]
+    public static void EnsureSpanishFallsBackToEnglishMenu()
+    {
+        var english = LocalizationEditorSettings.GetLocale("en");
+        var spanish = LocalizationEditorSettings.GetLocale("es");
+        if (english == null || spanish == null)
+        {
+            Debug.LogError("[Localization] en/es locales not found. Run Create Foundation first.");
+            return;
+        }
+
+        EnsureLocaleFallback(spanish, english);
+        AssetDatabase.SaveAssets();
+        Debug.Log("[Localization] Spanish Fallback Locale set to English.");
     }
 
     private static void EnsureFolders()
@@ -240,6 +262,26 @@ public static class LocalizationFoundationSetup
         locale.name = $"{displayName} ({code})";
         AssetDatabase.CreateAsset(locale, path);
         return locale;
+    }
+
+    private static void EnsureLocaleFallback(Locale locale, Locale fallback)
+    {
+        if (locale == null || fallback == null || locale == fallback)
+            return;
+
+        var existing = locale.Metadata.GetMetadata<FallbackLocale>();
+        if (existing != null)
+        {
+            if (existing.Locale == fallback)
+                return;
+
+            existing.Locale = fallback;
+            EditorUtility.SetDirty(locale);
+            return;
+        }
+
+        locale.Metadata.AddMetadata(new FallbackLocale(fallback));
+        EditorUtility.SetDirty(locale);
     }
 
     private static void PopulateTables(StringTableCollection collection, Locale english, Locale spanish)
@@ -315,14 +357,6 @@ public static class LocalizationFoundationSetup
         {
             if (string.Equals(collection.TableCollectionName, fileName, System.StringComparison.OrdinalIgnoreCase))
                 return collection;
-        }
-
-        // Legacy handoff name from early Localizer round-trips.
-        if (string.Equals(fileName, "ui-for-localizer", System.StringComparison.OrdinalIgnoreCase))
-        {
-            var ui = LocalizationEditorSettings.GetStringTableCollection(LocalizationKeys.UiTable);
-            if (ui != null)
-                return ui;
         }
 
         var names = new StringBuilder();

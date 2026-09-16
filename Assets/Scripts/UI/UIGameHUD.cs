@@ -76,16 +76,16 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
         cachedBalance = balance;
         hasBalance = true;
 
-        if (localization != null)
+        if (localization == null || !localization.IsReady)
         {
-            coinCountText.text = localization.Get(LocalizationKeys.CommonCoinBalance, balance);
+            sb.Clear();
+            sb.Append("x ");
+            sb.Append(balance);
+            coinCountText.text = sb.ToString();
             return;
         }
 
-        sb.Clear();
-        sb.Append("x ");
-        sb.Append(balance);
-        coinCountText.text = sb.ToString();
+        coinCountText.text = localization.Get(LocalizationKeys.CommonCoinBalance, balance);
     }
 
     public void SetLevelIndex(int levelIndex)
@@ -184,16 +184,16 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 
     private void UpdatePuzzleIndexText(int levelIndex)
     {
-        if (localization != null)
+        if (localization == null || !localization.IsReady)
         {
-            currentLevelText.text = localization.Get(LocalizationKeys.HudPuzzleIndex, levelIndex);
+            sb.Clear();
+            sb.Append("Puzzle #");
+            sb.Append(levelIndex);
+            currentLevelText.text = sb.ToString();
             return;
         }
 
-        sb.Clear();
-        sb.Append("Puzzle #");
-        sb.Append(levelIndex);
-        currentLevelText.text = sb.ToString();
+        currentLevelText.text = localization.Get(LocalizationKeys.HudPuzzleIndex, levelIndex);
     }
 
     private void UpdateMovesText(int moves)
@@ -201,16 +201,16 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
         cachedMoves = moves;
         hasMoves = true;
 
-        if (localization != null)
+        if (localization == null || !localization.IsReady)
         {
-            movesText.text = localization.Get(LocalizationKeys.HudMoves, moves);
+            sb.Clear();
+            sb.Append("Moves: ");
+            sb.Append(moves);
+            movesText.text = sb.ToString();
             return;
         }
 
-        sb.Clear();
-        sb.Append("Moves: ");
-        sb.Append(moves);
-        movesText.text = sb.ToString();
+        movesText.text = localization.Get(LocalizationKeys.HudMoves, moves);
     }
 
     private void HideAllVictoryConditions()

@@ -1,7 +1,5 @@
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Localization.Settings;
 
 /// <summary>
 /// Binds a TMP label to a UI string table key and refreshes when the selected locale changes.
@@ -13,7 +11,7 @@ public sealed class LocalizedTmpLabel : MonoBehaviour
     [SerializeField] private string entryKey;
     [SerializeField] private TextMeshProUGUI target;
 
-    private int refreshVersion;
+    private ILocalizationService localization;
 
     private void Awake()
     {
@@ -23,58 +21,52 @@ public sealed class LocalizedTmpLabel : MonoBehaviour
 
     private void OnEnable()
     {
-        LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
-        Refresh();
+        TryBind();
+    }
+
+    private void Start()
+    {
+        if (localization == null)
+            TryBind();
     }
 
     private void OnDisable()
     {
-        LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
-        refreshVersion++;
+        if (localization == null)
+            return;
+
+        localization.LocaleChanged -= OnLocaleChanged;
+        localization = null;
+    }
+
+    private void TryBind()
+    {
+        if (localization != null)
+            return;
+
+        if (!LocalizationServiceAccess.TryGet(out localization))
+            return;
+
+        localization.LocaleChanged += OnLocaleChanged;
+        ApplyText();
     }
 
     public void SetKey(string key)
     {
         entryKey = key;
-        Refresh();
+        ApplyText();
     }
 
-    private void OnLocaleChanged(UnityEngine.Localization.Locale _)
+    private void OnLocaleChanged()
     {
-        Refresh();
-    }
-
-    private void Refresh()
-    {
-        if (target == null || string.IsNullOrEmpty(entryKey) || !LocalizationSettings.HasSettings)
-            return;
-
-        refreshVersion++;
-        RefreshAsync(refreshVersion).Forget();
-    }
-
-    private async UniTaskVoid RefreshAsync(int version)
-    {
-        var init = LocalizationSettings.InitializationOperation;
-        await UniTask.WaitUntil(() => init.IsDone || version != refreshVersion);
-        if (version != refreshVersion || this == null)
-            return;
-
-        // Sync GetLocalizedString must not run inside Addressables completion callbacks.
-        await UniTask.Yield(PlayerLoopTiming.Update);
-        if (version != refreshVersion || this == null || !isActiveAndEnabled)
-            return;
-
         ApplyText();
     }
 
     private void ApplyText()
     {
-        if (target == null || string.IsNullOrEmpty(entryKey) || !LocalizationSettings.HasSettings)
+        if (target == null || string.IsNullOrEmpty(entryKey) || localization == null || !localization.IsReady)
             return;
 
-        target.text = LocalizationSettings.StringDatabase.GetLocalizedString(
-            LocalizationKeys.UiTable,
-            entryKey);
+        target.text = localization.Get(entryKey);
     }
 }

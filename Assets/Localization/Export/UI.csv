@@ -1,5 +1,5 @@
 Key,Id,English(en),Spanish(es)
-ui.common.back,11235483659,Back,Jugar
+ui.common.back,11235483659,Back,
 ui.common.coin_balance,11235483664,x {0},
 ui.common.confirm_main_menu,11235483660,Are you sure you want to return to the main menu?,
 ui.common.confirm_no,11235483663,Nope,

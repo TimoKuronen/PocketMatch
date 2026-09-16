@@ -1,7 +1,5 @@
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 
 public class LoadingProgressBar : MonoBehaviour
@@ -12,18 +10,38 @@ public class LoadingProgressBar : MonoBehaviour
     private float timer;
     private int dotPhase;
     private string baseMessage = "Loading";
-    private int refreshVersion;
+    private ILocalizationService localization;
 
     private void OnEnable()
     {
-        LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
-        RefreshBaseMessage();
+        TryBind();
+    }
+
+    private void Start()
+    {
+        if (localization == null)
+            TryBind();
     }
 
     private void OnDisable()
     {
-        LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
-        refreshVersion++;
+        if (localization == null)
+            return;
+
+        localization.LocaleChanged -= OnLocaleChanged;
+        localization = null;
+    }
+
+    private void TryBind()
+    {
+        if (localization != null)
+            return;
+
+        if (!LocalizationServiceAccess.TryGet(out localization))
+            return;
+
+        localization.LocaleChanged += OnLocaleChanged;
+        RefreshBaseMessage();
     }
 
     private void Update()
@@ -39,34 +57,17 @@ public class LoadingProgressBar : MonoBehaviour
         }
     }
 
-    private void OnLocaleChanged(UnityEngine.Localization.Locale _)
+    private void OnLocaleChanged()
     {
         RefreshBaseMessage();
     }
 
     private void RefreshBaseMessage()
     {
-        if (!LocalizationSettings.HasSettings)
+        if (localization == null || !localization.IsReady)
             return;
 
-        refreshVersion++;
-        RefreshBaseMessageAsync(refreshVersion).Forget();
-    }
-
-    private async UniTaskVoid RefreshBaseMessageAsync(int version)
-    {
-        var init = LocalizationSettings.InitializationOperation;
-        await UniTask.WaitUntil(() => init.IsDone || version != refreshVersion);
-        if (version != refreshVersion || this == null)
-            return;
-
-        await UniTask.Yield(PlayerLoopTiming.Update);
-        if (version != refreshVersion || this == null || !isActiveAndEnabled)
-            return;
-
-        baseMessage = LocalizationSettings.StringDatabase.GetLocalizedString(
-            LocalizationKeys.UiTable,
-            LocalizationKeys.LoadingMessage);
+        baseMessage = localization.Get(LocalizationKeys.LoadingMessage);
         ApplyText();
     }
 

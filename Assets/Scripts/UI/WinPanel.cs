@@ -51,7 +51,7 @@ public class WinPanel : UIMenu, IWinView
         cachedEarnedCoins = coins;
         hasEarnedCoins = true;
 
-        if (localization == null)
+        if (localization == null || !localization.IsReady)
         {
             coinCountText.text = $"+{coins} coins earned";
             return;

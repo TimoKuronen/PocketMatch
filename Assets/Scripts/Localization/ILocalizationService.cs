@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 
 /// <summary>
 /// Thin lookup seam over Unity Localization so presenters are not tied to LocalizationSettings calls.
@@ -13,5 +15,5 @@ public interface ILocalizationService
 
     string Get(string key, params object[] args);
 
-    void SetLocaleCode(string localeCode);
+    UniTask WaitUntilReadyAsync(CancellationToken cancellationToken = default);
 }

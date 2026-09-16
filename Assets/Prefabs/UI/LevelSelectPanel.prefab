@@ -96,9 +96,9 @@ MonoBehaviour:
   m_fontSize: 100
   m_fontSizeBase: 100
   m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_enableAutoSizing: 1
+  m_fontSizeMin: 24
+  m_fontSizeMax: 100
   m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -1114,6 +1114,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5943467580780543522}
     m_Modifications:
+    - target: {fileID: 635958030962339070, guid: 6c0573c15e63f364bbb934f29e74926d, type: 3}
+      propertyPath: m_fontSizeMin
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 635958030962339070, guid: 6c0573c15e63f364bbb934f29e74926d, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4775532495737541233, guid: 6c0573c15e63f364bbb934f29e74926d, type: 3}
       propertyPath: m_Pivot.x
       value: 0

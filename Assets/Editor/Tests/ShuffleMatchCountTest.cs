@@ -55,23 +55,29 @@ public class ShuffleMatchCountTest
 
     private TileData[,] CreateTestGrid(int width, int height)
     {
+        // Shuffle only permutes existing types, so the bag must include multiple colors.
+        TileType[] types =
+        {
+            TileType.Red,
+            TileType.Blue,
+            TileType.Green,
+            TileType.Yellow
+        };
+
         TileData[,] grid = new TileData[width, height];
-        
-        // Create a simple grid with all normal tiles
-        // Types will be randomized by the shuffle function
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
+                TileType type = types[(x + y * 3) % types.Length];
                 grid[x, y] = new TileData(
-                    TileType.Red, // Initial type, will be shuffled
+                    type,
                     new Vector2Int(x, y),
                     TilePower.None,
-                    TileState.Normal
-                );
+                    TileState.Normal);
             }
         }
-        
+
         return grid;
     }
 }

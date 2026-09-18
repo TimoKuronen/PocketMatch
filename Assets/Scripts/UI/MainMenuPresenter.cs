@@ -87,7 +87,7 @@ public class MainMenuPresenter : IStartable, IDisposable
 
     private async UniTaskVoid ShowBannerWhenReadyAsync()
     {
-        var token = UnityEngine.Object.FindFirstObjectByType<MainMenuRoot>()?.GetCancellationTokenOnDestroy() ?? default;
+        var token = UnityEngine.Object.FindFirstObjectByType<MainMenuPanel>()?.GetCancellationTokenOnDestroy() ?? default;
 
         if (token.CanBeCanceled)
         {

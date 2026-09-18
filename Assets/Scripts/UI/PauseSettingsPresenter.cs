@@ -9,15 +9,13 @@ public class PauseSettingsPresenter : IStartable, IDisposable
     private readonly IAudioService audioService;
     private readonly ConfirmationDialog confirmationDialog;
     private readonly ILocalizationService localization;
-    private readonly ISaveService saveService;
 
     public PauseSettingsPresenter(
         IPauseSettingsView view,
         MenuStackManager menuStackManager,
         IAudioService audioService,
         ConfirmationDialog confirmationDialog,
-        ILocalizationService localization,
-        ISaveService saveService)
+        ILocalizationService localization)
     {
         this.view = view;
         this.settingsMenu = view as IMenu;
@@ -25,7 +23,6 @@ public class PauseSettingsPresenter : IStartable, IDisposable
         this.audioService = audioService;
         this.confirmationDialog = confirmationDialog;
         this.localization = localization;
-        this.saveService = saveService;
     }
 
     public void Start()
@@ -37,36 +34,11 @@ public class PauseSettingsPresenter : IStartable, IDisposable
         view.RetryClicked += OnRetryClicked;
         view.MenuClicked += OnMenuClicked;
         view.SfxVolumeChanged += OnSfxVolumeChanged;
-        localization.LocaleChanged += OnLocaleChanged;
-        saveService.CloudSyncStatusChanged += OnCloudSyncStatusChanged;
     }
 
     private void OnSettingsOpened()
     {
         view.SetSfxVolume(audioService.SfxVolume);
-        RefreshFooter();
-    }
-
-    private void OnLocaleChanged()
-    {
-        if (settingsMenu != null && settingsMenu.IsOpen)
-            RefreshFooter();
-    }
-
-    private void OnCloudSyncStatusChanged()
-    {
-        if (settingsMenu != null && settingsMenu.IsOpen)
-            RefreshFooter();
-    }
-
-    private void RefreshFooter()
-    {
-        string version = localization.Get(
-            LocalizationKeys.CommonVersionBuild,
-            UnityEngine.Application.version,
-            BuildInfo.AndroidVersionCode);
-        string cloud = CloudSyncStatusLabels.ToDisplay(saveService.CloudSyncStatus);
-        view.SetVersion($"{version}\n{cloud}");
     }
 
     private void OnCloseClicked()
@@ -117,7 +89,5 @@ public class PauseSettingsPresenter : IStartable, IDisposable
         view.RetryClicked -= OnRetryClicked;
         view.MenuClicked -= OnMenuClicked;
         view.SfxVolumeChanged -= OnSfxVolumeChanged;
-        localization.LocaleChanged -= OnLocaleChanged;
-        saveService.CloudSyncStatusChanged -= OnCloudSyncStatusChanged;
     }
 }

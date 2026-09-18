@@ -187,7 +187,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: -20, y: 60}
-  m_SizeDelta: {x: 150, y: 50}
+  m_SizeDelta: {x: 360, y: 56}
   m_Pivot: {x: 1, y: 0}
 --- !u!222 &2878100346434336324
 CanvasRenderer:
@@ -217,7 +217,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: BUILD 1.3.42
+  m_text: "v0.16 (0)\nCloud: waiting"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dedce0e4cf1b0f342b9b189f8d3d794f, type: 2}
   m_sharedMaterial: {fileID: -3991936931661018566, guid: dedce0e4cf1b0f342b9b189f8d3d794f, type: 2}

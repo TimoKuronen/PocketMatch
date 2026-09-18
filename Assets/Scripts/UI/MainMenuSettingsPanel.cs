@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,7 +5,6 @@ public class MainMenuSettingsPanel : UIMenu, IMainMenuSettingsView
 {
     [SerializeField] private Button closeButton;
     [SerializeField] private Slider sfxSlider;
-    [SerializeField] private TextMeshProUGUI versionText;
 
     public event System.Action CloseClicked;
     public event System.Action<float> SfxVolumeChanged;
@@ -24,12 +22,6 @@ public class MainMenuSettingsPanel : UIMenu, IMainMenuSettingsView
     {
         if (sfxSlider != null)
             sfxSlider.SetValueWithoutNotify(Mathf.Clamp01(value));
-    }
-
-    public void SetVersion(string version)
-    {
-        if (versionText != null)
-            versionText.text = version;
     }
 
     protected override void OnDestroy()

@@ -1,19 +1,19 @@
 /// <summary>
-/// Short English labels for settings footer. Sync status is diagnostic, not game copy.
+/// Maps cloud sync status to UI string-table keys for settings footers.
 /// </summary>
 public static class CloudSyncStatusLabels
 {
-    public static string ToDisplay(CloudSyncStatus status)
+    public static string ToKey(CloudSyncStatus status)
     {
         return status switch
         {
-            CloudSyncStatus.NotInitialized => "Cloud: waiting",
-            CloudSyncStatus.Ready => "Cloud: ready",
-            CloudSyncStatus.Offline => "Cloud: offline (local only)",
-            CloudSyncStatus.InitFailed => "Cloud: init failed (local only)",
-            CloudSyncStatus.UploadFailed => "Cloud: upload failed (local OK)",
-            CloudSyncStatus.AppliedFromCloud => "Cloud: applied over local",
-            _ => "Cloud: unknown"
+            CloudSyncStatus.NotInitialized => LocalizationKeys.CommonCloudWaiting,
+            CloudSyncStatus.Ready => LocalizationKeys.CommonCloudReady,
+            CloudSyncStatus.Offline => LocalizationKeys.CommonCloudOffline,
+            CloudSyncStatus.InitFailed => LocalizationKeys.CommonCloudInitFailed,
+            CloudSyncStatus.UploadFailed => LocalizationKeys.CommonCloudUploadFailed,
+            CloudSyncStatus.AppliedFromCloud => LocalizationKeys.CommonCloudApplied,
+            _ => LocalizationKeys.CommonCloudUnknown
         };
     }
 }

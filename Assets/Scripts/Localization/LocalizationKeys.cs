@@ -35,5 +35,14 @@ public static class LocalizationKeys
     public const string CommonCopyright = "ui.common.copyright";
     public const string CommonVersion = "ui.common.version";
     public const string CommonVersionBuild = "ui.common.version_build";
+    public const string CommonSettingsFooter = "ui.common.settings_footer";
     public const string CommonSfxVolume = "ui.common.sfx_volume";
+
+    public const string CommonCloudWaiting = "ui.common.cloud_waiting";
+    public const string CommonCloudReady = "ui.common.cloud_ready";
+    public const string CommonCloudOffline = "ui.common.cloud_offline";
+    public const string CommonCloudInitFailed = "ui.common.cloud_init_failed";
+    public const string CommonCloudUploadFailed = "ui.common.cloud_upload_failed";
+    public const string CommonCloudApplied = "ui.common.cloud_applied";
+    public const string CommonCloudUnknown = "ui.common.cloud_unknown";
 }

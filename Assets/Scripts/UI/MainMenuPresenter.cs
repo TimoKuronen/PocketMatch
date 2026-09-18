@@ -15,6 +15,7 @@ public class MainMenuPresenter : IStartable, IDisposable
     private readonly ILevelSelectView levelSelectView;
     private readonly IMainMenuSettingsView settingsView;
     private readonly ILocalizationService localization;
+    private readonly ISaveService saveService;
 
     public MainMenuPresenter(
         IMainMenuView view,
@@ -23,7 +24,8 @@ public class MainMenuPresenter : IStartable, IDisposable
         MenuStackManager menuStackManager,
         ILevelSelectView levelSelectView,
         IMainMenuSettingsView settingsView,
-        ILocalizationService localization)
+        ILocalizationService localization,
+        ISaveService saveService)
     {
         this.view = view;
         this.economyService = economyService;
@@ -32,6 +34,7 @@ public class MainMenuPresenter : IStartable, IDisposable
         this.levelSelectView = levelSelectView;
         this.settingsView = settingsView;
         this.localization = localization;
+        this.saveService = saveService;
     }
 
     public void Start()
@@ -40,6 +43,7 @@ public class MainMenuPresenter : IStartable, IDisposable
         view.SettingsClicked += OnSettingsClicked;
         economyService.OnBalanceChanged += OnBalanceChanged;
         localization.LocaleChanged += OnLocaleChanged;
+        saveService.CloudSyncStatusChanged += OnCloudSyncStatusChanged;
 
         InitializeView();
         ShowBannerWhenReadyAsync().Forget();
@@ -51,7 +55,7 @@ public class MainMenuPresenter : IStartable, IDisposable
             return;
 
         view.SetCoinCount(economyService.Balance);
-        RefreshVersion();
+        RefreshFooter();
     }
 
     private void OnLocaleChanged()
@@ -59,18 +63,31 @@ public class MainMenuPresenter : IStartable, IDisposable
         if (!localization.IsReady)
             return;
 
-        RefreshVersion();
+        RefreshFooter();
         view.SetCoinCount(economyService.Balance);
     }
 
-    private void RefreshVersion()
+    private void OnCloudSyncStatusChanged()
     {
-        view.SetVersion(localization.Get(LocalizationKeys.CommonVersion, Application.version));
+        if (!localization.IsReady)
+            return;
+
+        RefreshFooter();
+    }
+
+    private void RefreshFooter()
+    {
+        string version = localization.Get(
+            LocalizationKeys.CommonVersionBuild,
+            Application.version,
+            BuildInfo.AndroidVersionCode);
+        string cloud = localization.Get(CloudSyncStatusLabels.ToKey(saveService.CloudSyncStatus));
+        view.SetVersion(localization.Get(LocalizationKeys.CommonSettingsFooter, version, cloud));
     }
 
     private async UniTaskVoid ShowBannerWhenReadyAsync()
     {
-        var token = UnityEngine.Object.FindFirstObjectByType<MainMenuPanel>()?.GetCancellationTokenOnDestroy() ?? default;
+        var token = UnityEngine.Object.FindFirstObjectByType<MainMenuRoot>()?.GetCancellationTokenOnDestroy() ?? default;
 
         if (token.CanBeCanceled)
         {
@@ -128,5 +145,6 @@ public class MainMenuPresenter : IStartable, IDisposable
         view.SettingsClicked -= OnSettingsClicked;
         economyService.OnBalanceChanged -= OnBalanceChanged;
         localization.LocaleChanged -= OnLocaleChanged;
+        saveService.CloudSyncStatusChanged -= OnCloudSyncStatusChanged;
     }
 }

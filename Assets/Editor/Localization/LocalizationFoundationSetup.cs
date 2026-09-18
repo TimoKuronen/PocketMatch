@@ -47,9 +47,17 @@ public static class LocalizationFoundationSetup
         (LocalizationKeys.CommonConfirmYes, "Yep", false),
         (LocalizationKeys.CommonConfirmNo, "Nope", false),
         (LocalizationKeys.CommonCoinBalance, "x {0}", true),
+        (LocalizationKeys.CommonCloudWaiting, "Cloud: waiting", false),
+        (LocalizationKeys.CommonCloudReady, "Cloud: ready", false),
+        (LocalizationKeys.CommonCloudOffline, "Cloud: offline (local only)", false),
+        (LocalizationKeys.CommonCloudInitFailed, "Cloud: init failed (local only)", false),
+        (LocalizationKeys.CommonCloudUploadFailed, "Cloud: upload failed (local OK)", false),
+        (LocalizationKeys.CommonCloudApplied, "Cloud: applied over local", false),
+        (LocalizationKeys.CommonCloudUnknown, "Cloud: unknown", false),
         (LocalizationKeys.CommonCopyright, "Copyright @Timo Kuronen", false),
         (LocalizationKeys.CommonVersion, "v{0}", true),
         (LocalizationKeys.CommonVersionBuild, "v{0} ({1})", true),
+        (LocalizationKeys.CommonSettingsFooter, "{0}\n{1}", true),
         (LocalizationKeys.CommonSfxVolume, "SFX Volume", false),
     };
 

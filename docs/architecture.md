@@ -87,7 +87,7 @@ Editor builds simulate interstitial completion. Device builds initialize LevelPl
 - Local save is encrypted JSON at `Application.persistentDataPath/save.dat`
 - Boot loads local save immediately; cloud sync runs when Firebase is available
 - **Conflict policy (no merge):** if a cloud document exists on init download, it replaces in-memory and local disk data. There is no field merge and no last-write-wins comparison yet (`meta.lastSaveTime` is recorded for diagnostics only)
-- Upload / init failures leave the local save intact and set `ISaveService.CloudSyncStatus` (shown on settings footers)
+- Upload / init failures leave the local save intact and set `ISaveService.CloudSyncStatus` (shown on the main-menu footer)
 - `PlayerData.meta.saveVersion` is the schema version; `SaveService` runs `DataMigrator` when on-disk schema lags `SaveService.CurrentSaveVersion` (today: version bump only)
 - Offline play, local save, and analytics queuing continue when network or Firebase is unavailable
 - `PlayerData.coins` is the wallet field; all mutations go through `EconomyService` and sync with the full save blob

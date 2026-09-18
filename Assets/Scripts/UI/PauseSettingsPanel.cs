@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +7,6 @@ public class PauseSettingsPanel : UIMenu, IPauseSettingsView
     [SerializeField] private Button menuButton;
     [SerializeField] private Button closeButton;
     [SerializeField] private Slider sfxSlider;
-    [SerializeField] private TextMeshProUGUI versionText;
 
     public event System.Action CloseClicked;
     public event System.Action RetryClicked;
@@ -30,12 +28,6 @@ public class PauseSettingsPanel : UIMenu, IPauseSettingsView
     {
         if (sfxSlider != null)
             sfxSlider.SetValueWithoutNotify(Mathf.Clamp01(value));
-    }
-
-    public void SetVersion(string version)
-    {
-        if (versionText != null)
-            versionText.text = version;
     }
 
     protected override void OnDestroy()

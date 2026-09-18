@@ -3294,7 +3294,6 @@ MonoBehaviour:
   menuButton: {fileID: 1431469850340095077}
   closeButton: {fileID: 5860282357753348916}
   sfxSlider: {fileID: 2705186462287857879}
-  versionText: {fileID: 8812345678901234564}
 --- !u!1 &6051978452464154588
 GameObject:
   m_ObjectHideFlags: 0
@@ -5117,7 +5116,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8812345678901234562
 RectTransform:
   m_ObjectHideFlags: 0

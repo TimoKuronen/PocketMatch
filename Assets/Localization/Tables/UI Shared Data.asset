@@ -23,6 +23,34 @@ MonoBehaviour:
     m_Key: ui.common.coin_balance
     m_Metadata:
       m_Items: []
+  - m_Id: 11235483669
+    m_Key: ui.common.cloud_applied
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483670
+    m_Key: ui.common.cloud_init_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483671
+    m_Key: ui.common.cloud_offline
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483672
+    m_Key: ui.common.cloud_ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483673
+    m_Key: ui.common.cloud_unknown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483674
+    m_Key: ui.common.cloud_upload_failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483675
+    m_Key: ui.common.cloud_waiting
+    m_Metadata:
+      m_Items: []
   - m_Id: 11235483660
     m_Key: ui.common.confirm_main_menu
     m_Metadata:
@@ -49,6 +77,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 11235483658
     m_Key: ui.common.retry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483676
+    m_Key: ui.common.settings_footer
     m_Metadata:
       m_Items: []
   - m_Id: 11235483668

@@ -8,18 +8,21 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
     private readonly MenuStackManager menuStackManager;
     private readonly IAudioService audioService;
     private readonly ILocalizationService localization;
+    private readonly ISaveService saveService;
 
     public MainMenuSettingsPresenter(
         IMainMenuSettingsView view,
         MenuStackManager menuStackManager,
         IAudioService audioService,
-        ILocalizationService localization)
+        ILocalizationService localization,
+        ISaveService saveService)
     {
         this.view = view;
         this.settingsMenu = view as IMenu;
         this.menuStackManager = menuStackManager;
         this.audioService = audioService;
         this.localization = localization;
+        this.saveService = saveService;
     }
 
     public void Start()
@@ -30,26 +33,35 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
         view.CloseClicked += OnCloseClicked;
         view.SfxVolumeChanged += OnSfxVolumeChanged;
         localization.LocaleChanged += OnLocaleChanged;
+        saveService.CloudSyncStatusChanged += OnCloudSyncStatusChanged;
     }
 
     private void OnSettingsOpened()
     {
         view.SetSfxVolume(audioService.SfxVolume);
-        RefreshVersion();
+        RefreshFooter();
     }
 
     private void OnLocaleChanged()
     {
         if (settingsMenu != null && settingsMenu.IsOpen)
-            RefreshVersion();
+            RefreshFooter();
     }
 
-    private void RefreshVersion()
+    private void OnCloudSyncStatusChanged()
     {
-        view.SetVersion(localization.Get(
+        if (settingsMenu != null && settingsMenu.IsOpen)
+            RefreshFooter();
+    }
+
+    private void RefreshFooter()
+    {
+        string version = localization.Get(
             LocalizationKeys.CommonVersionBuild,
             UnityEngine.Application.version,
-            BuildInfo.AndroidVersionCode));
+            BuildInfo.AndroidVersionCode);
+        string cloud = CloudSyncStatusLabels.ToDisplay(saveService.CloudSyncStatus);
+        view.SetVersion($"{version}\n{cloud}");
     }
 
     private void OnCloseClicked()
@@ -70,5 +82,6 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
         view.CloseClicked -= OnCloseClicked;
         view.SfxVolumeChanged -= OnSfxVolumeChanged;
         localization.LocaleChanged -= OnLocaleChanged;
+        saveService.CloudSyncStatusChanged -= OnCloudSyncStatusChanged;
     }
 }

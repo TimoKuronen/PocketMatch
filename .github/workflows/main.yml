@@ -17,6 +17,9 @@ jobs:
   editModeTests:
     name: Edit Mode Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

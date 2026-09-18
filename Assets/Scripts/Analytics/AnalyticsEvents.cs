@@ -1,5 +1,11 @@
+/// <summary>
+/// Canonical analytics event names. Keep the live set tight; reserved names must not be fired yet.
+/// Dictionary lock: names here must match docs/analytics-events.md.
+/// </summary>
 public static class AnalyticsEvents
 {
+    // --- Live (11) ---
+
     // Engagement
     public const string AppStarted = "app_started";
     public const string SessionStarted = "session_started";
@@ -13,17 +19,20 @@ public static class AnalyticsEvents
 
     // Economy
     public const string CoinsEarned = "coins_earned";
-    // Fired when EconomyService.TrySpendCoins succeeds (retry fee, booster shop, etc.).
     public const string CoinsSpent = "coins_spent";
 
     // Monetization
     public const string AdWatched = "ad_watched";
     public const string AdSkipped = "ad_skipped";
 
-    // Reserved: high volume if fired per match; prefer aggregate metrics later.
+    // --- Reserved (not fired) ---
+
+    // High volume if fired per match; prefer aggregate metrics later.
     public const string TileMatched = "tile_matched";
+
     // Reserved until inventory boosters exist (power tiles from matches are not boosters).
     public const string BoosterUsed = "booster_used";
+
     // Reserved: in-app purchases are not implemented in the current build.
     public const string IAPPurchased = "iap_purchased";
 }

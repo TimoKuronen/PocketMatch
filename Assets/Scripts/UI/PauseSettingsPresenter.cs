@@ -34,27 +34,11 @@ public class PauseSettingsPresenter : IStartable, IDisposable
         view.RetryClicked += OnRetryClicked;
         view.MenuClicked += OnMenuClicked;
         view.SfxVolumeChanged += OnSfxVolumeChanged;
-        localization.LocaleChanged += OnLocaleChanged;
     }
 
     private void OnSettingsOpened()
     {
         view.SetSfxVolume(audioService.SfxVolume);
-        RefreshVersion();
-    }
-
-    private void OnLocaleChanged()
-    {
-        if (settingsMenu != null && settingsMenu.IsOpen)
-            RefreshVersion();
-    }
-
-    private void RefreshVersion()
-    {
-        view.SetVersion(localization.Get(
-            LocalizationKeys.CommonVersionBuild,
-            UnityEngine.Application.version,
-            BuildInfo.AndroidVersionCode));
     }
 
     private void OnCloseClicked()
@@ -105,6 +89,5 @@ public class PauseSettingsPresenter : IStartable, IDisposable
         view.RetryClicked -= OnRetryClicked;
         view.MenuClicked -= OnMenuClicked;
         view.SfxVolumeChanged -= OnSfxVolumeChanged;
-        localization.LocaleChanged -= OnLocaleChanged;
     }
 }

@@ -3294,7 +3294,6 @@ MonoBehaviour:
   menuButton: {fileID: 1431469850340095077}
   closeButton: {fileID: 5860282357753348916}
   sfxSlider: {fileID: 2705186462287857879}
-  versionText: {fileID: 8812345678901234564}
 --- !u!1 &6051978452464154588
 GameObject:
   m_ObjectHideFlags: 0
@@ -5117,7 +5116,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8812345678901234562
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5135,7 +5134,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 40}
-  m_SizeDelta: {x: 400, y: 40}
+  m_SizeDelta: {x: 400, y: 56}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &8812345678901234563
 CanvasRenderer:
@@ -5165,7 +5164,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: v0.15 (0)
+  m_text: v0.16 (0)
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dedce0e4cf1b0f342b9b189f8d3d794f, type: 2}
   m_sharedMaterial: {fileID: -3991936931661018566, guid: dedce0e4cf1b0f342b9b189f8d3d794f, type: 2}

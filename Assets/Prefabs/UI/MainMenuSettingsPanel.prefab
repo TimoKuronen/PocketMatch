@@ -265,7 +265,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5128471930482719385
 RectTransform:
   m_ObjectHideFlags: 0
@@ -283,7 +283,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 40}
-  m_SizeDelta: {x: 400, y: 40}
+  m_SizeDelta: {x: 400, y: 56}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &5128471930482719386
 CanvasRenderer:
@@ -313,7 +313,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: v0.15 (0)
+  m_text: v0.16 (0)
+Cloud: waiting
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dedce0e4cf1b0f342b9b189f8d3d794f, type: 2}
   m_sharedMaterial: {fileID: -3991936931661018566, guid: dedce0e4cf1b0f342b9b189f8d3d794f, type: 2}
@@ -912,7 +913,6 @@ MonoBehaviour:
   menuType: 0
   closeButton: {fileID: 3485624768759845311}
   sfxSlider: {fileID: 8800138689518938639}
-  versionText: {fileID: 5128471930482719387}
 --- !u!1 &7945577476986751059
 GameObject:
   m_ObjectHideFlags: 0

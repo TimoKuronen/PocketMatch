@@ -32,7 +32,6 @@ public interface IMainMenuSettingsView
     event Action<float> SfxVolumeChanged;
 
     void SetSfxVolume(float value);
-    void SetVersion(string versionText);
 }
 
 /// <summary>MVP view contract for pause-menu settings and level exit actions.</summary>
@@ -44,7 +43,6 @@ public interface IPauseSettingsView
     event Action<float> SfxVolumeChanged;
 
     void SetSfxVolume(float value);
-    void SetVersion(string versionText);
 }
 
 /// <summary>MVP view contract for the level-complete overlay.</summary>

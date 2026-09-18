@@ -7,19 +7,16 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
     private readonly IMenu settingsMenu;
     private readonly MenuStackManager menuStackManager;
     private readonly IAudioService audioService;
-    private readonly ILocalizationService localization;
 
     public MainMenuSettingsPresenter(
         IMainMenuSettingsView view,
         MenuStackManager menuStackManager,
-        IAudioService audioService,
-        ILocalizationService localization)
+        IAudioService audioService)
     {
         this.view = view;
         this.settingsMenu = view as IMenu;
         this.menuStackManager = menuStackManager;
         this.audioService = audioService;
-        this.localization = localization;
     }
 
     public void Start()
@@ -29,27 +26,11 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
 
         view.CloseClicked += OnCloseClicked;
         view.SfxVolumeChanged += OnSfxVolumeChanged;
-        localization.LocaleChanged += OnLocaleChanged;
     }
 
     private void OnSettingsOpened()
     {
         view.SetSfxVolume(audioService.SfxVolume);
-        RefreshVersion();
-    }
-
-    private void OnLocaleChanged()
-    {
-        if (settingsMenu != null && settingsMenu.IsOpen)
-            RefreshVersion();
-    }
-
-    private void RefreshVersion()
-    {
-        view.SetVersion(localization.Get(
-            LocalizationKeys.CommonVersionBuild,
-            UnityEngine.Application.version,
-            BuildInfo.AndroidVersionCode));
     }
 
     private void OnCloseClicked()
@@ -69,6 +50,5 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
 
         view.CloseClicked -= OnCloseClicked;
         view.SfxVolumeChanged -= OnSfxVolumeChanged;
-        localization.LocaleChanged -= OnLocaleChanged;
     }
 }

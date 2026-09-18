@@ -96,19 +96,26 @@ public class PotentialMovesTest
 
     private TileData[,] CreateLockedGrid(int width, int height)
     {
-        // Create a checkerboard pattern that has no possible matches
-        // This is a known "locked" pattern
+        // Shifted 4-color latin layout: no three-in-a-row and no AA-gap patterns.
+        // A Red/Blue checkerboard still has potential moves under HasPotentialMoves.
+        TileType[] types =
+        {
+            TileType.Red,
+            TileType.Blue,
+            TileType.Green,
+            TileType.Yellow
+        };
+
         TileData[,] grid = new TileData[width, height];
-        
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                TileType type = ((x + y) % 2 == 0) ? TileType.Red : TileType.Blue;
+                TileType type = types[(x + y) % types.Length];
                 grid[x, y] = new TileData(type, new Vector2Int(x, y), TilePower.None, TileState.Normal);
             }
         }
-        
+
         return grid;
     }
 

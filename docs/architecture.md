@@ -86,7 +86,9 @@ Editor builds simulate interstitial completion. Device builds initialize LevelPl
 
 - Local save is encrypted JSON at `Application.persistentDataPath/save.dat`
 - Boot loads local save immediately; cloud sync runs when Firebase is available
-- If a cloud document exists on init, it replaces local data (no merge UI)
+- **Conflict policy (no merge):** if a cloud document exists on init download, it replaces in-memory and local disk data. There is no field merge and no last-write-wins comparison yet (`meta.lastSaveTime` is recorded for diagnostics only)
+- Upload / init failures leave the local save intact and set `ISaveService.CloudSyncStatus` (shown on the main-menu footer)
+- `PlayerData.meta.saveVersion` is the schema version; `SaveService` runs `DataMigrator` when on-disk schema lags `SaveService.CurrentSaveVersion` (today: version bump only)
 - Offline play, local save, and analytics queuing continue when network or Firebase is unavailable
 - `PlayerData.coins` is the wallet field; all mutations go through `EconomyService` and sync with the full save blob
 
@@ -133,7 +135,8 @@ Continue is once per attempt via coins.
 - Player-facing copy lives in the `UI` String Table Collection (`ui.*` keys); placeholders use indexed `{0}`
 - Runtime lookup goes through `ILocalizationService` / `LocalizationService` (bootstrap singleton)
 - Static TMP chrome uses `LocalizedTmpLabel`; loader progress text and dynamic HUD/dialog copy also resolve through the same service
-- Empty `es` cells fall back to `en` until Localizer-approved CSV import (no player-facing MISSING text)
+- Localization foundation is live: device/system locale, Game View / DebugTools override, and Localizer CSV interchange via **PocketMatch > Localization**
+- Empty or missing `es` cells fall back to `en` (no player-facing MISSING text)
 - Spanish Locale asset carries **Fallback Locale** metadata pointing at English; String Database **Use Fallback** is enabled
 - Startup locale: device/system via Unity selectors, with `en` fallback
 - Editor Play Mode: Game View locale dropdown (Unity Localization, on by default)

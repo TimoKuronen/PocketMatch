@@ -6,9 +6,11 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sen
 **SDK:** Firebase Analytics 13.5.0  
 **Transport:** `AnalyticsService` queues events locally in `analytics_cache.json` and flushes when Firebase is ready.
 
+**Dictionary lock:** live names below must match `AnalyticsEvents` live constants. Do not fire reserved names until this doc and the constants are updated together.
+
 ---
 
-## Events
+## Live events (11)
 
 | Event name | Parameters | When fired | Source |
 |------------|------------|------------|--------|
@@ -23,6 +25,16 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sen
 | `ad_watched` | `ad_format` (string), `placement` (string), `result` (string) | Interstitial closed after display (`result` = `completed`), or Editor-simulated show (`editor_simulated`) | `AdsService` |
 | `ad_skipped` | `ad_format` (string), `placement` (string), `reason` (string) | Interstitial could not be shown (`display_failed`, `not_ready`, or `not_initialized`); gameplay continues | `AdsService` |
 | `extra_automated_matches` | `level_name` (string), `moves_spent` (int) | Match cascade cycle count exceeds 2 after a player move | `GridController` |
+
+---
+
+## Reserved (not fired)
+
+| Event name | Why reserved |
+|------------|----------------|
+| `tile_matched` | Too high-volume if fired per match; prefer aggregates later |
+| `booster_used` | Inventory boosters are not shipped (board power tiles are not boosters) |
+| `iap_purchased` | IAP is out of scope for this prototype |
 
 ---
 

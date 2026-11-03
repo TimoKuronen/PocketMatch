@@ -1,4 +1,4 @@
-﻿# This .gitignore file should be placed at the root of your Unity project directory
+# This .gitignore file should be placed at the root of your Unity project directory
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
 #
@@ -92,13 +92,8 @@ build/
 *.aar
 *.jar
 
-/.cursor/
-
 /Assets/StreamingAssets/*
 !/Assets/StreamingAssets/.gitkeep
-
-# Prevent personal learning manual from reappearing under Assets
-Assets/_Project/Documentation/
 
 /Assets/TextMesh Pro/Fonts/*
 !/Assets/TextMesh Pro/Fonts/.gitkeep

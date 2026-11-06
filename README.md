@@ -21,7 +21,7 @@ Mobile Match-3 prototype built in **Unity 6** for live mobile F2P client enginee
 - Addressables level loading and pooled VFX
 - Firebase Analytics with a local offline event queue
 - Encrypted local save plus Firestore cloud sync
-- Unity LevelPlay banner and interstitial mediation
+- Unity LevelPlay banner and interstitial mediation, with a rewarded lose-continue path integrated
 - Unity Localization (`en` / `es`) with Localizer CSV interchange
 - Edit Mode tests for board rules, potential moves, and shuffle
 - CI: Edit Mode tests on push/PR; Android build on master

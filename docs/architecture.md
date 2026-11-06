@@ -57,7 +57,7 @@ Services register through VContainer with constructor / method injection.
 | `LevelContinueService` | Lose-menu continue gate (once per attempt); applies `ShopOffer` rewards |
 | `CloudSaveService` | Anonymous Firebase Auth + Firestore document sync |
 | `AnalyticsService` | Firebase Analytics with local offline queue (`analytics_cache.json`) |
-| `AdsService` | LevelPlay banner + interstitial mediation |
+| `AdsService` | LevelPlay banner, interstitial, and rewarded mediation |
 | `AudioService` | Cue-based SFX |
 | `EffectService` | VFX pooling / playback |
 | `InputService` | Shared input ticks |
@@ -79,8 +79,9 @@ Board mutations run through an async command queue:
 |--------|-----------|----------|
 | Banner | Bottom center | Shown during gameplay when loaded |
 | Interstitial | Loader transitions | Gated on next-level continue and similar breaks |
+| Rewarded | Lose menu continue | Opt-in; extra moves granted only on a confirmed reward. One continue (coins or ad) per attempt; repeat taps while the ad is up are ignored |
 
-Editor builds simulate interstitial completion. Device builds initialize LevelPlay when local ad configuration is present. Ad failure paths log `ad_skipped` and continue scene flow.
+Editor builds simulate interstitial and rewarded completion. Device builds initialize LevelPlay when local ad configuration is present. The rewarded unit is optional there: without it the ad continue stays unavailable on device, and the rewarded path has so far been exercised only through Editor simulation and Edit Mode tests. Ad failure paths (including rewarded no-fill) log `ad_skipped` and continue scene flow; a failed rewarded show turns the ad option off for that lose screen.
 
 ## Save and offline (current)
 
@@ -124,7 +125,7 @@ Continue is once per attempt via coins.
 | Level start / complete / fail | `LevelEvents` → `AnalyticsService` |
 | Coins earned | `LevelEvents.OnLevelCompleted` → `EconomyService.AddCoins` → `coins_earned` |
 | Coins spent | `EconomyService.TrySpendCoins` → `OnCoinsSpent` → `coins_spent` |
-| Lose continue | `LosePresenter` → `LevelContinueService` → `EconomyService` + `LevelManager.GrantExtraMoves` |
+| Lose continue | `LosePresenter` → `LevelContinueService` → `EconomyService` or `AdsService.ShowRewardedAdAsync` → `LevelManager.GrantExtraMoves` |
 | Interstitial gate | `Loader.ShowInterstitialThenContinue` / win path continue |
 | Banner | Gameplay HUD / ads service show-hide around interstitials |
 | Cloud save | `CloudSaveBootstrap` after bootstrap; upload on local save when online |

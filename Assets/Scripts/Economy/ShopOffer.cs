@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public enum OfferRewardType
@@ -19,4 +20,7 @@ public class ShopOffer : ScriptableObject
     public OfferRewardType rewardType = OfferRewardType.ExtraMoves;
     public int rewardAmount = 3;
     public OfferPaymentMethod[] allowedPayments = { OfferPaymentMethod.Coins, OfferPaymentMethod.RewardedAd };
+
+    public bool Allows(OfferPaymentMethod method) =>
+        allowedPayments != null && Array.IndexOf(allowedPayments, method) >= 0;
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using VContainer.Unity;
 
 public class LosePresenter : IStartable, IDisposable
@@ -9,6 +11,7 @@ public class LosePresenter : IStartable, IDisposable
     private readonly ILevelContinueService levelContinueService;
     private readonly IEconomyService economyService;
     private readonly ILocalizationService localization;
+    private readonly CancellationTokenSource disposeCts = new();
 
     public LosePresenter(
         ILoseView view,
@@ -49,7 +52,7 @@ public class LosePresenter : IStartable, IDisposable
     {
         view.SetWalletBalance(economyService.Balance);
         view.SetContinueWithCoinsAvailable(levelContinueService.CanContinueWithCoins);
-        view.SetContinueWithAdAvailable(false);
+        view.SetContinueWithAdAvailable(levelContinueService.CanContinueWithAd);
     }
 
     private void OnBalanceChanged(int balance)
@@ -69,6 +72,38 @@ public class LosePresenter : IStartable, IDisposable
 
     private void OnContinueWithAdClicked()
     {
+        ContinueWithAdAsync().Forget();
+    }
+
+    private async UniTaskVoid ContinueWithAdAsync()
+    {
+        if (!levelContinueService.CanContinueWithAd)
+            return;
+
+        view.SetContinueWithCoinsAvailable(false);
+        view.SetContinueWithAdAvailable(false);
+
+        AdContinueResult result;
+        try
+        {
+            result = await levelContinueService.TryContinueWithAdAsync(disposeCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (result == AdContinueResult.Continued)
+        {
+            menuStackManager.PopMenu();
+            return;
+        }
+
+        RefreshContinueOptions();
+
+        // No ad to show (no fill / not ready): keep the ad option off for this lose screen.
+        if (result == AdContinueResult.Unavailable)
+            view.SetContinueWithAdAvailable(false);
     }
 
     private void OnRestartClicked()
@@ -102,5 +137,8 @@ public class LosePresenter : IStartable, IDisposable
         view.Opened -= RefreshContinueOptions;
         economyService.OnBalanceChanged -= OnBalanceChanged;
         localization.LocaleChanged -= OnLocaleChanged;
+
+        disposeCts.Cancel();
+        disposeCts.Dispose();
     }
 }

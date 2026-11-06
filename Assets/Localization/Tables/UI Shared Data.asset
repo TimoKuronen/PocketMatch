@@ -19,10 +19,6 @@ MonoBehaviour:
     m_Key: ui.common.back
     m_Metadata:
       m_Items: []
-  - m_Id: 11235483664
-    m_Key: ui.common.coin_balance
-    m_Metadata:
-      m_Items: []
   - m_Id: 11235483669
     m_Key: ui.common.cloud_applied
     m_Metadata:
@@ -49,6 +45,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 11235483675
     m_Key: ui.common.cloud_waiting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483664
+    m_Key: ui.common.coin_balance
     m_Metadata:
       m_Items: []
   - m_Id: 11235483660

@@ -144,7 +144,7 @@ Continue is once per attempt via coins.
 - Editor tools live under **PocketMatch > Localization** and **PocketMatch > Debug** (single top-level menu)
 - Localizer interchange: Unity String Table CSV only. Export/import via **PocketMatch > Localization** menus (`Assets/Localization/Export/{TableCollectionName}.csv`). Catalog JSON stays out of this repo.
 
-Create or refresh assets with **PocketMatch > Localization > Create Foundation**.
+Create missing assets with **PocketMatch > Localization > Maintenance > Create Foundation** (existing values are kept).
 
 ## Related docs
 

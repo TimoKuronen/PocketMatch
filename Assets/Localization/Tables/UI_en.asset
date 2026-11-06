@@ -71,7 +71,7 @@ MonoBehaviour:
       m_Items:
       - rid: 9210449710821408988
   - m_Id: 11235483656
-    m_Localized: Loading
+    m_Localized: "Loading"
     m_Metadata:
       m_Items: []
   - m_Id: 11235483657
@@ -83,7 +83,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 11235483659
-    m_Localized: Back
+    m_Localized: "Back"
     m_Metadata:
       m_Items: []
   - m_Id: 11235483660
@@ -154,7 +154,9 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 11235483676
-    m_Localized: "{0}\n{1}"
+    m_Localized: '{0}
+
+      {1}'
     m_Metadata:
       m_Items:
       - rid: 9210449710821408988

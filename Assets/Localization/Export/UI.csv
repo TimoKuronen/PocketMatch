@@ -1,26 +1,36 @@
 Key,Id,English(en),Spanish(es)
-ui.common.back,11235483659,Back,
-ui.common.coin_balance,11235483664,x {0},
-ui.common.confirm_main_menu,11235483660,Are you sure you want to return to the main menu?,
-ui.common.confirm_no,11235483663,Nope,
-ui.common.confirm_title,11235483661,Are you sure?,
-ui.common.confirm_yes,11235483662,Yep,
-ui.common.copyright,11235483665,Copyright @Timo Kuronen,
-ui.common.menu,11235483657,Menu,
-ui.common.retry,11235483658,Retry,
-ui.common.sfx_volume,11235483668,SFX Volume,
-ui.common.version,11235483666,v{0},
-ui.common.version_build,11235483667,v{0} ({1}),
-ui.hud.moves,11235483655,Moves: {0},
-ui.hud.puzzle_index,11235483654,Puzzle #{0},
-ui.loading.message,11235483656,Loading,
-ui.lose.continue_ad,11235483649,Continue: Watch Ad,
-ui.lose.continue_coins,11235483648,Continue: Buy with coins,
-ui.lose.title,11227095040,Out of moves!,
-ui.menu.levels_title,11235483653,Levels,
-ui.menu.play,11235483652,Play,
-ui.menu.title,11235483651,Rune Match,
-ui.pause.confirm_retry,11235483650,Are you sure you want to retry this level?,
-ui.win.coins_earned,11222900737,+{0} coins earned,
-ui.win.next_level,11222900736,Next Level,
-ui.win.title,10547617792,You won!,
+ui.common.back,11235483659,Back,Atrás
+ui.common.cloud_applied,11235483669,Cloud: applied over local,Nube: aplicada sobre local
+ui.common.cloud_init_failed,11235483670,Cloud: init failed (local only),Nube: error de inicialización (solo local)
+ui.common.cloud_offline,11235483671,Cloud: offline (local only),Nube: desconectado (solo local)
+ui.common.cloud_ready,11235483672,Cloud: ready,Nube: lista
+ui.common.cloud_unknown,11235483673,Cloud: unknown,Nube: desconocido
+ui.common.cloud_upload_failed,11235483674,Cloud: upload failed (local OK),Nube: subida fallida (local OK)
+ui.common.cloud_waiting,11235483675,Cloud: waiting,Nube: esperando
+ui.common.coin_balance,11235483664,x {0},x {0}
+ui.common.confirm_main_menu,11235483660,Are you sure you want to return to the main menu?,¿Seguro que quieres volver al menú principal?
+ui.common.confirm_no,11235483663,Nope,"No, gracias"
+ui.common.confirm_title,11235483661,Are you sure?,¿Seguro?
+ui.common.confirm_yes,11235483662,Yep,Sí
+ui.common.copyright,11235483665,Copyright @Timo Kuronen,Derechos reservados © Timo Kuronen
+ui.common.menu,11235483657,Menu,Menú
+ui.common.retry,11235483658,Retry,Reintentar
+ui.common.settings_footer,11235483676,"{0}
+{1}","{0}
+{1}"
+ui.common.sfx_volume,11235483668,SFX Volume,Volumen de efectos
+ui.common.version,11235483666,v{0},v{0}
+ui.common.version_build,11235483667,v{0} ({1}),v{0} ({1})
+ui.hud.moves,11235483655,Moves: {0},Movimientos: {0}
+ui.hud.puzzle_index,11235483654,Puzzle #{0},Puzle #{0}
+ui.loading.message,11235483656,Loading,Cargando
+ui.lose.continue_ad,11235483649,Continue: Watch Ad,Continuar: ver anuncio
+ui.lose.continue_coins,11235483648,Continue: Buy with coins,Continuar: Comprar con monedas
+ui.lose.title,11227095040,Out of moves!,¡Sin movimientos!
+ui.menu.levels_title,11235483653,Levels,Niveles
+ui.menu.play,11235483652,Play,Jugar
+ui.menu.title,11235483651,Rune Match,Rune Match
+ui.pause.confirm_retry,11235483650,Are you sure you want to retry this level?,¿Estás seguro de que quieres repetir este nivel?
+ui.win.coins_earned,11222900737,+{0} coins earned,+{0} monedas obtenidas
+ui.win.next_level,11222900736,Next Level,Siguiente nivel
+ui.win.title,10547617792,You won!,¡Has ganado!

@@ -1,10 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using UnityEditor;
 using UnityEditor.Localization;
-using UnityEditor.Localization.Plugins.CSV;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Metadata;
@@ -12,18 +9,18 @@ using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Tables;
 
 /// <summary>
-/// Creates Localization Settings, en/es locales, UI string tables, sample CSV, and wires static TMP labels.
+/// Creates Localization Settings, en/es locales and UI string tables, and wires static TMP labels.
+/// Seeding only adds missing keys and cells; existing English and translated values are never overwritten.
 /// </summary>
 public static class LocalizationFoundationSetup
 {
     private const string RootFolder = "Assets/Localization";
     private const string LocalesFolder = RootFolder + "/Locales";
     private const string TablesFolder = RootFolder + "/Tables";
-    private const string ExportFolder = RootFolder + "/Export";
     private const string SettingsPath = RootFolder + "/LocalizationSettings.asset";
-    private const string SampleCsvPath = ExportFolder + "/ui-sample.csv";
 
-    // Target locale cells stay empty until an approved CSV is merged back in.
+    public const string ExportFolder = RootFolder + "/Export";
+
     private static readonly (string Key, string En, bool Smart)[] Entries =
     {
         (LocalizationKeys.WinTitle, "You won!", false),
@@ -83,7 +80,6 @@ public static class LocalizationFoundationSetup
         ("Loading...", LocalizationKeys.LoadingMessage),
     };
 
-    [MenuItem("PocketMatch/Localization/Create Foundation")]
     public static void CreateFoundation()
     {
         EnsureFolders();
@@ -116,72 +112,23 @@ public static class LocalizationFoundationSetup
                 new List<Locale> { english, spanish });
         }
 
-        PopulateTables(collection, english, spanish);
-        WriteSampleCsv();
+        SeedMissingEntries(collection, english, spanish);
         WirePrefabLabels();
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         Selection.activeObject = settings;
-        Debug.Log("[Localization] Foundation ready: en/es, UI table, sample CSV, prefab labels. Game View locale menu enabled.");
+        Debug.Log("[Localization] Foundation ready: en/es, UI table, prefab labels. Existing values were kept. Game View locale menu enabled.");
     }
 
-    [MenuItem("PocketMatch/Localization/Wire Prefab Labels")]
-    public static void WirePrefabLabelsMenu()
+    public static void WirePrefabLabelsAndSave()
     {
         WirePrefabLabels();
         AssetDatabase.SaveAssets();
         Debug.Log("[Localization] Prefab label wiring complete.");
     }
 
-    [MenuItem("PocketMatch/Localization/Export Sample CSV")]
-    public static void ExportSampleCsvMenu()
-    {
-        EnsureFolders();
-        WriteSampleCsv();
-        AssetDatabase.Refresh();
-        Debug.Log($"[Localization] Wrote {SampleCsvPath}");
-    }
-
-    [MenuItem("PocketMatch/Localization/Export All String Table CSVs")]
-    public static void ExportAllStringTableCsvsMenu()
-    {
-        EnsureFolders();
-        var collections = LocalizationEditorSettings.GetStringTableCollections();
-        if (collections == null || collections.Count == 0)
-        {
-            Debug.LogError("[Localization] No string table collections found.");
-            return;
-        }
-
-        foreach (var collection in collections)
-        {
-            var assetPath = GetExportCsvAssetPath(collection.TableCollectionName);
-            WriteCollectionCsv(collection, assetPath);
-            Debug.Log($"[Localization] Wrote {assetPath}");
-        }
-
-        AssetDatabase.Refresh();
-    }
-
-    [MenuItem("PocketMatch/Localization/Import String Table CSV...")]
-    public static void ImportStringTableCsvMenu()
-    {
-        EnsureFolders();
-        var startDir = Path.GetFullPath(ExportFolder);
-        var absolute = EditorUtility.OpenFilePanel("Import String Table CSV (merge)", startDir, "csv");
-        if (string.IsNullOrEmpty(absolute))
-            return;
-
-        var collection = ResolveCollectionFromCsvPath(absolute);
-        if (collection == null)
-            return;
-
-        ImportCsvMerge(collection, absolute);
-    }
-
-    [MenuItem("PocketMatch/Localization/Clear Spanish Entries")]
-    public static void ClearSpanishEntriesMenu()
+    public static void ClearSpanishEntries()
     {
         var collection = LocalizationEditorSettings.GetStringTableCollection(LocalizationKeys.UiTable);
         if (collection == null)
@@ -206,13 +153,11 @@ public static class LocalizationFoundationSetup
 
         EditorUtility.SetDirty(esTable);
         AssetDatabase.SaveAssets();
-        WriteSampleCsv();
         AssetDatabase.Refresh();
         Debug.Log("[Localization] Cleared Spanish UI entries. Empty es falls back to en via Spanish Fallback Locale metadata until CSV merge.");
     }
 
-    [MenuItem("PocketMatch/Localization/Ensure Spanish Falls Back to English")]
-    public static void EnsureSpanishFallsBackToEnglishMenu()
+    public static void EnsureSpanishFallsBackToEnglish()
     {
         var english = LocalizationEditorSettings.GetLocale("en");
         var spanish = LocalizationEditorSettings.GetLocale("es");
@@ -227,7 +172,7 @@ public static class LocalizationFoundationSetup
         Debug.Log("[Localization] Spanish Fallback Locale set to English.");
     }
 
-    private static void EnsureFolders()
+    public static void EnsureFolders()
     {
         if (!AssetDatabase.IsValidFolder(RootFolder))
             AssetDatabase.CreateFolder("Assets", "Localization");
@@ -292,7 +237,7 @@ public static class LocalizationFoundationSetup
         EditorUtility.SetDirty(locale);
     }
 
-    private static void PopulateTables(StringTableCollection collection, Locale english, Locale spanish)
+    private static void SeedMissingEntries(StringTableCollection collection, Locale english, Locale spanish)
     {
         var enTable = collection.GetTable(english.Identifier) as StringTable;
         var esTable = collection.GetTable(spanish.Identifier) as StringTable;
@@ -304,160 +249,19 @@ public static class LocalizationFoundationSetup
 
         foreach (var entry in Entries)
         {
-            var shared = collection.SharedData.GetEntry(entry.Key);
-            if (shared == null)
-                shared = collection.SharedData.AddKey(entry.Key);
+            var shared = collection.SharedData.GetEntry(entry.Key) ?? collection.SharedData.AddKey(entry.Key);
 
-            var enEntry = enTable.GetEntry(shared.Id) ?? enTable.AddEntry(shared.Id, entry.En);
-            enEntry.Value = entry.En;
-            enEntry.IsSmart = entry.Smart;
+            if (enTable.GetEntry(shared.Id) == null)
+                enTable.AddEntry(shared.Id, entry.En).IsSmart = entry.Smart;
 
-            var esEntry = esTable.GetEntry(shared.Id) ?? esTable.AddEntry(shared.Id, string.Empty);
-            esEntry.Value = string.Empty;
-            esEntry.IsSmart = entry.Smart;
+            if (esTable.GetEntry(shared.Id) == null)
+                esTable.AddEntry(shared.Id, string.Empty).IsSmart = entry.Smart;
         }
 
         EditorUtility.SetDirty(enTable);
         EditorUtility.SetDirty(esTable);
         EditorUtility.SetDirty(collection.SharedData);
         EditorUtility.SetDirty(collection);
-    }
-
-    private static void WriteSampleCsv()
-    {
-        var collection = LocalizationEditorSettings.GetStringTableCollection(LocalizationKeys.UiTable);
-        if (collection == null)
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("Key,Id,English(en),Spanish(es)");
-            for (var i = 0; i < Mathf.Min(5, Entries.Length); i++)
-            {
-                var entry = Entries[i];
-                sb.Append(entry.Key).Append(',')
-                    .Append(i).Append(',')
-                    .Append(EscapeCsv(entry.En)).Append(',')
-                    .AppendLine();
-            }
-
-            WriteUtf8(SampleCsvPath, sb.ToString());
-            return;
-        }
-
-        WriteCollectionCsv(collection, SampleCsvPath, maxRows: 5);
-    }
-
-    private static string GetExportCsvAssetPath(string tableCollectionName)
-    {
-        return $"{ExportFolder}/{tableCollectionName}.csv";
-    }
-
-    private static StringTableCollection ResolveCollectionFromCsvPath(string absolutePath)
-    {
-        var fileName = Path.GetFileNameWithoutExtension(absolutePath);
-        if (string.IsNullOrEmpty(fileName))
-        {
-            Debug.LogError("[Localization] Invalid CSV path.");
-            return null;
-        }
-
-        var collections = LocalizationEditorSettings.GetStringTableCollections();
-        foreach (var collection in collections)
-        {
-            if (string.Equals(collection.TableCollectionName, fileName, System.StringComparison.OrdinalIgnoreCase))
-                return collection;
-        }
-
-        var names = new StringBuilder();
-        foreach (var collection in collections)
-        {
-            if (names.Length > 0)
-                names.Append(", ");
-            names.Append(collection.TableCollectionName);
-        }
-
-        Debug.LogError(
-            $"[Localization] No string table collection named '{fileName}'. " +
-            $"Name the CSV after the collection (e.g. UI.csv, Dialogue.csv). Available: {names}");
-        return null;
-    }
-
-    private static void WriteCollectionCsv(StringTableCollection collection, string path = null, int maxRows = int.MaxValue)
-    {
-        var locales = LocalizationEditorSettings.GetLocales();
-        var enLocale = LocalizationEditorSettings.GetLocale("en");
-        var targetLocales = new List<Locale>();
-        foreach (var locale in locales)
-        {
-            if (enLocale != null && locale.Identifier == enLocale.Identifier)
-                continue;
-            targetLocales.Add(locale);
-        }
-
-        var sb = new StringBuilder();
-        sb.Append("Key,Id");
-        if (enLocale != null)
-            sb.Append(",English(en)");
-        foreach (var locale in targetLocales)
-            sb.Append(',').Append(EscapeCsv(locale.LocaleName + "(" + locale.Identifier.Code + ")"));
-        sb.AppendLine();
-
-        var rowIndex = 0;
-        foreach (var sharedEntry in collection.SharedData.Entries)
-        {
-            if (rowIndex >= maxRows)
-                break;
-
-            sb.Append(EscapeCsv(sharedEntry.Key)).Append(',').Append(sharedEntry.Id);
-
-            if (enLocale != null)
-            {
-                var enTable = collection.GetTable(enLocale.Identifier) as StringTable;
-                var enValue = enTable?.GetEntry(sharedEntry.Id)?.Value ?? string.Empty;
-                sb.Append(',').Append(EscapeCsv(enValue));
-            }
-
-            foreach (var locale in targetLocales)
-            {
-                var table = collection.GetTable(locale.Identifier) as StringTable;
-                var value = table?.GetEntry(sharedEntry.Id)?.Value ?? string.Empty;
-                sb.Append(',').Append(EscapeCsv(value));
-            }
-
-            sb.AppendLine();
-            rowIndex++;
-        }
-
-        WriteUtf8(path ?? GetExportCsvAssetPath(collection.TableCollectionName), sb.ToString());
-    }
-
-    private static void WriteUtf8(string assetPath, string content)
-    {
-        var absolute = Path.GetFullPath(assetPath);
-        Directory.CreateDirectory(Path.GetDirectoryName(absolute));
-        File.WriteAllText(absolute, content, new UTF8Encoding(false));
-    }
-
-    private static void ImportCsvMerge(StringTableCollection collection, string absolutePath)
-    {
-        // Merge: update locale cells from CSV; keep keys that are missing from the file.
-        using (var reader = new StreamReader(absolutePath, Encoding.UTF8))
-            Csv.ImportInto(reader, collection, createUndo: true, removeMissingEntries: false);
-
-        foreach (var table in collection.StringTables)
-            EditorUtility.SetDirty(table);
-        EditorUtility.SetDirty(collection.SharedData);
-        EditorUtility.SetDirty(collection);
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-        Debug.Log($"[Localization] Merged CSV into '{collection.TableCollectionName}': {absolutePath}");
-    }
-
-    private static string EscapeCsv(string value)
-    {
-        if (value.IndexOfAny(new[] { ',', '"', '\n', '\r' }) < 0)
-            return value;
-
-        return "\"" + value.Replace("\"", "\"\"") + "\"";
     }
 
     private static void WirePrefabLabels()

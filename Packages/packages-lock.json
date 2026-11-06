@@ -318,7 +318,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.services.levelplay": {
-      "version": "9.4.1",
+      "version": "9.6.0",
       "depth": 0,
       "source": "registry",
       "dependencies": {

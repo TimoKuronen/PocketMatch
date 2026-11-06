@@ -231,7 +231,6 @@ public class AdsService : IAdsService, IDisposable
 
         Debug.Log("[AdsService] Requesting interstitial load.");
         interstitialAd.LoadAd();
-        InterstitialAdCompleted = false;
         LogAdsState("Interstitial load requested");
     }
 
@@ -330,6 +329,7 @@ public class AdsService : IAdsService, IDisposable
         if (interstitialAd.IsAdReady())
         {
             Debug.Log($"[AdsService] Showing interstitial with placement name '{InterstitialPlacementName}'.");
+            InterstitialAdCompleted = false;
             interstitialAd.ShowAd(InterstitialPlacementName);
         }
         else

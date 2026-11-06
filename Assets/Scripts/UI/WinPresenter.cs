@@ -64,7 +64,7 @@ public class WinPresenter : IStartable, IDisposable
         confirmationDialog.Setup(localization.Get(LocalizationKeys.CommonConfirmMainMenu), () =>
         {
             menuStackManager.ClearStack();
-            Loader.Load(Loader.GameScene.MainMenu);
+            Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.MainMenu);
         });
         menuStackManager.PushMenu(confirmationDialog);
     }

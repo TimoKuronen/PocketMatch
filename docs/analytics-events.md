@@ -44,7 +44,7 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sen
 session_started
   -> level_started
   -> level_completed + coins_earned  OR  level_failed (+ optional coins_spent or rewarded ad_watched/ad_skipped on continue)
-  -> ad_watched OR ad_skipped        (on next-level load via Loader interstitial gate)
+  -> ad_watched OR ad_skipped        (leaving the win screen via Loader interstitial gate)
 session_ended
 ```
 

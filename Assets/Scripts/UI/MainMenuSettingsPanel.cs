@@ -18,6 +18,13 @@ public class MainMenuSettingsPanel : UIMenu, IMainMenuSettingsView
         sfxSlider.onValueChanged.AddListener(value => SfxVolumeChanged?.Invoke(value));
     }
 
+    public override void Open()
+    {
+        // Settings can open while level select is up, and panels share one container.
+        transform.SetAsLastSibling();
+        base.Open();
+    }
+
     public void SetSfxVolume(float value)
     {
         if (sfxSlider != null)

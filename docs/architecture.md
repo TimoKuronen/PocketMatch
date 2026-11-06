@@ -77,11 +77,11 @@ Board mutations run through an async command queue:
 
 | Format | Placement | Behavior |
 |--------|-----------|----------|
-| Banner | Bottom center | Shown during gameplay when loaded |
-| Interstitial | Loader transitions | Gated on next-level continue and similar breaks |
+| Banner | Bottom center | Shown on the main menu when loaded; hidden when a level starts |
+| Interstitial | Loader transitions | Tried when leaving the win screen, to the next level or the main menu |
 | Rewarded | Lose menu continue | Opt-in; extra moves granted only on a confirmed reward. One continue (coins or ad) per attempt; repeat taps while the ad is up are ignored |
 
-Editor builds simulate interstitial and rewarded completion. Device builds initialize LevelPlay when local ad configuration is present. The rewarded unit is optional there: without it the ad continue stays unavailable on device, and the rewarded path has so far been exercised only through Editor simulation and Edit Mode tests. Ad failure paths (including rewarded no-fill) log `ad_skipped` and continue scene flow; a failed rewarded show turns the ad option off for that lose screen.
+Editor builds simulate interstitial and rewarded completion. Device builds initialize LevelPlay when local ad configuration is present. The rewarded unit is optional there: without it the ad continue stays unavailable on device, and the rewarded path has so far been exercised only through Editor simulation and Edit Mode tests. Ad failure paths (including rewarded no-fill) log `ad_skipped` and continue scene flow, and the Loader waits for ads with timeouts so they never block loading; a failed rewarded show turns the ad option off for that lose screen.
 
 ## Save and offline (current)
 
@@ -126,8 +126,8 @@ Continue is once per attempt via coins.
 | Coins earned | `LevelEvents.OnLevelCompleted` → `EconomyService.AddCoins` → `coins_earned` |
 | Coins spent | `EconomyService.TrySpendCoins` → `OnCoinsSpent` → `coins_spent` |
 | Lose continue | `LosePresenter` → `LevelContinueService` → `EconomyService` or `AdsService.ShowRewardedAdAsync` → `LevelManager.GrantExtraMoves` |
-| Interstitial gate | `Loader.ShowInterstitialThenContinue` / win path continue |
-| Banner | Gameplay HUD / ads service show-hide around interstitials |
+| Interstitial gate | `WinPresenter` → `Loader.ShowInterstitialThenContinue` |
+| Banner | `MainMenuPresenter` shows; `LevelSelectPresenter` and interstitial show hide |
 | Cloud save | `CloudSaveBootstrap` after bootstrap; upload on local save when online |
 
 ## Localization (current)

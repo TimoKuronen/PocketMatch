@@ -114,6 +114,19 @@ public static class Loader
         }
     }
 
+#if !UNITY_EDITOR
+    private static async UniTask WaitWithTimeoutAsync(Func<bool> condition, float timeoutSeconds)
+    {
+        float elapsed = 0f;
+
+        while (!condition() && elapsed < timeoutSeconds)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            await UniTask.Yield();
+        }
+    }
+#endif
+
     private static async UniTask ContinueLoadFromLoaderWithOptionalAdAsync()
     {
 #if UNITY_EDITOR
@@ -130,39 +143,30 @@ public static class Loader
         if (pendingAdService != null)
         {
 #if UNITY_EDITOR
-            // In editor, skip showing the real interstitial (which uses a Unity placeholder
-            // that may not close correctly) and immediately mark it complete so loading continues.
-            pendingAdService.ForceMarkAdComplete();
+            // AdsService simulates completion in the Editor, so there is nothing to wait for.
+            pendingAdService.ShowInterstitialAd();
 #else
-            while (!pendingAdService.IsInitialized)
-                await UniTask.Yield();
-
-            float waitReadyTimer = 0f;
+            const float waitInitTimeout = 3f;
             const float waitReadyTimeout = 6f;
+            const float waitDoneTimeout = 10f;
 
-            while (!pendingAdService.InterstitialAdReady && waitReadyTimer < waitReadyTimeout)
+            var adService = pendingAdService;
+            await WaitWithTimeoutAsync(() => adService.IsInitialized, waitInitTimeout);
+
+            if (adService.IsInitialized)
+                await WaitWithTimeoutAsync(() => adService.InterstitialAdReady, waitReadyTimeout);
+
+            bool canShow = adService.IsInitialized && adService.InterstitialAdReady;
+
+            // Also called when no ad can show, so AdsService records the ad_skipped reason.
+            adService.ShowInterstitialAd();
+
+            if (canShow)
             {
-                waitReadyTimer += Time.unscaledDeltaTime;
-                await UniTask.Yield();
-            }
+                await WaitWithTimeoutAsync(() => adService.InterstitialAdCompleted, waitDoneTimeout);
 
-            if (pendingAdService.InterstitialAdReady)
-            {
-                pendingAdService.ShowInterstitialAd();
-
-                float waitDoneTimer = 0f;
-                const float waitDoneTimeout = 10f;
-
-                while (!pendingAdService.InterstitialAdCompleted && waitDoneTimer < waitDoneTimeout)
-                {
-                    waitDoneTimer += Time.unscaledDeltaTime;
-                    await UniTask.Yield();
-                }
-
-                if (!pendingAdService.InterstitialAdCompleted)
-                {
-                    pendingAdService.ForceMarkAdComplete();
-                }
+                if (!adService.InterstitialAdCompleted)
+                    adService.ForceMarkAdComplete();
             }
 #endif
 

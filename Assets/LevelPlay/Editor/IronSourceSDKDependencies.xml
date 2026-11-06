@@ -1,7 +1,7 @@
 <dependencies>
-  <unityversion>9.4.5</unityversion>
+  <unityversion>9.7.0</unityversion>
   <androidPackages>
-    <androidPackage spec="com.unity3d.ads-mediation:mediation-sdk:9.4.4">
+    <androidPackage spec="com.unity3d.ads-mediation:mediation-sdk:9.7.0">
     </androidPackage>
   </androidPackages>
   <androidPackages>
@@ -12,10 +12,13 @@
     </androidPackage>
   </androidPackages>
   <iosPods>
-    <iosPod name="IronSourceSDK" version="9.4.2.0">
+    <iosPod name="IronSourceSDK" version="9.7.0.0">
       <sources>
         <source>https://github.com/CocoaPods/Specs</source>
       </sources>
     </iosPod>
   </iosPods>
+  <remoteSwiftPackage url="https://github.com/ironsource-mobile/LevelPlay-Swift-Package" version="9.7.0">
+    <swiftPackage name="UnityMediationSDK" replacesPod="IronSourceSDK" />
+  </remoteSwiftPackage>
 </dependencies>

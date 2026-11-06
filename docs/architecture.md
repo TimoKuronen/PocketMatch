@@ -57,7 +57,7 @@ Services register through VContainer with constructor / method injection.
 | `LevelContinueService` | Lose-menu continue gate (once per attempt); applies `ShopOffer` rewards |
 | `CloudSaveService` | Anonymous Firebase Auth + Firestore document sync |
 | `AnalyticsService` | Firebase Analytics with local offline queue (`analytics_cache.json`) |
-| `AdsService` | LevelPlay banner, interstitial, and rewarded mediation |
+| `AdsService` | `IAdsService` facade over per-format controllers (banner, interstitial, rewarded), SDK init, and a shared retry policy |
 | `AudioService` | Cue-based SFX |
 | `EffectService` | VFX pooling / playback |
 | `InputService` | Shared input ticks |

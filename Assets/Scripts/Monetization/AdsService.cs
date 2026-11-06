@@ -12,14 +12,26 @@ public class AdsService : IAdsService, IDisposable
     private const string ConfigFileName = "levelplay-config.json";
     private const string BannerPlacementName = "Banner";
     private const string InterstitialPlacementName = "interstitial";
+    // Analytics label only; the SDK show uses the ad unit's default placement.
+    private const string RewardedPlacementName = "lose_continue";
+    private const int MaxRewardedLoadRetries = 3;
+    // Some networks fire the reward callback just after close; wait briefly before calling it a dismissal.
+    private const float RewardAfterCloseGraceSeconds = 1f;
 
     private string appKey = string.Empty;
     private string bannerAdId = string.Empty;
     private string interstitialAdId = string.Empty;
+    private string rewardedAdId = string.Empty;
     private bool hasValidConfig;
 
     private LevelPlayBannerAd bannerAd;
     private LevelPlayInterstitialAd interstitialAd;
+    private LevelPlayRewardedAd rewardedAd;
+    private UniTaskCompletionSource<RewardedAdResult> pendingRewardedShow;
+    private bool rewardEarned;
+    private bool rewardedClosed;
+    private bool lastRewardedLoadWasNoFill;
+    private int rewardedLoadRetryCount;
     private IAnalyticsService analyticsService;
     private bool isBannerLoaded = false;
     private int bannerRetryCount = 0;
@@ -33,6 +45,12 @@ public class AdsService : IAdsService, IDisposable
     public bool IsInitialized { get; private set; } = false;
     public bool InterstitialAdReady => interstitialAd?.IsAdReady() ?? false;
     public bool InterstitialAdCompleted { get; private set; } = false;
+
+#if UNITY_EDITOR
+    public bool IsRewardedAdAvailable => true;
+#else
+    public bool IsRewardedAdAvailable => IsInitialized && rewardedAd != null;
+#endif
 
     private readonly CancellationTokenSource cts = new();
 
@@ -60,6 +78,11 @@ public class AdsService : IAdsService, IDisposable
         appKey = config.appKey.Trim();
         bannerAdId = config.bannerAdId.Trim();
         interstitialAdId = config.interstitialAdId.Trim();
+        rewardedAdId = config.HasRewardedAdId ? config.rewardedAdId.Trim() : string.Empty;
+
+        if (!config.HasRewardedAdId)
+            Debug.LogWarning("[AdsService] No rewardedAdId in LevelPlay config. Rewarded continue stays unavailable on device.");
+
         return true;
     }
 
@@ -157,9 +180,10 @@ public class AdsService : IAdsService, IDisposable
         // Wait a brief moment for SDK to be fully ready
         await UniTask.Delay(TimeSpan.FromSeconds(0.5f), cancellationToken: token);
         
-        Debug.Log("[AdsService] Creating banner and interstitial ad objects after init.");
+        Debug.Log("[AdsService] Creating banner, interstitial, and rewarded ad objects after init.");
         CreateBannerAd();
         CreateInterstitialAd();
+        CreateRewardedAd();
     }
 
     #endregion
@@ -320,6 +344,198 @@ public class AdsService : IAdsService, IDisposable
             LoadInterstitialAd();
         }
 #endif
+    }
+
+    #endregion
+
+    #region Rewarded Ads
+
+    private void CreateRewardedAd()
+    {
+        if (!IsInitialized || string.IsNullOrEmpty(rewardedAdId))
+            return;
+
+        CleanupRewardedAd();
+
+        try
+        {
+            Debug.Log("[AdsService] Creating rewarded ad object.");
+            rewardedAd = new LevelPlayRewardedAd(rewardedAdId);
+
+            rewardedAd.OnAdLoaded += OnRewardedLoaded;
+            rewardedAd.OnAdLoadFailed += OnRewardedLoadFailed;
+            rewardedAd.OnAdDisplayed += OnRewardedDisplayed;
+            rewardedAd.OnAdDisplayFailed += OnRewardedDisplayFailed;
+            rewardedAd.OnAdRewarded += OnRewardedRewarded;
+            rewardedAd.OnAdClosed += OnRewardedClosed;
+
+            LoadRewardedAd();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[AdsService] Exception while creating rewarded ad: {e}");
+        }
+    }
+
+    private void LoadRewardedAd()
+    {
+        if (rewardedAd == null)
+            return;
+
+        Debug.Log("[AdsService] Requesting rewarded load.");
+        rewardedAd.LoadAd();
+    }
+
+    private void OnRewardedLoaded(LevelPlayAdInfo adInfo)
+    {
+        rewardedLoadRetryCount = 0;
+        lastRewardedLoadWasNoFill = false;
+        Debug.Log($"[AdsService] Rewarded loaded. AdInfo: {adInfo}");
+    }
+
+    private void OnRewardedLoadFailed(LevelPlayAdError error)
+    {
+        string errorString = error.ToString();
+        lastRewardedLoadWasNoFill = errorString.Contains("509") || errorString.IndexOf("no fill", StringComparison.OrdinalIgnoreCase) >= 0;
+        Debug.LogWarning($"[AdsService] Rewarded load failed: {error}");
+
+        rewardedLoadRetryCount++;
+        if (rewardedLoadRetryCount > MaxRewardedLoadRetries)
+        {
+            Debug.LogWarning("[AdsService] Rewarded load retries exhausted; next show attempt will request a new load.");
+            return;
+        }
+
+        float delay = lastRewardedLoadWasNoFill ? NoFillRetryDelaySeconds : 3f * rewardedLoadRetryCount;
+        RetryLoadRewardedAsync(delay).Forget();
+    }
+
+    private async UniTaskVoid RetryLoadRewardedAsync(float delay)
+    {
+        bool cancelled = await UniTask.Delay(TimeSpan.FromSeconds(delay), DelayType.Realtime, cancellationToken: cts.Token)
+            .SuppressCancellationThrow();
+
+        if (!cancelled && rewardedAd != null && !rewardedAd.IsAdReady())
+            LoadRewardedAd();
+    }
+
+    private void OnRewardedDisplayed(LevelPlayAdInfo adInfo)
+    {
+        Debug.Log($"[AdsService] Rewarded displayed. AdInfo: {adInfo}");
+    }
+
+    private void OnRewardedDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
+    {
+        Debug.LogError($"[AdsService] Rewarded display failed: {error}");
+        LogRewardedSkipped("display_failed");
+        CompleteRewardedShow(RewardedAdResult.Unavailable);
+        LoadRewardedAd();
+    }
+
+    private void OnRewardedRewarded(LevelPlayAdInfo adInfo, LevelPlayReward reward)
+    {
+        Debug.Log($"[AdsService] Rewarded granted. Reward: {reward?.Name} x{reward?.Amount}");
+        rewardEarned = true;
+
+        if (rewardedClosed)
+            FinishRewardedShow();
+    }
+
+    private void OnRewardedClosed(LevelPlayAdInfo adInfo)
+    {
+        Debug.Log($"[AdsService] Rewarded closed. RewardEarned={rewardEarned}");
+        rewardedClosed = true;
+
+        if (rewardEarned)
+            FinishRewardedShow();
+        else
+            FinishRewardedShowAfterGraceAsync(pendingRewardedShow).Forget();
+    }
+
+    private async UniTaskVoid FinishRewardedShowAfterGraceAsync(UniTaskCompletionSource<RewardedAdResult> show)
+    {
+        bool cancelled = await UniTask.Delay(TimeSpan.FromSeconds(RewardAfterCloseGraceSeconds), DelayType.Realtime, cancellationToken: cts.Token)
+            .SuppressCancellationThrow();
+
+        if (!cancelled && show != null && pendingRewardedShow == show)
+            FinishRewardedShow();
+    }
+
+    private void FinishRewardedShow()
+    {
+        if (pendingRewardedShow == null)
+            return;
+
+        RewardedAdResult result = rewardEarned ? RewardedAdResult.Rewarded : RewardedAdResult.Dismissed;
+        LogEventSafe(AnalyticsEvents.AdWatched, new Dictionary<string, object>
+        {
+            { "ad_format", "rewarded" },
+            { "placement", RewardedPlacementName },
+            { "result", rewardEarned ? "rewarded" : "dismissed" }
+        });
+
+        CompleteRewardedShow(result);
+        LoadRewardedAd();
+    }
+
+    private void CompleteRewardedShow(RewardedAdResult result)
+    {
+        var show = pendingRewardedShow;
+        pendingRewardedShow = null;
+        show?.TrySetResult(result);
+    }
+
+    public UniTask<RewardedAdResult> ShowRewardedAdAsync(CancellationToken cancellationToken = default)
+    {
+#if UNITY_EDITOR
+        Debug.Log("[AdsService] Simulating rewarded ad completion in Editor.");
+        LogEventSafe(AnalyticsEvents.AdWatched, new Dictionary<string, object>
+        {
+            { "ad_format", "rewarded" },
+            { "placement", RewardedPlacementName },
+            { "result", "editor_simulated" }
+        });
+        return UniTask.FromResult(RewardedAdResult.Rewarded);
+#else
+        if (pendingRewardedShow != null)
+        {
+            Debug.LogWarning("[AdsService] Rewarded show ignored; a rewarded ad is already showing.");
+            return UniTask.FromResult(RewardedAdResult.Unavailable);
+        }
+
+        if (!IsInitialized || rewardedAd == null)
+        {
+            LogRewardedSkipped(string.IsNullOrEmpty(rewardedAdId) ? "not_configured" : "not_initialized");
+            return UniTask.FromResult(RewardedAdResult.Unavailable);
+        }
+
+        if (!rewardedAd.IsAdReady())
+        {
+            LogRewardedSkipped(lastRewardedLoadWasNoFill ? "no_fill" : "not_ready");
+            rewardedLoadRetryCount = 0;
+            LoadRewardedAd();
+            return UniTask.FromResult(RewardedAdResult.Unavailable);
+        }
+
+        pendingRewardedShow = new UniTaskCompletionSource<RewardedAdResult>();
+        rewardEarned = false;
+        rewardedClosed = false;
+
+        Debug.Log("[AdsService] Showing rewarded ad.");
+        rewardedAd.ShowAd();
+        return pendingRewardedShow.Task.AttachExternalCancellation(cancellationToken);
+#endif
+    }
+
+    private void LogRewardedSkipped(string reason)
+    {
+        Debug.LogWarning($"[AdsService] Rewarded ad unavailable: {reason}");
+        LogEventSafe(AnalyticsEvents.AdSkipped, new Dictionary<string, object>
+        {
+            { "ad_format", "rewarded" },
+            { "placement", RewardedPlacementName },
+            { "reason", reason }
+        });
     }
 
     #endregion
@@ -516,8 +732,24 @@ public class AdsService : IAdsService, IDisposable
         interstitialAd.OnAdClosed -= OnInterstitialClosed;
         interstitialAd.OnAdClicked -= OnInterstitialClicked;
         interstitialAd.OnAdLoadFailed -= OnInterstitialLoadFailed;
+        interstitialAd.OnAdDisplayFailed -= OnInterstitialDisplayFailed;
 
         interstitialAd = null;
+    }
+
+    private void CleanupRewardedAd()
+    {
+        if (rewardedAd == null)
+            return;
+
+        rewardedAd.OnAdLoaded -= OnRewardedLoaded;
+        rewardedAd.OnAdLoadFailed -= OnRewardedLoadFailed;
+        rewardedAd.OnAdDisplayed -= OnRewardedDisplayed;
+        rewardedAd.OnAdDisplayFailed -= OnRewardedDisplayFailed;
+        rewardedAd.OnAdRewarded -= OnRewardedRewarded;
+        rewardedAd.OnAdClosed -= OnRewardedClosed;
+
+        rewardedAd = null;
     }
 
     private void CleanupBannerAd()
@@ -557,7 +789,9 @@ public class AdsService : IAdsService, IDisposable
             $"HasInterstitialConfig={!string.IsNullOrEmpty(interstitialAdId)}, " +
             $"InterstitialReady={InterstitialAdReady}, " +
             $"InterstitialCompleted={InterstitialAdCompleted}, " +
-            $"HasInterstitial={interstitialAd != null}");
+            $"HasInterstitial={interstitialAd != null}, " +
+            $"HasRewardedConfig={!string.IsNullOrEmpty(rewardedAdId)}, " +
+            $"RewardedReady={rewardedAd?.IsAdReady() ?? false}");
     }
 
     public void Dispose()
@@ -565,6 +799,8 @@ public class AdsService : IAdsService, IDisposable
         Debug.Log("[AdsService] Disposing ads service.");
         CleanupInterstitialAd();
         CleanupBannerAd();
+        CleanupRewardedAd();
+        CompleteRewardedShow(RewardedAdResult.Unavailable);
 
         LevelPlay.OnInitSuccess -= OnSdkInitSuccess;
         LevelPlay.OnInitFailed -= OnSdkInitFailed;

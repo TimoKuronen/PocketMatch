@@ -1,10 +1,9 @@
-# Firebase Analytics Events
+# Analytics Events
 
-Reference for analytics event names and parameters logged by PocketMatch.
-Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sent through `AnalyticsService`.
+Reference for analytics event names and parameters raised by PocketMatch.
+Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and go through `IAnalyticsService`.
 
-**SDK:** Firebase Analytics 13.5.0  
-**Transport:** `AnalyticsService` queues events locally in `analytics_cache.json` and flushes when Firebase is ready.
+**Transport:** `AnalyticsService` delivers events through `IAnalyticsTransport`, with a local queue in `analytics_cache.json` until the transport is ready. The registered `NullAnalyticsTransport` is disabled: events are logged in the Editor and development builds, and nothing is stored or leaves the device.
 
 **Dictionary lock:** live names below must match `AnalyticsEvents` live constants. Do not fire reserved names until this doc and the constants are updated together.
 
@@ -14,9 +13,9 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and sen
 
 | Event name | Parameters | When fired | Source |
 |------------|------------|------------|--------|
-| `app_started` | (none) | Firebase dependencies resolve successfully on first init in this process | `AnalyticsService` |
-| `session_started` | `device` (string), `app_version` (string) | `FirebaseInitializer` constructed at bootstrap | `FirebaseInitializer` |
-| `session_ended` | `device` (string), `app_version` (string) | `FirebaseInitializer` disposed (app quit or scope teardown) | `FirebaseInitializer` |
+| `app_started` | (none) | Analytics service starts, once per process | `AnalyticsService` |
+| `session_started` | `device` (string), `app_version` (string) | Analytics service starts | `AnalyticsService` |
+| `session_ended` | `device` (string), `app_version` (string) | Bootstrap scope is disposed (app quit) | `AnalyticsService` |
 | `level_started` | `level_name` (string), `level_index` (int) | Board initialized and level is ready to play | `AnalyticsService` via `LevelEvents.OnLevelStarted` |
 | `level_completed` | `level_name` (string), `moves_spent` (int), `total_score` (int), `match_duration_sec` (int) | Victory conditions met | `AnalyticsService` via `LevelEvents.OnLevelCompleted` |
 | `level_failed` | `level_name` (string), `match_duration_sec` (int) | Move limit reached before objectives are cleared | `AnalyticsService` via `LevelEvents.OnLevelFailed` |
@@ -47,18 +46,6 @@ session_started
   -> ad_watched OR ad_skipped        (leaving the win screen via Loader interstitial gate)
 session_ended
 ```
-
-`app_started` fires once per process when Firebase initializes, before or alongside the first queued events.
-
----
-
-## Offline behavior
-
-If Firebase is unavailable at log time, events are appended to the local queue at:
-
-`Application.persistentDataPath/analytics_cache.json`
-
-When Firebase becomes ready, `AnalyticsService` flushes the queue.
 
 ---
 

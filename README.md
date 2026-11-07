@@ -1,6 +1,6 @@
 # PocketMatch
 
-Mobile Match-3 prototype built in **Unity 6** for live mobile F2P client engineering: async board commands, VContainer service boundaries, Addressables content, Firebase analytics and cloud save, and LevelPlay ad mediation.
+Mobile Match-3 prototype built in **Unity 6** for live mobile F2P client engineering: async board commands, VContainer service boundaries, Addressables content, and LevelPlay ad mediation.
 
 [![Unity 6000.3.14f1](https://img.shields.io/badge/Unity-6000.3.14f1-black.svg)](ProjectSettings/ProjectVersion.txt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -19,8 +19,8 @@ Mobile Match-3 prototype built in **Unity 6** for live mobile F2P client enginee
 - Coin economy: earn on win, spend to continue after fail
 - VContainer scopes for bootstrap, menu, and gameplay lifetimes
 - Addressables level loading and pooled VFX
-- Firebase Analytics with a local offline event queue
-- Encrypted local save plus Firestore cloud sync
+- Analytics event dictionary with a local queue and pluggable transport
+- Encrypted local save with a pluggable cloud sync provider
 - Unity LevelPlay banner and interstitial mediation, with a rewarded lose-continue path integrated
 - Unity Localization (`en` / `es`) with Localizer CSV interchange
 - Edit Mode tests for board rules, potential moves, and shuffle
@@ -30,7 +30,7 @@ Mobile Match-3 prototype built in **Unity 6** for live mobile F2P client enginee
 
 ```text
 BootstrapLifetimeScope (DontDestroyOnLoad)
-  Save / Analytics / Ads / Audio / Input / Firebase bootstrap
+  Save / Analytics / Ads / Audio / Input
         |
         v
 Loader -> MainMenu (MenuLifetimeScope)
@@ -39,7 +39,7 @@ Loader -> MainMenu (MenuLifetimeScope)
 Loader (optional interstitial gate) -> PlayScene (GameLifetimeScope)
 ```
 
-Board mutations serialize through `CommandInvoker` and `ICommand` implementations. Live-service hooks enter at bootstrap (analytics/session), level events (start/complete/fail), and Loader transitions (interstitials).
+Board mutations serialize through `CommandInvoker` and `ICommand` implementations. Live-service hooks enter at level events (start/complete/fail) and Loader transitions (interstitials).
 
 Details: [docs/architecture.md](docs/architecture.md)
 
@@ -51,9 +51,7 @@ Details: [docs/architecture.md](docs/architecture.md)
 | DI | [VContainer](https://github.com/hadashiA/VContainer) |
 | Async | [UniTask](https://github.com/Cysharp/UniTask) |
 | Content | Addressables (levels, VFX) |
-| Auth / cloud save | Firebase Anonymous Auth + Firestore |
 | Ads | Unity LevelPlay (IronSource mediation) |
-| Analytics | Firebase Analytics (offline queue) |
 | Localization | Unity Localization (`en` source, `es`); CSV bridge to Localizer |
 
 ## Docs

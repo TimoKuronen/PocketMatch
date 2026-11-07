@@ -23,7 +23,7 @@ public class SaveService : ISaveService, IStartable, IDisposable
     private readonly string settingsFile = Path.Combine(Application.persistentDataPath, "settings.dat");
     private string encryptionKey;
 
-    private CloudSaveService cloud;
+    private ICloudSaveProvider cloud;
     private bool cloudInitialized;
     private IObjectResolver objectResolver;
 
@@ -38,15 +38,18 @@ public class SaveService : ISaveService, IStartable, IDisposable
     #region Lifecycle
 
     [Inject]
-    public void Construct(IObjectResolver objectResolver)
+    public void Construct(IObjectResolver objectResolver, ICloudSaveProvider cloud)
     {
         this.objectResolver = objectResolver;
         encryptionKey = ResolveEncryptionKey();
 
-        cloud = new CloudSaveService();
+        this.cloud = cloud;
 
         Load();
         Debug.Log("[SaveService] Local save loaded");
+
+        if (!cloud.IsEnabled)
+            CloudSyncStatus = CloudSyncStatus.Disabled;
     }
 
     public void Start()
@@ -86,6 +89,9 @@ public class SaveService : ISaveService, IStartable, IDisposable
 
     public async Task InitializeCloudAsync()
     {
+        if (!cloud.IsEnabled)
+            return;
+
         try
         {
             await cloud.InitializeAsync();
@@ -107,43 +113,6 @@ public class SaveService : ISaveService, IStartable, IDisposable
             cloudInitialized = false;
             SetCloudSyncStatus(CloudSyncStatus.InitFailed);
             Debug.LogWarning("[SaveService] Cloud initialization failed: " + e);
-        }
-    }
-
-    public async Task UploadCloudAsync()
-    {
-        if (!cloudInitialized)
-            return;
-
-        try
-        {
-            await cloud.UploadAsync(PlayerData);
-            SetCloudSyncStatus(CloudSyncStatus.Ready);
-        }
-        catch (Exception e)
-        {
-            SetCloudSyncStatus(CloudSyncStatus.UploadFailed);
-            Debug.LogWarning("[SaveService] Cloud upload failed - local save still OK: " + e);
-        }
-    }
-
-    public async Task DownloadCloudAsync()
-    {
-        if (!cloudInitialized)
-            return;
-
-        try
-        {
-            var cloudData = await cloud.DownloadAsync();
-            if (cloudData != null)
-            {
-                ApplyCloudOverLocal(cloudData);
-            }
-        }
-        catch (Exception e)
-        {
-            SetCloudSyncStatus(CloudSyncStatus.InitFailed);
-            Debug.LogWarning("[SaveService] Cloud download failed - keeping local save: " + e);
         }
     }
 

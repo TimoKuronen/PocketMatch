@@ -3,6 +3,7 @@
 /// </summary>
 public enum CloudSyncStatus
 {
+    Disabled,
     NotInitialized,
     Ready,
     Offline,

@@ -326,7 +326,7 @@ public sealed class DebugToolsPanel : MonoBehaviour
 
     private static void ConfigureLabel(TextMeshProUGUI label)
     {
-        label.enableWordWrapping = true;
+        label.textWrappingMode = TextWrappingModes.Normal;
         label.overflowMode = TextOverflowModes.Ellipsis;
         label.margin = new Vector4(4f, 0f, 4f, 0f);
     }

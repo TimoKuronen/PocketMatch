@@ -1,54 +1,43 @@
-using Firebase;
-using Firebase.Analytics;
-using Firebase.Extensions;
+using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
+/// <summary>
+/// Maps gameplay and economy events onto the analytics dictionary and delivers them through
+/// <see cref="IAnalyticsTransport"/>, holding events in a local queue until the transport is ready.
+/// With a disabled transport nothing is queued or stored; events are only logged in debug builds.
+/// </summary>
 public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
 {
     private const string CacheFile = "analytics_cache.json";
 
-    #region Fields
-
     private List<CachedEvent> eventQueue = new List<CachedEvent>();
-    private bool firebaseReady = false;
+    private bool transportReady;
     private ISaveService saveService;
     private IEconomyService economyService;
-
-    #endregion
-
-    #region Lifecycle
+    private IAnalyticsTransport transport;
 
     [Inject]
-    public void Construct(ISaveService saveService, IEconomyService economyService)
+    public void Construct(ISaveService saveService, IEconomyService economyService, IAnalyticsTransport transport)
     {
         this.saveService = saveService;
         this.economyService = economyService;
+        this.transport = transport;
+
+        if (!transport.IsEnabled)
+            return;
 
         LoadCache();
-
-        FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
-        {
-            var status = task.Result;
-            if (status == DependencyStatus.Available)
-            {
-                firebaseReady = true;
-                FirebaseAnalytics.LogEvent(AnalyticsEvents.AppStarted);
-                FlushEvents();
-            }
-            else
-            {
-                Debug.LogError("Firebase dependencies not resolved: " + status);
-            }
-        });
+        InitializeTransportAsync().Forget();
 
         Application.focusChanged += OnAppFocusChanged;
-        Application.quitting += OnAppQuit;
+        Application.quitting += SaveCache;
     }
 
     public void Start()
@@ -57,23 +46,35 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         LevelEvents.OnLevelCompleted += OnLevelCompleted;
         LevelEvents.OnLevelFailed += OnLevelFailed;
         economyService.OnCoinsSpent += OnCoinsSpent;
+
+        LogEvent(AnalyticsEvents.AppStarted);
+        LogEvent(AnalyticsEvents.SessionStarted, CreateSessionParameters());
     }
 
     public void Dispose()
     {
+        LogEvent(AnalyticsEvents.SessionEnded, CreateSessionParameters());
+
         LevelEvents.OnLevelStarted -= OnLevelStarted;
         LevelEvents.OnLevelCompleted -= OnLevelCompleted;
         LevelEvents.OnLevelFailed -= OnLevelFailed;
         economyService.OnCoinsSpent -= OnCoinsSpent;
+
+        if (!transport.IsEnabled)
+            return;
+
+        Application.focusChanged -= OnAppFocusChanged;
+        Application.quitting -= SaveCache;
         SaveCache();
     }
 
-    #endregion
-
-    #region Public API
-
     public void LogEvent(string eventName, Dictionary<string, object> parameters = null)
     {
+        LogToConsole(eventName, parameters);
+
+        if (!transport.IsEnabled)
+            return;
+
         var newEvent = new CachedEvent
         {
             EventName = eventName,
@@ -84,15 +85,33 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         eventQueue.Add(newEvent);
         SaveCache();
 
-        if (firebaseReady)
-        {
+        if (transportReady)
             TrySendEvent(newEvent);
-        }
     }
 
-    #endregion
+    private static Dictionary<string, object> CreateSessionParameters()
+    {
+        return new Dictionary<string, object>
+        {
+            { "device", SystemInfo.deviceModel },
+            { "app_version", Application.version }
+        };
+    }
 
-    #region Event Handlers
+    private static void LogToConsole(string eventName, Dictionary<string, object> parameters)
+    {
+        if (!Debug.isDebugBuild)
+            return;
+
+        var message = new StringBuilder("[Analytics] ").Append(eventName);
+        if (parameters != null)
+        {
+            foreach (var parameter in parameters)
+                message.Append(' ').Append(parameter.Key).Append('=').Append(parameter.Value);
+        }
+
+        Debug.Log(message.ToString());
+    }
 
     private void OnCoinsSpent(CoinsSpentEventArgs e)
     {
@@ -131,7 +150,7 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
             { "match_duration_sec", e.GameTimeInSeconds }
         });
 
-        // Mirrors SaveService coin grant on level_complete wins.
+        // Mirrors the EconomyService coin grant on level_complete wins.
         if (!e.IsLevelCapReached && e.TotalScore > 0)
         {
             LogEvent(AnalyticsEvents.CoinsEarned, new Dictionary<string, object>
@@ -152,68 +171,58 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         });
     }
 
-    #endregion
+    private async UniTaskVoid InitializeTransportAsync()
+    {
+        try
+        {
+            transportReady = await transport.InitializeAsync();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[Analytics] Transport initialization failed: {e.Message}");
+            return;
+        }
 
-    #region Queue & Cache
+        if (transportReady)
+            FlushEvents();
+    }
 
     private void TrySendEvent(CachedEvent cachedEvent)
     {
         try
         {
-            if (cachedEvent.Parameters == null || cachedEvent.Parameters.Count == 0)
-            {
-                FirebaseAnalytics.LogEvent(cachedEvent.EventName);
-            }
-            else
-            {
-                var paramList = new List<Parameter>();
-                foreach (var kv in cachedEvent.Parameters)
-                {
-                    if (kv.Value is int intVal) paramList.Add(new Parameter(kv.Key, intVal));
-                    else if (kv.Value is long longVal) paramList.Add(new Parameter(kv.Key, longVal));
-                    else if (kv.Value is float floatVal) paramList.Add(new Parameter(kv.Key, floatVal));
-                    else if (kv.Value is double doubleVal) paramList.Add(new Parameter(kv.Key, doubleVal));
-                    else paramList.Add(new Parameter(kv.Key, kv.Value.ToString()));
-                }
-                FirebaseAnalytics.LogEvent(cachedEvent.EventName, paramList.ToArray());
-            }
-
+            transport.Send(cachedEvent.EventName, cachedEvent.Parameters);
             eventQueue.Remove(cachedEvent);
             SaveCache();
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"[AnalyticsManager] Failed to send event {cachedEvent.EventName}: {e.Message}");
+            Debug.LogWarning($"[Analytics] Failed to send event {cachedEvent.EventName}: {e.Message}");
         }
     }
 
     private void FlushEvents()
     {
-        if (!firebaseReady)
-            return;
-
         var eventsCopy = new List<CachedEvent>(eventQueue);
         foreach (var e in eventsCopy)
-        {
             TrySendEvent(e);
-        }
     }
 
     private void LoadCache()
     {
         string path = Path.Combine(Application.persistentDataPath, CacheFile);
-        if (File.Exists(path))
+        if (!File.Exists(path))
+            return;
+
+        try
         {
-            try
-            {
-                string json = File.ReadAllText(path);
-                eventQueue = JsonConvert.DeserializeObject<List<CachedEvent>>(json) ?? new List<CachedEvent>();
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"[AnalyticsManager] Failed to load cache: {e.Message}");
-                eventQueue = new List<CachedEvent>();
-            }
+            string json = File.ReadAllText(path);
+            eventQueue = JsonConvert.DeserializeObject<List<CachedEvent>>(json) ?? new List<CachedEvent>();
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[Analytics] Failed to load cache: {e.Message}");
+            eventQueue = new List<CachedEvent>();
         }
     }
 
@@ -227,7 +236,7 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"[AnalyticsManager] Failed to save cache: {e.Message}");
+            Debug.LogWarning($"[Analytics] Failed to save cache: {e.Message}");
         }
     }
 
@@ -236,13 +245,6 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         if (!hasFocus)
             SaveCache();
     }
-
-    private void OnAppQuit()
-    {
-        SaveCache();
-    }
-
-    #endregion
 }
 
 [Serializable]

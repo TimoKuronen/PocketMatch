@@ -7,9 +7,6 @@ public class CloudSaveBootstrap : MonoBehaviour
 
     private async void Start()
     {
-        // Give Firebase a frame to initialize internally
-        await System.Threading.Tasks.Task.Yield();
-
         await saveService.InitializeCloudAsync();
     }
 }

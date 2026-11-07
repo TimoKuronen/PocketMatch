@@ -41,7 +41,7 @@ flowchart LR
 
 | Scope | Lifetime | Responsibilities |
 |-------|----------|------------------|
-| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, economy, analytics, input, audio, ads, localization, Firebase bootstrap, cloud-save bootstrap |
+| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, economy, analytics, input, audio, ads, localization |
 | `MenuLifetimeScope` | Main menu scene | Menu presenters and views |
 | `GameLifetimeScope` | Play scene | Session, level earnings, continue, HUD, grid presenters, board wiring |
 
@@ -51,12 +51,11 @@ Services register through VContainer with constructor / method injection.
 
 | Service | Responsibility |
 |---------|----------------|
-| `SaveService` | Encrypted local save (`save.dat`), progression updates, cloud upload trigger |
+| `SaveService` | Encrypted local save (`save.dat`), progression updates, cloud sync through `ICloudSaveProvider` |
 | `EconomyService` | Wallet ledger (`PlayerData.coins`), spend/add, save trigger, balance events |
 | `LevelEarningsService` | Per-attempt earnings from gameplay (power tiles, unused-move bonus) |
 | `LevelContinueService` | Lose-menu continue gate (once per attempt); applies `ShopOffer` rewards |
-| `CloudSaveService` | Anonymous Firebase Auth + Firestore document sync |
-| `AnalyticsService` | Firebase Analytics with local offline queue (`analytics_cache.json`) |
+| `AnalyticsService` | Maps level and economy events to analytics names; queues and delivers them through `IAnalyticsTransport` |
 | `AdsService` | `IAdsService` facade over per-format controllers (banner, interstitial, rewarded), SDK init, and a shared retry policy |
 | `AudioService` | Cue-based SFX |
 | `EffectService` | VFX pooling / playback |
@@ -83,15 +82,13 @@ Board mutations run through an async command queue:
 
 Editor builds simulate interstitial and rewarded completion. Device builds initialize LevelPlay when local ad configuration is present. The rewarded unit is optional there: without it the ad continue stays unavailable on device, and the rewarded path has so far been exercised only through Editor simulation and Edit Mode tests. Ad failure paths (including rewarded no-fill) log `ad_skipped` and continue scene flow, and the Loader waits for ads with timeouts so they never block loading; a failed rewarded show turns the ad option off for that lose screen.
 
-## Save and offline (current)
+## Save (current)
 
 - Local save is encrypted JSON at `Application.persistentDataPath/save.dat`
-- Boot loads local save immediately; cloud sync runs when Firebase is available
-- **Conflict policy (no merge):** if a cloud document exists on init download, it replaces in-memory and local disk data. There is no field merge and no last-write-wins comparison yet (`meta.lastSaveTime` is recorded for diagnostics only)
-- Upload / init failures leave the local save intact and set `ISaveService.CloudSyncStatus` (shown on the main-menu footer)
 - `PlayerData.meta.saveVersion` is the schema version; `SaveService` runs `DataMigrator` when on-disk schema lags `SaveService.CurrentSaveVersion` (today: version bump only)
-- Offline play, local save, and analytics queuing continue when network or Firebase is unavailable
-- `PlayerData.coins` is the wallet field; all mutations go through `EconomyService` and sync with the full save blob
+- **Cloud sync:** `SaveService` talks to `ICloudSaveProvider`. `NullCloudSaveProvider` is registered, so saves stay on the device and the footer shows only the version
+- **Conflict policy (no merge):** with an enabled provider, a cloud document found on init replaces in-memory and local disk data. Upload and init failures leave the local save intact and set `ISaveService.CloudSyncStatus`
+- `PlayerData.coins` is the wallet field; all mutations go through `EconomyService`
 
 ## Economy (current)
 
@@ -101,7 +98,7 @@ LevelEarningsService (game-scoped, ephemeral)
   -> LevelEvents.OnLevelCompleted
 EconomyService (bootstrap singleton)
   -> AddCoins on win / TrySpendCoins on purchases
-  -> SaveService.Save() (local + cloud when online)
+  -> SaveService.Save()
 LevelContinueService (game-scoped)
   -> TryContinueWithCoins via ShopOffer asset
   -> LevelManager.GrantExtraMoves (resume without scene reload)
@@ -109,7 +106,7 @@ LevelContinueService (game-scoped)
 
 | Data | Location |
 |------|----------|
-| Wallet | `PlayerData.coins` (cloud-synced) |
+| Wallet | `PlayerData.coins` |
 | Continue offer | `Assets/_Project/Scriptables/Resources/ContinueExtraMoves.asset` (loaded via `Resources.Load("ContinueExtraMoves")`) |
 | Attempt earnings | `LevelEarningsService` only; not persisted until win |
 
@@ -121,14 +118,12 @@ Continue is once per attempt via coins.
 
 | Hook | Entry point |
 |------|-------------|
-| Session analytics | `FirebaseInitializer` / `AnalyticsService` during bootstrap |
 | Level start / complete / fail | `LevelEvents` → `AnalyticsService` |
-| Coins earned | `LevelEvents.OnLevelCompleted` → `EconomyService.AddCoins` → `coins_earned` |
+| Coins earned | `LevelEvents.OnLevelCompleted` → `EconomyService.AddCoins`; `AnalyticsService` logs `coins_earned` from the same event |
 | Coins spent | `EconomyService.TrySpendCoins` → `OnCoinsSpent` → `coins_spent` |
 | Lose continue | `LosePresenter` → `LevelContinueService` → `EconomyService` or `AdsService.ShowRewardedAdAsync` → `LevelManager.GrantExtraMoves` |
 | Interstitial gate | `WinPresenter` → `Loader.ShowInterstitialThenContinue` |
 | Banner | `MainMenuPresenter` shows; `LevelSelectPresenter` and interstitial show hide |
-| Cloud save | `CloudSaveBootstrap` after bootstrap; upload on local save when online |
 
 ## Localization (current)
 

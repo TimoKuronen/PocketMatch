@@ -81,6 +81,12 @@ public class MainMenuPresenter : IStartable, IDisposable
             LocalizationKeys.CommonVersionBuild,
             Application.version,
             BuildInfo.AndroidVersionCode);
+        if (saveService.CloudSyncStatus == CloudSyncStatus.Disabled)
+        {
+            view.SetVersion(version);
+            return;
+        }
+
         string cloud = localization.Get(CloudSyncStatusLabels.ToKey(saveService.CloudSyncStatus));
         view.SetVersion(localization.Get(LocalizationKeys.CommonSettingsFooter, version, cloud));
     }

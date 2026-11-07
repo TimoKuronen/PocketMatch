@@ -7,7 +7,6 @@ PocketMatch bundles third-party engines, SDKs, and Asset Store content. Their li
 | Dependency | Location (typical) | Notes |
 |------------|--------------------|-------|
 | Unity engine and UPM packages | `Packages/`, ProjectSettings | Unity terms |
-| Firebase Unity SDK | `Assets/Firebase/` | Google / Firebase terms |
 | Unity LevelPlay (IronSource) | `Assets/LevelPlay/` | Unity LevelPlay terms |
 | DOTween | `Assets/Plugins/Demigiant/DOTween/` | Demigiant license |
 | Cartoon FX Remaster | `Assets/JMO Assets/Cartoon FX Remaster/` | Jean Moreno / Asset Store terms |

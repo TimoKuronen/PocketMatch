@@ -82,6 +82,8 @@ sysinfo.txt
 
 # Gradle and Android Resolver outputs
 *.gradle
+!/Assets/Plugins/Android/mainTemplate.gradle
+!/Assets/Plugins/Android/settingsTemplate.gradle
 .gradle/
 build/
 *.aar

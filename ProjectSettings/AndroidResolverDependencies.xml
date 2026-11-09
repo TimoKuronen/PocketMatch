@@ -4,8 +4,7 @@
     <package>com.unity3d.ads-mediation:mediation-sdk:9.7.0</package>
     <package>com.unity3d.ads-mediation:unityads-adapter:5.16.0</package>
   </packages>
-  <files>
-  </files>
+  <files />
   <settings>
     <setting name="androidAbis" value="arm64-v8a" />
     <setting name="bundleId" value="com.TimoKuronen.PocketMatch" />

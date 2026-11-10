@@ -70,9 +70,10 @@ Board mutations run through an async command queue:
 - `ICommand` / `CommandInvoker` serialize `ExecuteAsync` work
 - Gameplay commands include `SwapCommand`, `DestroyCommand`, `GravityCommand`, `CreatePowerTileCommand`, and `StaggeredDestroyCommand`
 - `GridController` orchestrates match cycles, then asks `BoardStateEvaluator` for potential moves
+- Power tiles caught in a match queue their own destroy commands, which drain before gravity; a double tap or a power swap locks input, costs one move, and resolves the board once
 - Zero potential moves triggers shuffle-until-playable via `GridHelperMethods`
 
-## Ads (current)
+## Ads
 
 | Format | Placement | Behavior |
 |--------|-----------|----------|
@@ -80,17 +81,17 @@ Board mutations run through an async command queue:
 | Interstitial | Loader transitions | Tried when leaving the win screen, to the next level or the main menu |
 | Rewarded | Lose menu continue | Opt-in; extra moves granted only on a confirmed reward. One continue (coins or ad) per attempt; repeat taps while the ad is up are ignored |
 
-Editor builds simulate interstitial and rewarded completion. Device builds initialize LevelPlay when local ad configuration is present. The rewarded unit is optional there: without it the ad continue stays unavailable on device, and the rewarded path has so far been exercised only through Editor simulation and Edit Mode tests. Ad failure paths (including rewarded no-fill) log `ad_skipped` and continue scene flow, and the Loader waits for ads with timeouts so they never block loading; a failed rewarded show turns the ad option off for that lose screen.
+Editor builds simulate interstitial and rewarded completion. Device builds initialize LevelPlay when local ad configuration is present. The rewarded unit is optional there: without it the ad continue stays unavailable on device. Ad failure paths (including rewarded no-fill) log `ad_skipped` and continue scene flow, and the Loader waits for ads with timeouts so they never block loading; a failed rewarded show turns the ad option off for that lose screen.
 
-## Save (current)
+## Save
 
 - Local save is encrypted JSON at `Application.persistentDataPath/save.dat`
-- `PlayerData.meta.saveVersion` is the schema version; `SaveService` runs `DataMigrator` when on-disk schema lags `SaveService.CurrentSaveVersion` (today: version bump only)
+- `PlayerData.meta.saveVersion` is the schema version; `SaveService` runs `DataMigrator` when on-disk schema lags `SaveService.CurrentSaveVersion`
 - **Cloud sync:** `SaveService` talks to `ICloudSaveProvider`. `NullCloudSaveProvider` is registered, so saves stay on the device and the footer shows only the version
 - **Conflict policy (no merge):** with an enabled provider, a cloud document found on init replaces in-memory and local disk data. Upload and init failures leave the local save intact and set `ISaveService.CloudSyncStatus`
 - `PlayerData.coins` is the wallet field; all mutations go through `EconomyService`
 
-## Economy (current)
+## Economy
 
 ```text
 LevelEarningsService (game-scoped, ephemeral)
@@ -125,21 +126,17 @@ Continue is once per attempt via coins.
 | Interstitial gate | `WinPresenter` → `Loader.ShowInterstitialThenContinue` |
 | Banner | `MainMenuPresenter` shows; `LevelSelectPresenter` and interstitial show hide |
 
-## Localization (current)
+## Localization
 
 - Package: `com.unity.localization` with locales `en` (source) and `es`
 - Player-facing copy lives in the `UI` String Table Collection (`ui.*` keys); placeholders use indexed `{0}`
 - Runtime lookup goes through `ILocalizationService` / `LocalizationService` (bootstrap singleton)
 - Static TMP chrome uses `LocalizedTmpLabel`; loader progress text and dynamic HUD/dialog copy also resolve through the same service
-- Localization foundation is live: device/system locale, Game View / DebugTools override, and Localizer CSV interchange via **PocketMatch > Localization**
 - Empty or missing `es` cells fall back to `en` (no player-facing MISSING text)
 - Spanish Locale asset carries **Fallback Locale** metadata pointing at English; String Database **Use Fallback** is enabled
 - Startup locale: device/system via Unity selectors, with `en` fallback
 - Editor Play Mode: Game View locale dropdown (Unity Localization, on by default)
-- Editor tools live under **PocketMatch > Localization** and **PocketMatch > Debug** (single top-level menu)
-- Localizer interchange: Unity String Table CSV only. Export/import via **PocketMatch > Localization** menus (`Assets/Localization/Export/{TableCollectionName}.csv`). Catalog JSON stays out of this repo.
-
-Create missing assets with **PocketMatch > Localization > Maintenance > Create Foundation** (existing values are kept).
+- Localizer interchange uses the Unity String Table CSV format only, exported to and imported from `Assets/Localization/Export/{TableCollectionName}.csv` by Editor tooling. Catalog JSON stays out of this repo.
 
 ## Related docs
 

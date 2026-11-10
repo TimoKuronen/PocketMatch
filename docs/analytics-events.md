@@ -5,11 +5,11 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and go 
 
 **Transport:** `AnalyticsService` delivers events through `IAnalyticsTransport`, with a local queue in `analytics_cache.json` until the transport is ready. The registered `NullAnalyticsTransport` is disabled: events are logged in the Editor and development builds, and nothing is stored or leaves the device.
 
-**Dictionary lock:** live names below must match `AnalyticsEvents` live constants. Do not fire reserved names until this doc and the constants are updated together.
+**Dictionary lock:** the names below match the live constants in `AnalyticsEvents`; no other names are fired.
 
 ---
 
-## Live events (11)
+## Events (11)
 
 | Event name | Parameters | When fired | Source |
 |------------|------------|------------|--------|
@@ -24,16 +24,6 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and go 
 | `ad_watched` | `ad_format` (string), `placement` (string), `result` (string) | Interstitial closed after display (`result` = `completed`); rewarded closed with reward (`rewarded`) or without (`dismissed`); Editor-simulated show (`editor_simulated`) | `AdsService` |
 | `ad_skipped` | `ad_format` (string), `placement` (string), `reason` (string) | Interstitial or rewarded could not be shown (`display_failed`, `not_ready`, `not_initialized`; rewarded also `no_fill`, `not_configured`); gameplay continues | `AdsService` |
 | `extra_automated_matches` | `level_name` (string), `moves_spent` (int) | Match cascade cycle count exceeds 2 after a player move | `GridController` |
-
----
-
-## Reserved (not fired)
-
-| Event name | Why reserved |
-|------------|----------------|
-| `tile_matched` | Too high-volume if fired per match; prefer aggregates later |
-| `booster_used` | Inventory boosters are not shipped (board power tiles are not boosters) |
-| `iap_purchased` | IAP is out of scope for this prototype |
 
 ---
 

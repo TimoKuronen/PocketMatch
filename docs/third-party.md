@@ -16,7 +16,7 @@ PocketMatch bundles third-party engines, SDKs, and Asset Store content. Their li
 | VContainer | UPM / package cache | VContainer license |
 | UniTask | UPM / package cache | Cysharp license |
 
-This list is not exhaustive. Inspect vendor folders and package manifests for the authoritative license text shipped with each dependency.
+The authoritative license text for each dependency ships in its vendor folder or package manifest.
 
 ## First-party scope
 

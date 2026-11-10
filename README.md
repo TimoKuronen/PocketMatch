@@ -1,6 +1,6 @@
 # PocketMatch
 
-Mobile Match-3 prototype built in **Unity 6** for live mobile F2P client engineering: async board commands, VContainer service boundaries, Addressables content, and LevelPlay ad mediation.
+Mobile Match-3 prototype built in **Unity 6**: async board commands, VContainer service boundaries, Addressables content, and LevelPlay ad mediation.
 
 [![Unity 6000.3.14f1](https://img.shields.io/badge/Unity-6000.3.14f1-black.svg)](ProjectSettings/ProjectVersion.txt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)

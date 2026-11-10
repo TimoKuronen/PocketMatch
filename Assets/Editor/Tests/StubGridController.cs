@@ -28,16 +28,16 @@ public class StubGridController : IGridController
     public bool IsProcessingTiles => false;
     public GridContext GridContext => null;
     public BoardStateEvaluator BoardEvaluator => null;
-    public event System.Action TileDrop;
-    public event System.Action ActionTaken;
-    public event System.Action TileMoved;
-    public event System.Action TileSwapped;
-    public event System.Action TileSwapError;
-    public event System.Action<TileData> TileDestroyed;
-    public event System.Action TilesDestroyed;
-    public event System.Action<TileData[,]> BoardUpdated;
-    public event System.Action<TileData> PowerTileCreated;
-    public event System.Action OnBoardShuffle;
+    public event System.Action TileDrop { add { } remove { } }
+    public event System.Action ActionTaken { add { } remove { } }
+    public event System.Action TileMoved { add { } remove { } }
+    public event System.Action TileSwapped { add { } remove { } }
+    public event System.Action TileSwapError { add { } remove { } }
+    public event System.Action<TileData> TileDestroyed { add { } remove { } }
+    public event System.Action TilesDestroyed { add { } remove { } }
+    public event System.Action<TileData[,]> BoardUpdated { add { } remove { } }
+    public event System.Action<TileData> PowerTileCreated { add { } remove { } }
+    public event System.Action OnBoardShuffle { add { } remove { } }
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir) { }
     public void AttemptPowerTrigger(TileView tileView) { }
     public Cysharp.Threading.Tasks.UniTask MatchCycleAsync() => Cysharp.Threading.Tasks.UniTask.CompletedTask;

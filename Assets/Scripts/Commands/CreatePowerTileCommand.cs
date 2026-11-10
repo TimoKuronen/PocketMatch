@@ -44,14 +44,7 @@ public class CreatePowerTileCommand : ICommand
             if (baseData == null)
                 continue;
 
-            TilePower power = shape switch
-            {
-                MatchShape.FourHorizontal => TilePower.RowClearer,
-                MatchShape.FourVertical => TilePower.ColumnClearer,
-                MatchShape.TOrL => TilePower.Bomb,
-                MatchShape.FiveLine => TilePower.Rainbow,
-                _ => TilePower.None
-            };
+            TilePower power = PowerForShape(shape);
 
             if (power == TilePower.None)
                 continue;
@@ -67,6 +60,18 @@ public class CreatePowerTileCommand : ICommand
         }
 
         await UniTask.Yield();
+    }
+
+    public static TilePower PowerForShape(MatchShape shape)
+    {
+        return shape switch
+        {
+            MatchShape.FourHorizontal => TilePower.RowClearer,
+            MatchShape.FourVertical => TilePower.ColumnClearer,
+            MatchShape.TOrL => TilePower.Bomb,
+            MatchShape.FiveLine => TilePower.Rainbow,
+            _ => TilePower.None
+        };
     }
 
     private Vector2Int DeterminePowerTilePosition(List<Vector2Int> group)

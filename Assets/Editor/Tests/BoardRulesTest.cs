@@ -105,7 +105,7 @@ public class BoardRulesTest
         MatchShape shape = matchFinder.DetermineMatchShape(positions, grid);
 
         Assert.AreEqual(MatchShape.FourHorizontal, shape);
-        Assert.AreEqual(TilePower.RowClearer, PowerForShape(shape));
+        Assert.AreEqual(TilePower.RowClearer, CreatePowerTileCommand.PowerForShape(shape));
     }
 
     [Test]
@@ -122,19 +122,42 @@ public class BoardRulesTest
         MatchShape shape = matchFinder.DetermineMatchShape(positions, null);
 
         Assert.AreEqual(MatchShape.ThreeLine, shape);
-        Assert.AreEqual(TilePower.None, PowerForShape(shape));
+        Assert.AreEqual(TilePower.None, CreatePowerTileCommand.PowerForShape(shape));
     }
 
-    private static TilePower PowerForShape(MatchShape shape)
+    [Test]
+    public void IsCleared_OnlyNormalAndDestroyedDestroyableTiles()
     {
-        return shape switch
+        var pos = new Vector2Int(0, 0);
+        var aliveDestroyable = new DestroyableTileData(pos, 2, false);
+        var deadDestroyable = new DestroyableTileData(pos, 1, false);
+        deadDestroyable.TakeDamage(1);
+
+        Assert.IsTrue(GridHelperMethods.IsCleared(new TileData(TileType.Blue, pos, TilePower.None, TileState.Normal)));
+        Assert.IsTrue(GridHelperMethods.IsCleared(deadDestroyable));
+        Assert.IsFalse(GridHelperMethods.IsCleared(aliveDestroyable), "A damaged but alive destroyable stays on the board");
+        Assert.IsFalse(GridHelperMethods.IsCleared(new TileData(TileType.Red, pos, TilePower.None, TileState.Blocked)));
+        Assert.IsFalse(GridHelperMethods.IsCleared(GridHelperMethods.CreateEmptyTile(pos)));
+        Assert.IsFalse(GridHelperMethods.IsCleared(null));
+    }
+
+    [Test]
+    public void RainbowMostCommonType_IgnoresEmptyAndBlockedCells()
+    {
+        // Empty and blocked cells are typed Red; only normal tiles may decide the target colour.
+        int width = 3;
+        int height = 3;
+        var grid = new TileData[width, height];
+        for (int x = 0; x < width; x++)
         {
-            MatchShape.FourHorizontal => TilePower.RowClearer,
-            MatchShape.FourVertical => TilePower.ColumnClearer,
-            MatchShape.TOrL => TilePower.Bomb,
-            MatchShape.FiveLine => TilePower.Rainbow,
-            _ => TilePower.None
-        };
+            for (int y = 0; y < height; y++)
+                grid[x, y] = GridHelperMethods.CreateEmptyTile(new Vector2Int(x, y));
+        }
+
+        grid[0, 0] = new TileData(TileType.Red, new Vector2Int(0, 0), TilePower.None, TileState.Blocked);
+        grid[1, 0] = new TileData(TileType.Blue, new Vector2Int(1, 0), TilePower.None, TileState.Normal);
+
+        Assert.AreEqual(TileType.Blue, RainbowTile.GetMostCommonType(grid, width, height));
     }
 
     private static void CollapseAll(TileData[,] grid, int width, int height)

@@ -71,17 +71,8 @@ public class StaggeredDestroyCommand : ICommand
                     powerWorldPositions[data] = context.GetWorldPosition(pos);
             }
 
-            if (data != null)
-            {
-                if (data.State == TileState.Normal)
-                    positionsToVisuallyDestroy.Add(pos);
-                else if (data.State == TileState.Destroyable &&
-                         data is DestroyableTileData destroyableData &&
-                         destroyableData.IsDestroyed)
-                {
-                    positionsToVisuallyDestroy.Add(pos);
-                }
-            }
+            if (GridHelperMethods.IsCleared(data))
+                positionsToVisuallyDestroy.Add(pos);
         }
 
         if (positionsToVisuallyDestroy.Count > 0)
@@ -132,25 +123,11 @@ public class StaggeredDestroyCommand : ICommand
             var view = gridViews[pos.x, pos.y];
             var data = gridData[pos.x, pos.y];
 
-            if (data == null)
+            if (!GridHelperMethods.IsCleared(data))
                 continue;
 
             tileDestroyed?.Invoke(data);
-
-            if (data.State == TileState.Blocked)
-                continue;
-
-            if (data.State == TileState.Destroyable && data is DestroyableTileData destroyable)
-            {
-                if (!destroyable.IsDestroyed)
-                    continue;
-
-                gridData[pos.x, pos.y] = GridHelperMethods.CreateEmptyTile(pos);
-            }
-            else if (data.State == TileState.Normal)
-            {
-                gridData[pos.x, pos.y] = GridHelperMethods.CreateEmptyTile(pos);
-            }
+            gridData[pos.x, pos.y] = GridHelperMethods.CreateEmptyTile(pos);
 
             if (view != null)
             {

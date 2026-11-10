@@ -65,17 +65,8 @@ public class DestroyCommand : ICommand
             }
 
             // Decide whether this tile will actually be cleared from the grid.
-            if (data != null)
-            {
-                if (data.State == TileState.Normal)
-                {
-                    positionsToVisuallyDestroy.Add(pos);
-                }
-                else if (data.State == TileState.Destroyable && data is DestroyableTileData destroyableData && destroyableData.IsDestroyed)
-                {
-                    positionsToVisuallyDestroy.Add(pos);
-                }
-            }
+            if (GridHelperMethods.IsCleared(data))
+                positionsToVisuallyDestroy.Add(pos);
         }
 
         if (positionsToVisuallyDestroy.Count > 0)
@@ -98,27 +89,12 @@ public class DestroyCommand : ICommand
             var view = gridViews[pos.x, pos.y];
             var data = gridData[pos.x, pos.y];
 
-            if (data == null)
+            // Blocked, empty, and still-alive destroyable tiles are not cleared and must not count as destroyed.
+            if (!GridHelperMethods.IsCleared(data))
                 continue;
 
             TileDestroyed?.Invoke(data);
-
-            // Skip intact blockers
-            if (data.State == TileState.Blocked)
-                continue;
-
-            // Handle destroyables properly
-            if (data.State == TileState.Destroyable && data is DestroyableTileData destroyable)
-            {
-                if (!destroyable.IsDestroyed)
-                    continue;
-
-                gridData[pos.x, pos.y] = GridHelperMethods.CreateEmptyTile(pos);
-            }
-            else if (data.State == TileState.Normal)
-            {
-                gridData[pos.x, pos.y] = GridHelperMethods.CreateEmptyTile(pos);
-            }
+            gridData[pos.x, pos.y] = GridHelperMethods.CreateEmptyTile(pos);
 
             // Release the visual
             if (view != null)

@@ -46,6 +46,21 @@ public static class GridHelperMethods
         return data != null && data.State == TileState.Normal;
     }
 
+    /// <summary>
+    /// True when a destroy pass actually removes this tile from the board: a normal tile, or a destroyable
+    /// that has run out of hit points. Blocked, empty, and still-alive destroyable tiles stay put.
+    /// </summary>
+    public static bool IsCleared(TileData data)
+    {
+        if (data == null)
+            return false;
+
+        if (data.State == TileState.Normal)
+            return true;
+
+        return data.State == TileState.Destroyable && data is DestroyableTileData destroyable && destroyable.IsDestroyed;
+    }
+
     #endregion
 
     #region Tile Creation
@@ -187,17 +202,17 @@ public static class GridHelperMethods
         {
             int gapX = x + 2;
             int gapY = y;
-            if (IsInBounds(width, height, gapX, gapY))
+            if (IsSwappableCell(grid, width, height, gapX, gapY))
             {
                 // Only check neighbors that aren't the ones we already have
                 if (IsMatchableAt(grid, width, height, gapX + 1, gapY, type)) return true;
-                if (IsMatchableAt(grid, width, height, gapX, gapY + 1, type)) return true; 
+                if (IsMatchableAt(grid, width, height, gapX, gapY + 1, type)) return true;
                 if (IsMatchableAt(grid, width, height, gapX, gapY - 1, type)) return true;
             }
 
             // Also check the OTHER end (x-1)
             int backGapX = x - 1;
-            if (IsInBounds(width, height, backGapX, gapY))
+            if (IsSwappableCell(grid, width, height, backGapX, gapY))
             {
                 if (IsMatchableAt(grid, width, height, backGapX - 1, gapY, type)) return true;
                 if (IsMatchableAt(grid, width, height, backGapX, gapY + 1, type)) return true;
@@ -211,8 +226,11 @@ public static class GridHelperMethods
             int gapX = x + 1;
             int gapY = y;
             // Only check above and below (checking left/right is redundant or wrong)
-            if (IsMatchableAt(grid, width, height, gapX, gapY + 1, type)) return true;
-            if (IsMatchableAt(grid, width, height, gapX, gapY - 1, type)) return true;
+            if (IsSwappableCell(grid, width, height, gapX, gapY))
+            {
+                if (IsMatchableAt(grid, width, height, gapX, gapY + 1, type)) return true;
+                if (IsMatchableAt(grid, width, height, gapX, gapY - 1, type)) return true;
+            }
         }
 
         return false;
@@ -225,16 +243,16 @@ public static class GridHelperMethods
         {
             // Check gap ABOVE the pair
             int gapY = y + 2;
-            if (IsInBounds(width, height, x, gapY))
+            if (IsSwappableCell(grid, width, height, x, gapY))
             {
-                if (IsMatchableAt(grid, width, height, x, gapY + 1, type)) return true; 
+                if (IsMatchableAt(grid, width, height, x, gapY + 1, type)) return true;
                 if (IsMatchableAt(grid, width, height, x + 1, gapY, type)) return true;
                 if (IsMatchableAt(grid, width, height, x - 1, gapY, type)) return true;
             }
 
             // Check gap BELOW the pair
             int backGapY = y - 1;
-            if (IsInBounds(width, height, x, backGapY))
+            if (IsSwappableCell(grid, width, height, x, backGapY))
             {
                 if (IsMatchableAt(grid, width, height, x, backGapY - 1, type)) return true;
                 if (IsMatchableAt(grid, width, height, x + 1, backGapY, type)) return true; 
@@ -247,11 +265,22 @@ public static class GridHelperMethods
         {
             int gapY = y + 1;
             // Only need to check horizontal neighbors for the middle gap
-            if (IsMatchableAt(grid, width, height, x + 1, gapY, type)) return true;
-            if (IsMatchableAt(grid, width, height, x - 1, gapY, type)) return true;
+            if (IsSwappableCell(grid, width, height, x, gapY))
+            {
+                if (IsMatchableAt(grid, width, height, x + 1, gapY, type)) return true;
+                if (IsMatchableAt(grid, width, height, x - 1, gapY, type)) return true;
+            }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// A swap target must be a normal tile: <c>TrySwapTiles</c> rejects every other state.
+    /// </summary>
+    private static bool IsSwappableCell(TileData[,] grid, int w, int h, int x, int y)
+    {
+        return IsInBounds(w, h, x, y) && grid[x, y] != null && grid[x, y].State == TileState.Normal;
     }
 
     /// <summary>

@@ -160,15 +160,18 @@ public class GridController : MonoBehaviour, IGridController
 
     public void AttemptPowerTrigger(TileView tileView)
     {
-        if (tileView == null || tileView.Data == null || tileView.Data.Power == TilePower.None)
+        if (tileView == null || tileView.Data == null || IsProcessingTiles)
+            return;
+
+        if (tileView.Data.Power == TilePower.None)
         {
-            Debug.LogWarning("Attempted to trigger power on a tile that has power: " + tileView.Data.Power);
             TileSwapError?.Invoke();
             return;
         }
 
+        IsProcessingTiles = true;
         ActionTaken?.Invoke();
-        TriggerPowerEventAsync(tileView.Data, TileType.None).Forget();
+        ResolvePowersAsync(new List<(TileData, TileType)> { (tileView.Data, TileType.None) }).Forget();
     }
 
     public void SwapTilesInData(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB)
@@ -259,6 +262,9 @@ public class GridController : MonoBehaviour, IGridController
                 TileSwapped?.Invoke();
                 await new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext, onDestroyBatch: () => TilesDestroyed?.Invoke())
                     .ExecuteAsync();
+
+                // Powers inside the matched tiles queue their own destroy commands; resolve them before gravity.
+                await DrainCommandsAsync(token);
             }
 
             cycleCount++;
@@ -336,13 +342,16 @@ public class GridController : MonoBehaviour, IGridController
         if (tileA.Power != TilePower.None || tileB.Power != TilePower.None)
         {
             SwapTilesInData(origin, target, tileA, tileB);
+            ActionTaken?.Invoke();
 
+            var powers = new List<(TileData, TileType)>(2);
             if (tileA.Power != TilePower.None)
-                TriggerPowerEventAsync(tileA, tileB.Type).Forget();
+                powers.Add((tileA, tileB.Type));
 
             if (tileB.Power != TilePower.None)
-                TriggerPowerEventAsync(tileB, tileA.Type).Forget();
+                powers.Add((tileB, tileA.Type));
 
+            ResolvePowersAsync(powers).Forget();
             return;
         }
 
@@ -364,22 +373,31 @@ public class GridController : MonoBehaviour, IGridController
         }
     }
 
-    private async UniTask TriggerPowerEventAsync(TileData tileData, TileType matchedWithTile)
+    /// <summary>
+    /// Triggers every given power first, then resolves the board once, so simultaneous powers never run
+    /// two match cycles on the same board.
+    /// </summary>
+    private async UniTask ResolvePowersAsync(List<(TileData tile, TileType matchedWith)> powers)
     {
         var token = this.GetCancellationTokenOnDestroy();
-        GridContext.TriggerTilePower(tileData.GridPosition, matchedWithTile);
-        commandInvoker.ExecuteAll();
+        IsProcessingTiles = true;
 
-        await UniTask.WaitUntil(() => commandInvoker.IsEmpty(), cancellationToken: token);
-        await UniTask.WaitUntil(() => !AnyTileTweening(), cancellationToken: token);
+        foreach (var (tile, matchedWith) in powers)
+            GridContext.TriggerTilePower(tile.GridPosition, matchedWith);
+
+        await DrainCommandsAsync(token);
 
         commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData, () => TileDrop?.Invoke()));
-        commandInvoker.ExecuteAll();
-
-        await UniTask.WaitUntil(() => commandInvoker.IsEmpty(), cancellationToken: token);
-        await UniTask.WaitUntil(() => !AnyTileTweening(), cancellationToken: token);
+        await DrainCommandsAsync(token);
 
         await MatchCycleAsync();
+    }
+
+    private async UniTask DrainCommandsAsync(System.Threading.CancellationToken token)
+    {
+        commandInvoker.ExecuteAll();
+        await UniTask.WaitUntil(() => commandInvoker.IsEmpty(), cancellationToken: token);
+        await UniTask.WaitUntil(() => !AnyTileTweening(), cancellationToken: token);
     }
 
     private TileView CreateTileAt(int x, int y)

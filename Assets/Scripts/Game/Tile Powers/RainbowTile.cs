@@ -39,7 +39,7 @@ public class RainbowTile : ITilePowerBehavior
         context.EnqueueStaggeredDestroy(toDestroy, origin, lineAxis: null);
     }
 
-    private TileType GetMostCommonType(TileData[,] data, int width, int height)
+    public static TileType GetMostCommonType(TileData[,] data, int width, int height)
     {
         var counter = new Dictionary<TileType, int>();
 
@@ -50,7 +50,7 @@ public class RainbowTile : ITilePowerBehavior
                 var tile = data[x, y];
                 if (tile != null)
                 {
-                    if (tile.State == TileState.Blocked || tile.State == TileState.Destroyable)
+                    if (tile.State != TileState.Normal)
                         continue;
 
                     if (counter.TryGetValue(tile.Type, out int count))

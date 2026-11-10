@@ -68,6 +68,35 @@ public class PotentialMovesTest
         Assert.IsTrue(result, "Board with vertical match pattern should have potential moves");
     }
 
+    [TestCase(TileState.Normal, true)]
+    [TestCase(TileState.Blocked, false)]
+    [TestCase(TileState.Empty, false)]
+    public void HasPotentialMoves_HorizontalGap_RequiresSwappableGapCell(TileState gapState, bool expected)
+    {
+        // Row: Red, Red, <gap>, Red. A move exists only if the Red at x=3 can swap into the gap.
+        var grid = new TileData[4, 1];
+        grid[0, 0] = new TileData(TileType.Red, new Vector2Int(0, 0), TilePower.None, TileState.Normal);
+        grid[1, 0] = new TileData(TileType.Red, new Vector2Int(1, 0), TilePower.None, TileState.Normal);
+        grid[2, 0] = new TileData(TileType.Blue, new Vector2Int(2, 0), TilePower.None, gapState);
+        grid[3, 0] = new TileData(TileType.Red, new Vector2Int(3, 0), TilePower.None, TileState.Normal);
+
+        Assert.AreEqual(expected, GridHelperMethods.HasPotentialMoves(grid, 4, 1));
+    }
+
+    [TestCase(TileState.Normal, true)]
+    [TestCase(TileState.Blocked, false)]
+    public void HasPotentialMoves_VerticalGap_RequiresSwappableGapCell(TileState gapState, bool expected)
+    {
+        // Column: Red, Red, <gap>, Red.
+        var grid = new TileData[1, 4];
+        grid[0, 0] = new TileData(TileType.Red, new Vector2Int(0, 0), TilePower.None, TileState.Normal);
+        grid[0, 1] = new TileData(TileType.Red, new Vector2Int(0, 1), TilePower.None, TileState.Normal);
+        grid[0, 2] = new TileData(TileType.Blue, new Vector2Int(0, 2), TilePower.None, gapState);
+        grid[0, 3] = new TileData(TileType.Red, new Vector2Int(0, 3), TilePower.None, TileState.Normal);
+
+        Assert.AreEqual(expected, GridHelperMethods.HasPotentialMoves(grid, 1, 4));
+    }
+
     [Test]
     public void CountPotentialMoves_WithStubController_WorksCorrectly()
     {

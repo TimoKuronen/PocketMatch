@@ -116,7 +116,7 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         SubscribeToEvents();
 
         LevelEvents.RaiseLevelStarted(new LevelStartedEventArgs(
-            gameSessionService.CurrentMapData.name,
+            gameSessionService.CurrentMapData.GetLevelName(),
             0,
             LocalMapData.VictoryConditions.MoveLimit));
     }
@@ -237,7 +237,7 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         int totalEarnings = levelEarningsService.GetLevelEarnings(MovesRemaining).Total;
 
         LevelEvents.RaiseLevelCompleted(new LevelCompletedEventArgs(
-            LocalMapData.name,
+            gameSessionService.CurrentMapData.GetLevelName(),
             MovesRemaining,
             movesSpent,
             totalEarnings,
@@ -256,7 +256,7 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         IsLevelEnded = true;
 
         LevelEvents.RaiseLevelFailed(new LevelFailedEventArgs(
-            LocalMapData.name,
+            gameSessionService.CurrentMapData.GetLevelName(),
             GameTimeInSeconds));
 
         OnLevelLost?.Invoke();

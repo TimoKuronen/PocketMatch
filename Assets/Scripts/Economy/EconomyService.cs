@@ -25,7 +25,7 @@ public class EconomyService : IEconomyService, IStartable, IDisposable
 
     private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
     {
-        if (e.IsLevelCapReached || e.TotalScore <= 0)
+        if (e.TotalScore <= 0)
             return;
 
         AddCoins(e.TotalScore, "level_complete");

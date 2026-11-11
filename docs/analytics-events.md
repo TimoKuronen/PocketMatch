@@ -16,14 +16,14 @@ Event names are defined in `Assets/Scripts/Analytics/AnalyticsEvents.cs` and go 
 | `app_started` | (none) | Analytics service starts, once per process | `AnalyticsService` |
 | `session_started` | `device` (string), `app_version` (string) | Analytics service starts | `AnalyticsService` |
 | `session_ended` | `device` (string), `app_version` (string) | Bootstrap scope is disposed (app quit) | `AnalyticsService` |
-| `level_started` | `level_name` (string), `level_index` (int) | Board initialized and level is ready to play | `AnalyticsService` via `LevelEvents.OnLevelStarted` |
-| `level_completed` | `level_name` (string), `moves_spent` (int), `total_score` (int), `match_duration_sec` (int) | Victory conditions met | `AnalyticsService` via `LevelEvents.OnLevelCompleted` |
-| `level_failed` | `level_name` (string), `match_duration_sec` (int) | Move limit reached before objectives are cleared | `AnalyticsService` via `LevelEvents.OnLevelFailed` |
-| `coins_earned` | `amount` (int), `source` (string), `level_name` (string) | Coins granted after a level win (`source` = `level_complete`); not fired when the level cap is reached | `AnalyticsService` via `LevelEvents.OnLevelCompleted` |
+| `level_started` | `level_name` (string, `Level_NNNN`), `level_index` (int) | Board initialized and level is ready to play | `AnalyticsService` via `LevelEvents.OnLevelStarted` |
+| `level_completed` | `level_name` (string, `Level_NNNN`), `moves_spent` (int), `total_score` (int), `match_duration_sec` (int) | Victory conditions met | `AnalyticsService` via `LevelEvents.OnLevelCompleted` |
+| `level_failed` | `level_name` (string, `Level_NNNN`), `match_duration_sec` (int) | Move limit reached before objectives are cleared | `AnalyticsService` via `LevelEvents.OnLevelFailed` |
+| `coins_earned` | `amount` (int), `source` (string), `level_name` (string, `Level_NNNN`) | Coins granted after a level win (`source` = `level_complete`) | `AnalyticsService` via `LevelEvents.OnLevelCompleted` |
 | `coins_spent` | `amount` (int), `reason` (string), `level_index` (int) | Coins spent via `EconomyService.TrySpendCoins` (e.g. lose-menu continue) | `AnalyticsService` via `IEconomyService.OnCoinsSpent` |
 | `ad_watched` | `ad_format` (string), `placement` (string), `result` (string) | Interstitial closed after display (`result` = `completed`); rewarded closed with reward (`rewarded`) or without (`dismissed`); Editor-simulated show (`editor_simulated`) | `AdsService` |
 | `ad_skipped` | `ad_format` (string), `placement` (string), `reason` (string) | Interstitial or rewarded could not be shown (`display_failed`, `not_ready`, `not_initialized`; rewarded also `no_fill`, `not_configured`); gameplay continues | `AdsService` |
-| `extra_automated_matches` | `level_name` (string), `moves_spent` (int) | Match cascade cycle count exceeds 2 after a player move | `GridController` |
+| `extra_automated_matches` | `level_name` (string, `Level_NNNN`), `moves_spent` (int) | Match cascade cycle count exceeds 2 after a player move | `GridController` |
 
 ---
 

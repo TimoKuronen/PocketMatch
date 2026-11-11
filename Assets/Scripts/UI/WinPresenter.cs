@@ -52,7 +52,7 @@ public class WinPresenter : IStartable, IDisposable
     private void OnNextLevelClicked()
     {
         menuStackManager.PopMenu();
-        GameSignals.SetPendingLevelIndex(saveService.PlayerData.nextLevelIndex);
+        GameSignals.SetPendingLevelIndex(GameSignals.ActiveLevelIndex + 1);
         Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
     }
 

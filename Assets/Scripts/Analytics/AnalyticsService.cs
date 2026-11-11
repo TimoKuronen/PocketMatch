@@ -151,7 +151,7 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         });
 
         // Mirrors the EconomyService coin grant on level_complete wins.
-        if (!e.IsLevelCapReached && e.TotalScore > 0)
+        if (e.TotalScore > 0)
         {
             LogEvent(AnalyticsEvents.CoinsEarned, new Dictionary<string, object>
             {

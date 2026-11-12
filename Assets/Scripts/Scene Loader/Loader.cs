@@ -140,6 +140,9 @@ public static class Loader
         if (!targetScene.HasValue)
             targetScene = GameScene.MainMenu;
 #endif
+        if (AdsDebugConfig.SkipInterstitials)
+            pendingAdService = null;
+
         if (pendingAdService != null)
         {
 #if UNITY_EDITOR

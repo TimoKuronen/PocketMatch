@@ -15,6 +15,10 @@ public static class DebugActionIds
     public const string HideBannerAd = "hide_banner_ad";
     public const string ShowRewardedAd = "show_rewarded_ad";
     public const string LaunchAdsTestSuite = "launch_ads_test_suite";
+    public const string ToggleSimulateAds = "toggle_simulate_ads";
+    public const string CycleSimulatedRewarded = "cycle_simulated_rewarded";
+    public const string AdsReport = "ads_report";
+    public const string RecreateAds = "recreate_ads";
     public const string ToggleSkipInterstitials = "toggle_skip_interstitials";
 }
 
@@ -234,6 +238,78 @@ public sealed class LaunchAdsTestSuiteDebugAction : IDebugAction
     public void Execute(DebugContext context, int intValue = 0)
     {
         LevelPlay.LaunchTestSuite();
+    }
+
+    public bool GetToggleState(DebugContext context) => false;
+}
+
+public sealed class AdsReportDebugAction : IDebugAction
+{
+    public string Id => DebugActionIds.AdsReport;
+    public string Category => "Ads";
+    public string Label => "Ads Report";
+    public DebugActionKind Kind => DebugActionKind.Button;
+
+    public bool IsAvailable(DebugContext context) => context.Ads != null;
+
+    public void Execute(DebugContext context, int intValue = 0)
+    {
+        Debug.Log(AdsDiagnostics.BuildReport(context.Ads));
+    }
+
+    public bool GetToggleState(DebugContext context) => false;
+}
+
+public sealed class RecreateAdsDebugAction : IDebugAction
+{
+    public string Id => DebugActionIds.RecreateAds;
+    public string Category => "Ads";
+    public string Label => "Recreate And Reload Ads";
+    public DebugActionKind Kind => DebugActionKind.Button;
+
+    public bool IsAvailable(DebugContext context) => context.Ads != null && context.Ads.IsInitialized;
+
+    public void Execute(DebugContext context, int intValue = 0)
+    {
+        context.Ads.RecreateAds();
+    }
+
+    public bool GetToggleState(DebugContext context) => false;
+}
+
+public sealed class ToggleSimulateAdsDebugAction : IDebugAction
+{
+    public string Id => DebugActionIds.ToggleSimulateAds;
+    public string Category => "Ads";
+    public string Label => "Simulate Ads (no network)";
+    public DebugActionKind Kind => DebugActionKind.Toggle;
+
+    public bool IsAvailable(DebugContext context) => true;
+
+    public void Execute(DebugContext context, int intValue = 0)
+    {
+        AdsDebugConfig.SimulateAds = intValue != 0;
+
+        if (intValue == 0)
+            AdsDebugConfig.RaiseSimulatedBanner(false);
+    }
+
+    public bool GetToggleState(DebugContext context) => AdsDebugConfig.SimulateAds;
+}
+
+public sealed class CycleSimulatedRewardedDebugAction : IDebugAction
+{
+    public string Id => DebugActionIds.CycleSimulatedRewarded;
+    public string Category => "Ads";
+    public string Label => $"Simulated Rewarded: {AdsDebugConfig.SimulatedRewardedResult} (tap to change)";
+    public DebugActionKind Kind => DebugActionKind.Button;
+
+    public bool IsAvailable(DebugContext context) => true;
+
+    public void Execute(DebugContext context, int intValue = 0)
+    {
+        AdsDebugConfig.CycleSimulatedRewardedResult();
+        context.DebugTools.RefreshPanel();
     }
 
     public bool GetToggleState(DebugContext context) => false;

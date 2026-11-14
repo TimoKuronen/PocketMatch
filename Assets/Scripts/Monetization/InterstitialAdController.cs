@@ -18,10 +18,11 @@ public sealed class InterstitialAdController : IDisposable
     private readonly CancellationToken token;
 
     private LevelPlayInterstitialAd interstitialAd;
+    private string lastError = "none";
 
     public event Action Closed;
 
-    public bool IsReady => interstitialAd?.IsAdReady() ?? false;
+    public bool IsReady => AdsDebugConfig.IsSimulating || (interstitialAd?.IsAdReady() ?? false);
 
     /// <summary>True once the current show has ended (closed or failed); false while one is in flight.</summary>
     public bool Completed { get; private set; }
@@ -42,7 +43,7 @@ public sealed class InterstitialAdController : IDisposable
         this.token = token;
     }
 
-    public string Describe() => $"Interstitial(hasAd={interstitialAd != null}, ready={IsReady}, completed={Completed})";
+    public string Describe() => $"Interstitial(hasAd={interstitialAd != null}, ready={IsReady}, completed={Completed}, lastError={lastError})";
 
     public void MarkComplete() => Completed = true;
 
@@ -76,13 +77,16 @@ public sealed class InterstitialAdController : IDisposable
 
     public void Show()
     {
-        // The Editor placeholder ad can fail to fire close, so the Editor completes the show immediately.
-#if UNITY_EDITOR
-        log.Verbose("Simulating interstitial completion in Editor.");
-        Completed = true;
-        analytics.Watched(AdFormat, PlacementName, "editor_simulated");
-        Closed?.Invoke();
-#else
+        // The Editor placeholder ad can fail to fire close, so simulation completes the show immediately.
+        if (AdsDebugConfig.IsSimulating)
+        {
+            log.Verbose("Simulating interstitial completion.");
+            Completed = true;
+            analytics.Watched(AdFormat, PlacementName, "simulated");
+            Closed?.Invoke();
+            return;
+        }
+
         if (!isSdkReady() || interstitialAd == null)
         {
             log.Warn($"ShowInterstitialAd ignored (initialized={isSdkReady()}, hasAd={interstitialAd != null}).");
@@ -102,7 +106,6 @@ public sealed class InterstitialAdController : IDisposable
 
         Completed = false;
         interstitialAd.ShowAd(PlacementName);
-#endif
     }
 
     private void Load()
@@ -120,6 +123,7 @@ public sealed class InterstitialAdController : IDisposable
 
     private void OnLoaded(LevelPlayAdInfo adInfo)
     {
+        lastError = "none";
         log.Verbose($"Interstitial loaded. {adInfo}");
     }
 
@@ -144,6 +148,7 @@ public sealed class InterstitialAdController : IDisposable
 
     private void OnLoadFailed(LevelPlayAdError error)
     {
+        lastError = error.ToString();
         log.Warn($"Interstitial load failed; retrying in {ReloadDelaySeconds:0}s. {error}");
         ReloadAfterDelayAsync().Forget();
     }

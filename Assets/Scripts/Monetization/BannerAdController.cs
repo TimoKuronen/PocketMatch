@@ -17,6 +17,7 @@ public sealed class BannerAdController : IDisposable
 
     private LevelPlayBannerAd bannerAd;
     private bool isLoaded;
+    private string lastError = "none";
 
     public BannerAdController(string adUnitId, Func<bool> isSdkReady, AdsLogger log, CancellationToken token)
     {
@@ -26,7 +27,7 @@ public sealed class BannerAdController : IDisposable
         this.token = token;
     }
 
-    public string Describe() => $"Banner(hasAd={bannerAd != null}, loaded={isLoaded})";
+    public string Describe() => $"Banner(hasAd={bannerAd != null}, loaded={isLoaded}, lastError={lastError})";
 
     public void CreateAd()
     {
@@ -56,6 +57,13 @@ public sealed class BannerAdController : IDisposable
 
     public void Show()
     {
+        if (AdsDebugConfig.IsSimulating)
+        {
+            log.Verbose("Simulating banner display.");
+            AdsDebugConfig.RaiseSimulatedBanner(true);
+            return;
+        }
+
         if (!isSdkReady())
         {
             log.Warn("ShowBannerAd ignored: SDK not initialized.");
@@ -86,6 +94,9 @@ public sealed class BannerAdController : IDisposable
 
     public void Hide()
     {
+        if (AdsDebugConfig.IsSimulating)
+            AdsDebugConfig.RaiseSimulatedBanner(false);
+
         if (!isSdkReady() || bannerAd == null)
             return;
 
@@ -95,6 +106,7 @@ public sealed class BannerAdController : IDisposable
     private void OnLoaded(LevelPlayAdInfo adInfo)
     {
         isLoaded = true;
+        lastError = "none";
         retryPolicy.Reset();
         log.Verbose($"Banner loaded. {adInfo}");
         bannerAd?.ShowAd();
@@ -103,6 +115,7 @@ public sealed class BannerAdController : IDisposable
     private void OnLoadFailed(LevelPlayAdError error)
     {
         isLoaded = false;
+        lastError = error.ToString();
         var kind = AdsRetryPolicy.Classify(error.ToString());
 
         if (kind == AdsRetryPolicy.FailureKind.InvalidAdUnit)

@@ -27,12 +27,9 @@ public sealed class RewardedAdController : IDisposable
     private bool rewardEarned;
     private bool closed;
     private bool lastLoadWasNoFill;
+    private string lastError = "none";
 
-#if UNITY_EDITOR
-    public bool IsAvailable => true;
-#else
-    public bool IsAvailable => isSdkReady() && rewardedAd != null;
-#endif
+    public bool IsAvailable => AdsDebugConfig.IsSimulating || (isSdkReady() && rewardedAd != null);
 
     public RewardedAdController(
         string adUnitId,
@@ -49,7 +46,7 @@ public sealed class RewardedAdController : IDisposable
     }
 
     public string Describe() =>
-        $"Rewarded(configured={!string.IsNullOrEmpty(adUnitId)}, hasAd={rewardedAd != null}, ready={rewardedAd?.IsAdReady() ?? false})";
+        $"Rewarded(configured={!string.IsNullOrEmpty(adUnitId)}, hasAd={rewardedAd != null}, ready={rewardedAd?.IsAdReady() ?? false}, lastError={lastError})";
 
     public void CreateAd()
     {
@@ -78,11 +75,9 @@ public sealed class RewardedAdController : IDisposable
 
     public UniTask<RewardedAdResult> ShowAsync(CancellationToken cancellationToken)
     {
-#if UNITY_EDITOR
-        log.Verbose("Simulating rewarded completion in Editor.");
-        analytics.Watched(AdFormat, PlacementName, "editor_simulated");
-        return UniTask.FromResult(RewardedAdResult.Rewarded);
-#else
+        if (AdsDebugConfig.IsSimulating)
+            return ShowSimulatedAsync(cancellationToken);
+
         if (pendingShow != null)
         {
             log.Warn("Rewarded show ignored: one is already showing.");
@@ -109,7 +104,22 @@ public sealed class RewardedAdController : IDisposable
 
         rewardedAd.ShowAd();
         return pendingShow.Task.AttachExternalCancellation(cancellationToken);
-#endif
+    }
+
+    private async UniTask<RewardedAdResult> ShowSimulatedAsync(CancellationToken cancellationToken)
+    {
+        var result = AdsDebugConfig.SimulatedRewardedResult;
+        log.Verbose($"Simulating rewarded result: {result}.");
+
+        // Short pause so the "ad is playing" window exists like a real show.
+        await UniTask.Delay(TimeSpan.FromSeconds(1), DelayType.Realtime, cancellationToken: cancellationToken);
+
+        if (result == RewardedAdResult.Unavailable)
+            LogSkipped("simulated");
+        else
+            analytics.Watched(AdFormat, PlacementName, result == RewardedAdResult.Rewarded ? "simulated_rewarded" : "simulated_dismissed");
+
+        return result;
     }
 
     private void Load()
@@ -125,6 +135,7 @@ public sealed class RewardedAdController : IDisposable
     {
         retryPolicy.Reset();
         lastLoadWasNoFill = false;
+        lastError = "none";
         log.Verbose($"Rewarded loaded. {adInfo}");
     }
 
@@ -132,6 +143,7 @@ public sealed class RewardedAdController : IDisposable
     {
         var kind = AdsRetryPolicy.Classify(error.ToString());
         lastLoadWasNoFill = kind == AdsRetryPolicy.FailureKind.NoFill;
+        lastError = error.ToString();
         log.Warn($"Rewarded load failed ({kind}): {error}");
 
         if (!retryPolicy.TryGetRetryDelay(kind, out float delay))

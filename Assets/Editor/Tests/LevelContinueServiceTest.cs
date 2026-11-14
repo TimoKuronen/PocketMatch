@@ -140,6 +140,8 @@ public class LevelContinueServiceTest
         public void ShowBannerAd() { }
         public void HideBannerAd() { }
         public void ForceMarkAdComplete() { }
+        public string Describe() => string.Empty;
+        public void RecreateAds() { }
     }
 
     private sealed class FakeLevelManager : ILevelManager

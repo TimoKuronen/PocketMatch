@@ -11,6 +11,7 @@ public sealed class DebugToolsPanel : MonoBehaviour
     private GameObject panelRoot;
     private Transform contentRoot;
     private bool isOpen;
+    private GameObject simulatedBanner;
 
     public void Initialize(
         IDebugToolsService service,
@@ -22,11 +23,13 @@ public sealed class DebugToolsPanel : MonoBehaviour
         context = new DebugContext(saveService, economyService, adsService, service);
         BuildUi();
         DebugToolsService.PanelRefreshRequested += RebuildContent;
+        AdsDebugConfig.SimulatedBannerChanged += OnSimulatedBannerChanged;
     }
 
     private void OnDestroy()
     {
         DebugToolsService.PanelRefreshRequested -= RebuildContent;
+        AdsDebugConfig.SimulatedBannerChanged -= OnSimulatedBannerChanged;
     }
 
     private void BuildUi()
@@ -44,10 +47,48 @@ public sealed class DebugToolsPanel : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
 
         canvasGo.AddComponent<GraphicRaycaster>();
+        EnsureEventSystem();
 
+        CreateSimulatedBanner(canvasGo.transform);
         CreateOpenButton(canvasGo.transform);
         CreatePanel(canvasGo.transform);
         RebuildContent();
+    }
+
+    private void OnSimulatedBannerChanged(bool visible)
+    {
+        if (simulatedBanner != null)
+            simulatedBanner.SetActive(visible);
+    }
+
+    // Stand-in for the real banner strip (320x50 dp) so banner show/hide flow is visible without network fill.
+    private void CreateSimulatedBanner(Transform parent)
+    {
+        simulatedBanner = CreateUiObject("SimulatedBanner", parent);
+        var rect = simulatedBanner.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0.5f, 0f);
+        rect.anchorMax = new Vector2(0.5f, 0f);
+        rect.pivot = new Vector2(0.5f, 0f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.sizeDelta = new Vector2(640f, 100f);
+
+        var image = simulatedBanner.AddComponent<Image>();
+        image.color = new Color(0.9f, 0.55f, 0.1f, 0.9f);
+        image.raycastTarget = false;
+
+        CreateLabel(simulatedBanner.transform, "SIMULATED BANNER", 26, TextAlignmentOptions.Center);
+        simulatedBanner.SetActive(false);
+    }
+
+    private void EnsureEventSystem()
+    {
+        if (UnityEngine.EventSystems.EventSystem.current != null)
+            return;
+
+        var go = new GameObject("DebugEventSystem");
+        go.transform.SetParent(transform, false);
+        go.AddComponent<UnityEngine.EventSystems.EventSystem>();
+        go.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
     }
 
     private void CreateOpenButton(Transform parent)
@@ -57,8 +98,8 @@ public sealed class DebugToolsPanel : MonoBehaviour
         rect.anchorMin = new Vector2(0f, 1f);
         rect.anchorMax = new Vector2(0f, 1f);
         rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = new Vector2(16f, -16f);
-        rect.sizeDelta = new Vector2(96f, 48f);
+        rect.anchoredPosition = new Vector2(16f, -(16f + TopInsetInCanvasUnits()));
+        rect.sizeDelta = new Vector2(120f, 72f);
 
         var image = buttonGo.AddComponent<Image>();
         image.color = new Color(0.1f, 0.1f, 0.1f, 0.85f);
@@ -68,6 +109,15 @@ public sealed class DebugToolsPanel : MonoBehaviour
         button.onClick.AddListener(TogglePanel);
 
         CreateLabel(buttonGo.transform, "DBG", 20, TextAlignmentOptions.Center);
+    }
+
+    // Keeps the open button below the status bar and camera cutout, which hide the overlay corner on phones.
+    private float TopInsetInCanvasUnits()
+    {
+        var safeArea = Screen.safeArea;
+        float topInsetPixels = Screen.height - safeArea.yMax;
+        float canvasScale = Mathf.Max(0.01f, Screen.height / 1920f * 0.5f + Screen.width / 1080f * 0.5f);
+        return Mathf.Max(0f, topInsetPixels) / canvasScale;
     }
 
     private void CreatePanel(Transform parent)

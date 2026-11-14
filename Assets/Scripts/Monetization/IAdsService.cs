@@ -30,4 +30,10 @@ public interface IAdsService
     bool IsRewardedAdAvailable { get; }
 
     event Action OnInterstitialAdClosed;
+
+    /// <summary>One-line state of SDK init and each ad format, including the last load error.</summary>
+    string Describe();
+
+    /// <summary>Recreates every ad object and requests fresh loads. Diagnostics only; no-op before SDK init.</summary>
+    void RecreateAds();
 }

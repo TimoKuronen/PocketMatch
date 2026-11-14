@@ -56,6 +56,10 @@ public sealed class LevelPlaySdkInitializer : IDisposable
 
         log.Verbose($"Initializing LevelPlay. Platform={Application.platform}, Bundle={Application.identifier}");
 
+        // The test suite is only available when this flag is set before init; never enabled in release builds.
+        if (DebugTools.IsEnabled)
+            LevelPlay.SetMetaData("is_test_suite", "enable");
+
         LevelPlay.ValidateIntegration();
         LevelPlay.OnInitSuccess += OnInitSuccess;
         LevelPlay.OnInitFailed += OnInitFailed;

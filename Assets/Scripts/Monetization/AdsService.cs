@@ -61,6 +61,20 @@ public class AdsService : IAdsService, IDisposable
     public UniTask<RewardedAdResult> ShowRewardedAdAsync(CancellationToken cancellationToken = default) =>
         rewarded.ShowAsync(cancellationToken);
 
+    public void RecreateAds()
+    {
+        if (!IsInitialized)
+        {
+            log.Warn("RecreateAds ignored: SDK not initialized.");
+            return;
+        }
+
+        banner.CreateAd();
+        interstitial.CreateAd();
+        rewarded.CreateAd();
+        log.Verbose($"State after recreate: {Describe()}");
+    }
+
     public void Dispose()
     {
         interstitial?.Dispose();
@@ -117,9 +131,12 @@ public class AdsService : IAdsService, IDisposable
         interstitial.CreateAd();
         rewarded.CreateAd();
         log.Verbose($"State after ad creation: {Describe()}");
+
+        if (DebugTools.IsEnabled)
+            log.Info(AdsDiagnostics.BuildReport(this));
     }
 
-    private string Describe() =>
+    public string Describe() =>
         $"initialized={IsInitialized}, internet={Application.internetReachability}, " +
         $"{banner.Describe()}, {interstitial.Describe()}, {rewarded.Describe()}";
 }

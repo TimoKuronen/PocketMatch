@@ -34,6 +34,14 @@ public sealed class DebugToolsService : IDebugToolsService, IStartable, IDisposa
         Register(new ToggleBoardLoggingDebugAction());
         Register(new ShowBannerAdDebugAction());
         Register(new ShowInterstitialAdDebugAction());
+        Register(new HideBannerAdDebugAction());
+        Register(new ShowRewardedAdDebugAction());
+        Register(new ToggleSkipInterstitialsDebugAction());
+        Register(new ToggleSimulateAdsDebugAction());
+        Register(new CycleSimulatedRewardedDebugAction());
+        Register(new AdsReportDebugAction());
+        Register(new RecreateAdsDebugAction());
+        Register(new LaunchAdsTestSuiteDebugAction());
     }
 
     public IReadOnlyList<IDebugAction> Actions => actions;

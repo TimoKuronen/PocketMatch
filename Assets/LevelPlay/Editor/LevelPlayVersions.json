@@ -2680,6 +2680,17 @@
       "dependencyXmlFileName": "ISLineAdapterDependencies.xml",
       "SKAdNetworkIdXmlURL": "https://s3.amazonaws.com/ssa.public/Unity/SKAdNetwork-IDs/All/skadnetworks.line.plist.xml",
       "versions": {
+        "5.13.0.0": {
+          "ironSourceSdkVersion": "[9.0.0, 10.0[",
+          "android": {
+            "adapterVersion": "5.6.0",
+            "adNetworkVersion": "3.2.0"
+          },
+          "ios": {
+            "adapterVersion": "5.9.0.0",
+            "adNetworkVersion": "3.1.2"
+          }
+        },
         "5.12.0.0": {
           "ironSourceSdkVersion": "[9.0.0, 10.0[",
           "android": {
@@ -4081,6 +4092,17 @@
       "dependencyXmlFileName": "ISPangleAdapterDependencies.xml",
       "SKAdNetworkIdXmlURL": "https://s3.amazonaws.com/ssa.public/Unity/SKAdNetwork-IDs/All/skadnetworks.pangle.plist.xml",
       "versions": {
+        "5.48.0.0": {
+          "ironSourceSdkVersion": "[9.0.0, 10.0[",
+          "android": {
+            "adapterVersion": "5.27.0",
+            "adNetworkVersion": "8.4.0.5"
+          },
+          "ios": {
+            "adapterVersion": "5.41.0.0",
+            "adNetworkVersion": "8.4.0.8"
+          }
+        },
         "5.47.0.0": {
           "ironSourceSdkVersion": "[9.0.0, 10.0[",
           "android": {
@@ -5310,6 +5332,17 @@
       "dependencyXmlFileName": "ISYandexAdapterDependencies.xml",
       "SKAdNetworkIdXmlURL": "https://s3.amazonaws.com/ssa.public/Unity/SKAdNetwork-IDs/All/skadnetworks.yandex.plist.xml",
       "versions": {
+        "5.28.0.0": {
+          "ironSourceSdkVersion": "[9.0.0, 10.0[",
+          "android": {
+            "adapterVersion": "5.18.0",
+            "adNetworkVersion": "8.6.0"
+          },
+          "ios": {
+            "adapterVersion": "5.17.0.0",
+            "adNetworkVersion": "8.7.0"
+          }
+        },
         "5.27.0.0": {
           "ironSourceSdkVersion": "[9.0.0, 10.0[",
           "android": {

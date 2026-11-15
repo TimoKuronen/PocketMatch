@@ -6,7 +6,7 @@ public abstract class BasePerformanceProfile : ScriptableObject
     public int targetFrameRate = 60;
 
     [Header("Rendering")]
-    [Tooltip("0.5–1 for low-end, 1+ for high-end.")]
+    [Tooltip("0.5-1 for low-end, 1+ for high-end.")]
     [Range(0.25f, 2f)]
     public float lodBias = 1f;
 

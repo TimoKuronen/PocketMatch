@@ -5,6 +5,11 @@ on:
     branches:
       - master
   pull_request:
+    paths:
+      - Assets/**
+      - Packages/**
+      - ProjectSettings/**
+      - .github/workflows/**
   workflow_dispatch:
 
 permissions:
@@ -35,10 +40,9 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: Library
-          key: Library-tests-${{ env.UNITY_VERSION }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-tests-${{ env.UNITY_VERSION }}-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: |
             Library-tests-${{ env.UNITY_VERSION }}-
-            Library-
 
       - name: Run Edit Mode Tests
         uses: game-ci/unity-test-runner@32e57712352b500e17974b245a6dce9e11a73213 # v4
@@ -62,6 +66,7 @@ jobs:
   buildAndroid:
     name: Build for Android
     runs-on: ubuntu-latest
+    needs: editModeTests
     if: github.event_name != 'pull_request'
     steps:
       - name: Checkout Code
@@ -78,9 +83,9 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: Library
-          key: Library-${{ env.UNITY_VERSION }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-android-${{ env.UNITY_VERSION }}-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: |
-            Library-
+            Library-android-${{ env.UNITY_VERSION }}-
 
       - name: Resolve Android Dependencies
         uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4

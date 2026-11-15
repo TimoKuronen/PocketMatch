@@ -2,7 +2,7 @@
 
 Mobile Match-3 prototype built in **Unity 6**: async board commands, VContainer service boundaries, Addressables content, and LevelPlay ad mediation.
 
-[![Unity 6000.3.14f1](https://img.shields.io/badge/Unity-6000.3.14f1-black.svg)](ProjectSettings/ProjectVersion.txt)
+[![Unity 6000.3.28f1](https://img.shields.io/badge/Unity-6000.3.28f1-black.svg)](ProjectSettings/ProjectVersion.txt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 <p align="center">
@@ -23,7 +23,7 @@ Mobile Match-3 prototype built in **Unity 6**: async board commands, VContainer 
 - Encrypted local save with a pluggable cloud sync provider
 - Unity LevelPlay banner and interstitial mediation, with a rewarded lose-continue path integrated
 - Unity Localization (`en` / `es`) with Localizer CSV interchange
-- Edit Mode tests for board rules, potential moves, and shuffle
+- Edit Mode tests for board rules, potential moves, shuffle, ad retry, rewarded continue, and localization keys
 - CI: Edit Mode tests on push/PR; Android build on master
 
 ## Architecture
@@ -47,7 +47,7 @@ Details: [docs/architecture.md](docs/architecture.md)
 
 | Area | Choice |
 |------|--------|
-| Engine | Unity `6000.3.14f1` (URP 2D) |
+| Engine | Unity `6000.3.28f1` (URP 2D) |
 | DI | [VContainer](https://github.com/hadashiA/VContainer) |
 | Async | [UniTask](https://github.com/Cysharp/UniTask) |
 | Content | Addressables (levels, VFX) |

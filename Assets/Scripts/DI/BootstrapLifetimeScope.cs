@@ -11,8 +11,6 @@ public class BootstrapLifetimeScope : LifetimeScope
             As<IStartable>();
         builder.Register<IAnalyticsService, AnalyticsService>(Lifetime.Singleton).
             As<IStartable>();
-        builder.Register<IInputService, InputService>(Lifetime.Singleton).
-            As<ITickable>();
 
         builder.Register<IAudioService, AudioService>(Lifetime.Singleton);
         builder.Register<IAdsService, AdsService>(Lifetime.Singleton);

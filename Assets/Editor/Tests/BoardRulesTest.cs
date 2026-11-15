@@ -38,7 +38,7 @@ public class BoardRulesTest
         int height = 3;
         var grid = CreateFilledGrid(width, height, TileType.Blue, TileType.Green);
 
-        // Row y=0: Blue, Blue, Red, Blue, Green — swap Red with right Blue makes three Blues.
+        // Row y=0: Blue, Blue, Red, Blue, Green - swap Red with right Blue makes three Blues.
         grid[0, 0] = new TileData(TileType.Blue, new Vector2Int(0, 0), TilePower.None, TileState.Normal);
         grid[1, 0] = new TileData(TileType.Blue, new Vector2Int(1, 0), TilePower.None, TileState.Normal);
         grid[2, 0] = new TileData(TileType.Red, new Vector2Int(2, 0), TilePower.None, TileState.Normal);

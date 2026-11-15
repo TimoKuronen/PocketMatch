@@ -112,7 +112,6 @@ public class BoardStateEvaluator
     {
         Debug.Log("Shuffling board...");
 
-        List<TileData> normalTiles = new List<TileData>();
         List<TileView> tileViews = new List<TileView>();
         List<Vector2Int> tilePositions = new List<Vector2Int>();
 
@@ -123,17 +122,10 @@ public class BoardStateEvaluator
                 TileData tile = gridData[x, y];
                 if (tile != null && tile.State == TileState.Normal)
                 {
-                    normalTiles.Add(tile);
                     tileViews.Add(gridViews[x, y]);
                     tilePositions.Add(new Vector2Int(x, y));
                 }
             }
-        }
-
-        List<TileType> originalTypes = new List<TileType>();
-        foreach (var tile in normalTiles)
-        {
-            originalTypes.Add(tile.Type);
         }
 
         bool success = GridHelperMethods.ShuffleTypesUntilPlayable(
@@ -149,64 +141,6 @@ public class BoardStateEvaluator
         }
 
         AnimateShuffleAsync(tileViews, tilePositions).Forget();
-    }
-
-    public void DebugHighlightPotentialMoves()
-    {
-        var moves = CountPotentialMoves();
-        Debug.Log($"Potential Moves - Swaps: {moves.SwapMoveCount}, Power: {moves.PowerTileMoveCount}");
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                TileData tile = gridData[x, y];
-                if (tile != null && tile.Power != TilePower.None)
-                {
-                    gridViews[x, y].GetComponent<SpriteRenderer>().color = Color.yellow;
-                }
-            }
-        }
-
-        HashSet<SwapKey> checkedSwaps = new HashSet<SwapKey>();
-        Vector2Int[] directions = new Vector2Int[] { Vector2Int.right, Vector2Int.down };
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                TileData current = gridData[x, y];
-                if (current == null || current.State != TileState.Normal)
-                    continue;
-
-                for (int d = 0; d < directions.Length; d++)
-                {
-                    Vector2Int dir = directions[d];
-                    Vector2Int neighborPos = new Vector2Int(x, y) + dir;
-                    if (!GridHelperMethods.IsInsideGrid(neighborPos, width, height))
-                        continue;
-
-                    SwapKey swapKey = new SwapKey(Mathf.Min(x, neighborPos.x), Mathf.Min(y, neighborPos.y), Mathf.Max(x, neighborPos.x), Mathf.Max(y, neighborPos.y));
-                    if (checkedSwaps.Contains(swapKey))
-                        continue;
-
-                    checkedSwaps.Add(swapKey);
-                    TileData neighbor = gridData[neighborPos.x, neighborPos.y];
-                    if (neighbor == null || neighbor.State != TileState.Normal)
-                        continue;
-
-                    gridController.SwapTilesInData(new Vector2Int(x, y), neighborPos, current, neighbor);
-                    var matches = gridController.MatchFinder.GetMatchGroups(gridData);
-
-                    if (matches.Count > 0)
-                    {
-                        gridViews[x, y].GetComponent<SpriteRenderer>().color = Color.green;
-                        gridViews[neighborPos.x, neighborPos.y].GetComponent<SpriteRenderer>().color = Color.green;
-                    }
-
-                    gridController.SwapTilesInData(new Vector2Int(x, y), neighborPos, neighbor, current);
-                }
-            }
-        }
     }
 
     #endregion
@@ -234,7 +168,6 @@ public class BoardStateEvaluator
     {
         var token = (gridController as MonoBehaviour)?.GetCancellationTokenOnDestroy() ?? CancellationToken.None;
         float moveDuration = 0.3f;
-        List<Tweener> tweens = new();
 
         foreach (TileView view in tileViews)
         {
@@ -247,10 +180,9 @@ public class BoardStateEvaluator
                 UnityEngine.Random.Range(-30f, 30f)
             );
 
-            Tweener t = rect.DOAnchorPos(currentPos + randomOffset, moveDuration)
+            rect.DOAnchorPos(currentPos + randomOffset, moveDuration)
                 .SetEase(Ease.InOutQuad)
                 .SetLoops(2, LoopType.Yoyo);
-            tweens.Add(t);
         }
 
         await UniTask.Delay(System.TimeSpan.FromSeconds(moveDuration * 2), cancellationToken: token);

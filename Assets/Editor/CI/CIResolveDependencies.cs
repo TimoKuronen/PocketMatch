@@ -9,7 +9,7 @@ public static class CIResolveDependencies
     public static void Resolve()
     {
         var resolverType = Type.GetType(
-            "Google.PlayServices.Resolver, Google.VersionHandlerImpl");
+            "GooglePlayServices.PlayServicesResolver, Google.JarResolver");
 
         if (resolverType == null)
         {
@@ -19,7 +19,10 @@ public static class CIResolveDependencies
 
         var method = resolverType.GetMethod(
             "ResolveSync",
-            BindingFlags.Static | BindingFlags.Public);
+            BindingFlags.Static | BindingFlags.Public,
+            null,
+            new[] { typeof(bool) },
+            null);
 
         if (method == null)
         {

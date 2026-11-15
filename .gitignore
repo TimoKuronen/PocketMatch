@@ -87,3 +87,6 @@ build/
 
 /Assets/TextMesh Pro/Fonts/*
 !/Assets/TextMesh Pro/Fonts/.gitkeep
+
+# Downloaded by the LevelPlay Network Manager
+/Assets/LevelPlay/Editor/LevelPlayVersions.json

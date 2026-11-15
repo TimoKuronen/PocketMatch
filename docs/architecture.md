@@ -16,7 +16,7 @@ Typical transitions:
 Cold start
   -> Loader (bootstrap services live here)
   -> MainMenu
-  -> Loader (optional interstitial before gameplay)
+  -> Loader
   -> PlayScene
   -> Loader (win path may show interstitial)
   -> PlayScene or MainMenu
@@ -41,7 +41,7 @@ flowchart LR
 
 | Scope | Lifetime | Responsibilities |
 |-------|----------|------------------|
-| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, economy, analytics, input, audio, ads, localization |
+| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, economy, analytics, audio, ads, localization |
 | `MenuLifetimeScope` | Main menu scene | Menu presenters and views |
 | `GameLifetimeScope` | Play scene | Session, level earnings, continue, HUD, grid presenters, board wiring |
 
@@ -56,10 +56,9 @@ Services register through VContainer with constructor / method injection.
 | `LevelEarningsService` | Per-attempt earnings from gameplay (power tiles, unused-move bonus) |
 | `LevelContinueService` | Lose-menu continue gate (once per attempt); applies `ShopOffer` rewards |
 | `AnalyticsService` | Maps level and economy events to analytics names; queues and delivers them through `IAnalyticsTransport` |
-| `AdsService` | `IAdsService` facade over per-format controllers (banner, interstitial, rewarded), SDK init, and a shared retry policy |
+| `AdsService` | `IAdsService` facade over per-format controllers (banner, interstitial, rewarded), SDK init, and a retry policy shared by the banner and rewarded controllers |
 | `AudioService` | Cue-based SFX |
 | `EffectService` | VFX pooling / playback |
-| `InputService` | Shared input ticks |
 
 Optional SDK and save configuration load from gitignored files under `Assets/StreamingAssets/`.
 
@@ -113,7 +112,7 @@ LevelContinueService (game-scoped)
 
 Win UI shows coins earned this level; HUD and lose panel show wallet balance (`x N`). Objectives and moves stay visible on fail so the player can judge whether continue is worthwhile.
 
-Continue is once per attempt via coins.
+Continue is once per attempt, paid with coins or by watching a rewarded ad.
 
 ## Live-service hooks
 

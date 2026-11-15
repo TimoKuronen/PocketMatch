@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
 public class PerformanceManager : MonoBehaviour
 {
@@ -26,14 +24,5 @@ public class PerformanceManager : MonoBehaviour
         QualitySettings.pixelLightCount = 0;
         QualitySettings.realtimeReflectionProbes = false;
         QualitySettings.maxQueuedFrames = 2;
-
-        if (GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset urp)
-        {
-            urp.supportsHDR = false;
-            urp.msaaSampleCount = 2;
-            urp.supportsCameraDepthTexture = false;
-            urp.shadowDistance = 0f;
-            urp.renderScale = 0.85f;
-        }
     }
 }

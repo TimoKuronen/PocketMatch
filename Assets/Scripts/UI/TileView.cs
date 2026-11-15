@@ -56,20 +56,4 @@ public class TileView : MonoBehaviour
 
         image.color = originalColor;
     }
-
-    public void SetAnchoredPosition(Vector2 pos)
-    {
-        if (rectTransform == null)
-            rectTransform = GetComponent<RectTransform>();
-
-        rectTransform.anchoredPosition = pos;
-    }
-
-    public Vector2 GetAnchoredPosition()
-    {
-        if (rectTransform == null)
-            rectTransform = GetComponent<RectTransform>();
-
-        return rectTransform.anchoredPosition;
-    }
 }

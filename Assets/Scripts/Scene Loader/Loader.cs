@@ -13,8 +13,6 @@ public static class Loader
         PlayScene
     }
 
-    public static event Action OnSceneLoadStarted;
-
     private static AsyncOperation loadingAsyncOperation;
     private static bool isLoading;
     private static GameScene? targetScene;
@@ -64,7 +62,6 @@ public static class Loader
     {
         string targetName = targetScene.ToString();
         isLoading = true;
-        OnSceneLoadStarted?.Invoke();
 
         try
         {

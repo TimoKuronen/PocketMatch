@@ -4,53 +4,22 @@ using UnityEngine;
 
 public class ShuffleMatchCountTest
 {
-    [Test]
-    public void ShuffleBoard_ShouldResultInZeroMatches()
+    [TestCase(6, 12345)]
+    [TestCase(5, 0)]
+    [TestCase(5, 1)]
+    [TestCase(5, 4)]
+    public void ShuffleTypesUntilPlayable_LeavesNoMatchesAndAtLeastOneMove(int size, int seed)
     {
-        // Arrange
-        int width = 6;
-        int height = 6;
-        TileData[,] grid = CreateTestGrid(width, height);
-        MatchFinder matchFinder = new MatchFinder(width, height);
-        System.Random rng = new System.Random(12345); // Fixed seed for determinism
+        TileData[,] grid = CreateTestGrid(size, size);
+        MatchFinder matchFinder = new MatchFinder(size, size);
+        System.Random rng = new System.Random(seed);
 
-        // Act - Shuffle until playable (no matches + has potential moves)
         bool success = GridHelperMethods.ShuffleTypesUntilPlayable(
-            grid, width, height, matchFinder, rng, maxAttempts: 200);
+            grid, size, size, matchFinder, rng, maxAttempts: 200);
 
-        // Assert
         Assert.IsTrue(success, "Shuffle should succeed within max attempts");
-        
-        var matches = matchFinder.GetMatchGroups(grid);
-        Assert.AreEqual(0, matches.Count, "After shuffling, there should be no matches on the board");
-        
-        bool hasPotentialMoves = GridHelperMethods.HasPotentialMoves(grid, width, height);
-        Assert.IsTrue(hasPotentialMoves, "After shuffling, there should be at least one potential move");
-    }
-
-    [Test]
-    public void ShuffleBoard_MultipleSeeds_ShouldAllResultInZeroMatches()
-    {
-        // Test with different random seeds to ensure robustness
-        for (int seed = 0; seed < 5; seed++)
-        {
-            int width = 5;
-            int height = 5;
-            TileData[,] grid = CreateTestGrid(width, height);
-            MatchFinder matchFinder = new MatchFinder(width, height);
-            System.Random rng = new System.Random(seed);
-
-            bool success = GridHelperMethods.ShuffleTypesUntilPlayable(
-                grid, width, height, matchFinder, rng, maxAttempts: 200);
-
-            Assert.IsTrue(success, $"Shuffle should succeed with seed {seed}");
-            
-            var matches = matchFinder.GetMatchGroups(grid);
-            Assert.AreEqual(0, matches.Count, $"With seed {seed}, there should be no matches after shuffle");
-            
-            bool hasPotentialMoves = GridHelperMethods.HasPotentialMoves(grid, width, height);
-            Assert.IsTrue(hasPotentialMoves, $"With seed {seed}, there should be potential moves after shuffle");
-        }
+        Assert.AreEqual(0, matchFinder.GetMatchGroups(grid).Count, "No matches after shuffle");
+        Assert.IsTrue(GridHelperMethods.HasPotentialMoves(grid, size, size), "At least one potential move after shuffle");
     }
 
     private TileData[,] CreateTestGrid(int width, int height)

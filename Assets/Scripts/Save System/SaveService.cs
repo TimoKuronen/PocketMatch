@@ -20,12 +20,10 @@ public class SaveService : ISaveService, IStartable, IDisposable
     #region Fields
 
     private readonly string saveFile = Path.Combine(Application.persistentDataPath, "save.dat");
-    private readonly string settingsFile = Path.Combine(Application.persistentDataPath, "settings.dat");
     private string encryptionKey;
 
     private ICloudSaveProvider cloud;
     private bool cloudInitialized;
-    private IObjectResolver objectResolver;
 
     public PlayerData PlayerData { get; private set; }
 
@@ -38,9 +36,8 @@ public class SaveService : ISaveService, IStartable, IDisposable
     #region Lifecycle
 
     [Inject]
-    public void Construct(IObjectResolver objectResolver, ICloudSaveProvider cloud)
+    public void Construct(ICloudSaveProvider cloud)
     {
-        this.objectResolver = objectResolver;
         encryptionKey = ResolveEncryptionKey();
 
         this.cloud = cloud;

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using VContainer;
 
 /// <summary>
 /// Manages a stack of menus, ensuring proper layering and preventing menu opening during match processing.
@@ -10,9 +9,6 @@ public class MenuStackManager : IDisposable
 {
     private Stack<IMenu> menuStack = new Stack<IMenu>();
     private IGridController gridController;
-
-    public bool HasOpenMenus => menuStack.Count > 0;
-    public IMenu TopMenu => menuStack.Count > 0 ? menuStack.Peek() : null;
 
     public bool HasMenuOfType(MenuType menuType)
     {
@@ -59,9 +55,6 @@ public class MenuStackManager : IDisposable
 
         return found;
     }
-
-    [Inject]
-    public void Construct() { }
 
     /// <summary>
     /// Supplies the play-scene grid so <see cref="CanOpenMenu"/> can block UI during tile processing.
@@ -124,14 +117,6 @@ public class MenuStackManager : IDisposable
         var menu = menuStack.Pop();
         menu.Close();
         return true;
-    }
-
-    public void PopAllMenus()
-    {
-        while (menuStack.Count > 0)
-        {
-            PopMenu();
-        }
     }
 
     /// <summary>

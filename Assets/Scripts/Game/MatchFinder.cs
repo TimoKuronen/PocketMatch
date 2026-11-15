@@ -11,12 +11,6 @@ public class MatchFinder
 
     #endregion
 
-    #region Properties
-
-    public int AvailableMatchesCount { get; private set; }
-
-    #endregion
-
     #region Lifecycle
 
     public MatchFinder(int width, int height)
@@ -189,7 +183,6 @@ public class MatchFinder
                 merged.Add(new MatchGroup(group.Type) { Positions = new List<Vector2Int>(group.Positions) });
         }
 
-        AvailableMatchesCount = merged.Count;
         return merged.Select(g => g.Positions).ToList();
     }
 

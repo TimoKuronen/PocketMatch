@@ -160,6 +160,14 @@ MonoBehaviour:
     m_Metadata:
       m_Items:
       - rid: 9210449710821408988
+  - m_Id: 11235483680
+    m_Localized: Share anonymous gameplay data to help improve the game? You can change this later in Settings.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11235483681
+    m_Localized: Share gameplay data
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:

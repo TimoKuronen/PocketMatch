@@ -15,6 +15,9 @@ public static class LocalizationKeys
 
     public const string PauseConfirmRetry = "ui.pause.confirm_retry";
 
+    public const string PrivacyConsentMessage = "ui.privacy.consent_message";
+    public const string SettingsAnalytics = "ui.settings.analytics";
+
     public const string MenuTitle = "ui.menu.title";
     public const string MenuPlay = "ui.menu.play";
     public const string MenuLevelsTitle = "ui.menu.levels_title";

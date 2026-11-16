@@ -30,8 +30,10 @@ public interface IMainMenuSettingsView
 {
     event Action CloseClicked;
     event Action<float> SfxVolumeChanged;
+    event Action<bool> AnalyticsConsentChanged;
 
     void SetSfxVolume(float value);
+    void SetAnalyticsConsent(bool granted);
 }
 
 /// <summary>MVP view contract for pause-menu settings and level exit actions.</summary>

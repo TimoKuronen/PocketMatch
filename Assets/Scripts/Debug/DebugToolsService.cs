@@ -29,6 +29,7 @@ public sealed class DebugToolsService : IDebugToolsService, IStartable, IDisposa
         Register(new ForceWinDebugAction());
         Register(new ForceLoseDebugAction());
         Register(new ResetSaveDebugAction());
+        Register(new ResetAnalyticsConsentDebugAction());
         Register(new SetCoinsDebugAction());
         Register(new AddCoinsDebugAction());
         Register(new ToggleBoardLoggingDebugAction());

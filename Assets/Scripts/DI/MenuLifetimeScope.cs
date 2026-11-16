@@ -20,5 +20,6 @@ public class MenuLifetimeScope : LifetimeScope
         builder.Register<MainMenuPresenter>(Lifetime.Scoped).As<IStartable>();
         builder.Register<MainMenuSettingsPresenter>(Lifetime.Scoped).As<IStartable>();
         builder.Register<LevelSelectPresenter>(Lifetime.Scoped).As<IStartable>();
+        builder.Register<AnalyticsConsentPresenter>(Lifetime.Scoped).As<IStartable>();
     }
 }

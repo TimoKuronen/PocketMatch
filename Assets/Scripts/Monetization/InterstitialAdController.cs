@@ -90,7 +90,6 @@ public sealed class InterstitialAdController : IDisposable
         if (!isSdkReady() || interstitialAd == null)
         {
             log.Warn($"ShowInterstitialAd ignored (initialized={isSdkReady()}, hasAd={interstitialAd != null}).");
-            analytics.Skipped(AdFormat, PlacementName, "not_initialized");
             return;
         }
 
@@ -99,7 +98,6 @@ public sealed class InterstitialAdController : IDisposable
         if (!interstitialAd.IsAdReady())
         {
             log.Warn("Interstitial not ready; requesting load instead.");
-            analytics.Skipped(AdFormat, PlacementName, "not_ready");
             Load();
             return;
         }
@@ -156,7 +154,6 @@ public sealed class InterstitialAdController : IDisposable
     private void OnDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
     {
         log.Error($"Interstitial display failed: {error}. {adInfo}");
-        analytics.Skipped(AdFormat, PlacementName, "display_failed");
         Completed = true;
         Closed?.Invoke();
     }

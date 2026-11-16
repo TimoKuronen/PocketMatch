@@ -34,3 +34,5 @@ ui.pause.confirm_retry,11235483650,Are you sure you want to retry this level?,¿
 ui.win.coins_earned,11222900737,+{0} coins earned,+{0} monedas obtenidas
 ui.win.next_level,11222900736,Next Level,Siguiente nivel
 ui.win.title,10547617792,You won!,¡Has ganado!
+ui.privacy.consent_message,11235483680,Share anonymous gameplay data to help improve the game? You can change this later in Settings.,¿Compartir datos de juego anónimos para ayudar a mejorar el juego? Puedes cambiarlo más tarde en Ajustes.
+ui.settings.analytics,11235483681,Share gameplay data,Compartir datos de juego

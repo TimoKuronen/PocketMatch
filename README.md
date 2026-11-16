@@ -19,7 +19,7 @@ Mobile Match-3 prototype built in **Unity 6**: async board commands, VContainer 
 - Coin economy: earn on win, spend to continue after fail
 - VContainer scopes for bootstrap, menu, and gameplay lifetimes
 - Addressables level loading and pooled VFX
-- Analytics event dictionary with a local queue and pluggable transport
+- Analytics event dictionary on Unity Analytics with an opt-in consent gate, local queue, and pluggable transport
 - Encrypted local save with a pluggable cloud sync provider
 - Unity LevelPlay banner and interstitial mediation, with a rewarded lose-continue path integrated
 - Unity Localization (`en` / `es`) with Localizer CSV interchange

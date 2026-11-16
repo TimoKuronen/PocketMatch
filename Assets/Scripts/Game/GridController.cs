@@ -21,7 +21,6 @@ public class GridController : MonoBehaviour, IGridController
     private TilePoolManager tilePoolManager;
     private BoardStateEvaluator boardStateEvaluator;
     private IGameSessionService gameSessionService;
-    private IAnalyticsService analyticsService;
     private IEffectService effectService;
 
     private int width;
@@ -62,10 +61,9 @@ public class GridController : MonoBehaviour, IGridController
     #region Lifecycle
 
     [Inject]
-    public void Construct(IGameSessionService gameSessionService, IAnalyticsService analyticsService, IEffectService effectService)
+    public void Construct(IGameSessionService gameSessionService, IEffectService effectService)
     {
         this.gameSessionService = gameSessionService;
-        this.analyticsService = analyticsService;
         this.effectService = effectService;
     }
 
@@ -277,15 +275,6 @@ public class GridController : MonoBehaviour, IGridController
         IsProcessingTiles = false;
         BoardUpdated?.Invoke(gridData);
         BoardDebugHooks.NotifyBoardUpdated(this, gridData);
-        if (cycleCount > 2)
-        {
-            analyticsService.LogEvent(AnalyticsEvents.ExtraAutomatedMatches, new Dictionary<string, object>
-            {
-                { "level_name", mapData.GetLevelName() ?? "Unknown" },
-                { "moves_spent", cycleCount-2 }
-            });
-        }
-
         var moves = boardStateEvaluator.CountPotentialMoves();
         if (moves.TotalMoves == 0)
         {

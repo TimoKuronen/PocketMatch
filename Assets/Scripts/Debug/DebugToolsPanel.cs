@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public sealed class DebugToolsPanel : MonoBehaviour
@@ -12,6 +15,7 @@ public sealed class DebugToolsPanel : MonoBehaviour
     private Transform contentRoot;
     private bool isOpen;
     private GameObject simulatedBanner;
+    private GameObject debugEventSystem;
 
     public void Initialize(
         IDebugToolsService service,
@@ -24,12 +28,16 @@ public sealed class DebugToolsPanel : MonoBehaviour
         BuildUi();
         DebugToolsService.PanelRefreshRequested += RebuildContent;
         AdsDebugConfig.SimulatedBannerChanged += OnSimulatedBannerChanged;
+        SceneManager.sceneLoaded += OnSceneChanged;
+        SceneManager.sceneUnloaded += OnSceneChanged;
     }
 
     private void OnDestroy()
     {
         DebugToolsService.PanelRefreshRequested -= RebuildContent;
         AdsDebugConfig.SimulatedBannerChanged -= OnSimulatedBannerChanged;
+        SceneManager.sceneLoaded -= OnSceneChanged;
+        SceneManager.sceneUnloaded -= OnSceneChanged;
     }
 
     private void BuildUi()
@@ -80,15 +88,34 @@ public sealed class DebugToolsPanel : MonoBehaviour
         simulatedBanner.SetActive(false);
     }
 
+    // Scenes bring their own EventSystem; the debug one is active only while no scene has one.
     private void EnsureEventSystem()
     {
-        if (UnityEngine.EventSystems.EventSystem.current != null)
+        debugEventSystem = new GameObject("DebugEventSystem");
+        debugEventSystem.transform.SetParent(transform, false);
+        debugEventSystem.AddComponent<EventSystem>();
+        debugEventSystem.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+        RefreshEventSystem();
+    }
+
+    private void OnSceneChanged(Scene scene)
+    {
+        RefreshEventSystem();
+    }
+
+    private void OnSceneChanged(Scene scene, LoadSceneMode mode)
+    {
+        RefreshEventSystem();
+    }
+
+    private void RefreshEventSystem()
+    {
+        if (debugEventSystem == null)
             return;
 
-        var go = new GameObject("DebugEventSystem");
-        go.transform.SetParent(transform, false);
-        go.AddComponent<UnityEngine.EventSystems.EventSystem>();
-        go.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+        bool sceneHasOne = FindObjectsByType<EventSystem>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+            .Any(eventSystem => eventSystem.gameObject != debugEventSystem);
+        debugEventSystem.SetActive(!sceneHasOne);
     }
 
     private void CreateOpenButton(Transform parent)

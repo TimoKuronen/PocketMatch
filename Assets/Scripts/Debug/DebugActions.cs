@@ -7,6 +7,7 @@ public static class DebugActionIds
     public const string ForceWin = "force_win";
     public const string ForceLose = "force_lose";
     public const string ResetSave = "reset_save";
+    public const string ResetAnalyticsConsent = "reset_analytics_consent";
     public const string SetCoins = "set_coins";
     public const string AddCoins = "add_coins";
     public const string ToggleBoardLogging = "toggle_board_logging";
@@ -74,6 +75,25 @@ public sealed class ResetSaveDebugAction : IDebugAction
             context.Economy.SetBalance(settings.startingCoinsOverride);
 
         Debug.Log("[DebugTools] Save reset to defaults.");
+    }
+
+    public bool GetToggleState(DebugContext context) => false;
+}
+
+public sealed class ResetAnalyticsConsentDebugAction : IDebugAction
+{
+    public string Id => DebugActionIds.ResetAnalyticsConsent;
+    public string Category => "Save";
+    public string Label => "Reset Analytics Consent";
+    public DebugActionKind Kind => DebugActionKind.Button;
+
+    public bool IsAvailable(DebugContext context) => true;
+
+    public void Execute(DebugContext context, int intValue = 0)
+    {
+        PlayerPrefs.DeleteKey(AnalyticsConsent.PrefKey);
+        PlayerPrefs.Save();
+        Debug.Log("[DebugTools] Analytics consent cleared. Restart to see the prompt again.");
     }
 
     public bool GetToggleState(DebugContext context) => false;

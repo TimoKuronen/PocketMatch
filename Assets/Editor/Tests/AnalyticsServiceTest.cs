@@ -55,7 +55,7 @@ public class AnalyticsServiceTest
     }
 
     [Test]
-    public void EventLoggedAfterReady_IsSentImmediately()
+    public void EventLoggedAfterReady_IsSentImmediately_AndNotStored()
     {
         var transport = new FakeTransport();
         var service = CreateService(transport);
@@ -64,6 +64,55 @@ public class AnalyticsServiceTest
         service.LogEvent(AnalyticsEvents.LevelFailed);
 
         CollectionAssert.AreEqual(new[] { AnalyticsEvents.LevelFailed }, transport.Sent);
+        Assert.IsFalse(File.Exists(cachePath) && File.ReadAllText(cachePath).Contains(AnalyticsEvents.LevelFailed));
+        service.Dispose();
+    }
+
+    [Test]
+    public void QueueBeforeReady_KeepsOnlyTheNewestEvents()
+    {
+        var transport = new FakeTransport();
+        var service = CreateService(transport);
+
+        for (int i = 0; i < 250; i++)
+            service.LogEvent(AnalyticsEvents.LevelStarted, new Dictionary<string, object> { { "level_index", i } });
+
+        transport.CompleteInitialization(true);
+
+        Assert.AreEqual(200, transport.Sent.Count);
+        Assert.AreEqual(249, transport.LastParameters["level_index"]);
+        service.Dispose();
+    }
+
+    [Test]
+    public void DisablingTransport_DiscardsQueuedEventsAndStopsStoring()
+    {
+        var transport = new FakeTransport();
+        var service = CreateService(transport);
+        service.LogEvent(AnalyticsEvents.LevelStarted);
+        Assert.IsTrue(File.Exists(cachePath));
+
+        transport.SetEnabled(false);
+        service.LogEvent(AnalyticsEvents.LevelFailed);
+
+        Assert.IsFalse(File.Exists(cachePath));
+        transport.CompleteInitialization(true);
+        Assert.AreEqual(0, transport.Sent.Count);
+        service.Dispose();
+    }
+
+    [Test]
+    public void ReEnablingTransport_InitializesAgainAndSendsNewEvents()
+    {
+        var transport = new FakeTransport();
+        var service = CreateService(transport);
+        transport.SetEnabled(false);
+
+        transport.SetEnabled(true);
+        transport.CompleteInitialization(true);
+        service.LogEvent(AnalyticsEvents.LevelCompleted);
+
+        CollectionAssert.AreEqual(new[] { AnalyticsEvents.LevelCompleted }, transport.Sent);
         service.Dispose();
     }
 
@@ -76,19 +125,32 @@ public class AnalyticsServiceTest
 
     private sealed class FakeTransport : IAnalyticsTransport
     {
-        private readonly UniTaskCompletionSource<bool> initialization = new();
+        private UniTaskCompletionSource<bool> initialization = new();
 
         public List<string> Sent { get; } = new();
+        public IReadOnlyDictionary<string, object> LastParameters { get; private set; }
         public bool IsEnabled { get; set; } = true;
 
-        public UniTask<bool> InitializeAsync() => initialization.Task;
+        public event Action EnabledChanged;
+
+        public UniTask<bool> InitializeAsync()
+        {
+            initialization = new UniTaskCompletionSource<bool>();
+            return initialization.Task;
+        }
 
         public void CompleteInitialization(bool ready) => initialization.TrySetResult(ready);
 
+        public void SetEnabled(bool enabled)
+        {
+            IsEnabled = enabled;
+            EnabledChanged?.Invoke();
+        }
+
         public void Send(string eventName, IReadOnlyDictionary<string, object> parameters)
         {
-            if (eventName != AnalyticsEvents.SessionEnded)
-                Sent.Add(eventName);
+            Sent.Add(eventName);
+            LastParameters = parameters;
         }
     }
 

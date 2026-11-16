@@ -7,16 +7,19 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
     private readonly IMenu settingsMenu;
     private readonly MenuStackManager menuStackManager;
     private readonly IAudioService audioService;
+    private readonly IAnalyticsConsent analyticsConsent;
 
     public MainMenuSettingsPresenter(
         IMainMenuSettingsView view,
         MenuStackManager menuStackManager,
-        IAudioService audioService)
+        IAudioService audioService,
+        IAnalyticsConsent analyticsConsent)
     {
         this.view = view;
         this.settingsMenu = view as IMenu;
         this.menuStackManager = menuStackManager;
         this.audioService = audioService;
+        this.analyticsConsent = analyticsConsent;
     }
 
     public void Start()
@@ -26,11 +29,13 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
 
         view.CloseClicked += OnCloseClicked;
         view.SfxVolumeChanged += OnSfxVolumeChanged;
+        view.AnalyticsConsentChanged += OnAnalyticsConsentChanged;
     }
 
     private void OnSettingsOpened()
     {
         view.SetSfxVolume(audioService.SfxVolume);
+        view.SetAnalyticsConsent(analyticsConsent.State == AnalyticsConsentState.Granted);
     }
 
     private void OnCloseClicked()
@@ -43,6 +48,11 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
         audioService.SfxVolume = value;
     }
 
+    private void OnAnalyticsConsentChanged(bool granted)
+    {
+        analyticsConsent.SetGranted(granted);
+    }
+
     public void Dispose()
     {
         if (settingsMenu != null)
@@ -50,5 +60,6 @@ public class MainMenuSettingsPresenter : IStartable, IDisposable
 
         view.CloseClicked -= OnCloseClicked;
         view.SfxVolumeChanged -= OnSfxVolumeChanged;
+        view.AnalyticsConsentChanged -= OnAnalyticsConsentChanged;
     }
 }

@@ -14,6 +14,7 @@ public class ConfirmationDialog : UIMenu
     [SerializeField] private Button noButton;
     
     private Action onConfirmCallback;
+    private Action onCancelCallback;
     private MenuStackManager menuStackManager;
     
     [Inject]
@@ -26,6 +27,11 @@ public class ConfirmationDialog : UIMenu
     {
         base.Awake();
         menuType = MenuType.ConfirmationPrompt;
+
+        // The message text is set per dialog; a bound label would overwrite it with the generic prompt.
+        var boundLabel = messageText.GetComponent<LocalizedTmpLabel>();
+        if (boundLabel != null)
+            boundLabel.enabled = false;
         
         // Subscribe to button clicks via code
         yesButton.onClick.AddListener(OnYesButtonClicked);
@@ -41,12 +47,13 @@ public class ConfirmationDialog : UIMenu
     }
     
     /// <summary>
-    /// Set up the confirmation dialog with a message and callback
+    /// Set up the confirmation dialog with a message and callbacks for each answer.
     /// </summary>
-    public void Setup(string message, Action onConfirm)
+    public void Setup(string message, Action onConfirm, Action onCancel = null)
     {
         messageText.text = message;
         onConfirmCallback = onConfirm;
+        onCancelCallback = onCancel;
     }
     
     private void OnYesButtonClicked()
@@ -57,6 +64,7 @@ public class ConfirmationDialog : UIMenu
     
     private void OnNoButtonClicked()
     {
+        onCancelCallback?.Invoke();
         menuStackManager.PopMenu();
     }
     

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 
@@ -6,8 +7,11 @@ using Cysharp.Threading.Tasks;
 /// </summary>
 public interface IAnalyticsTransport
 {
-    /// <summary>False when no backend is configured; events are then neither queued nor stored.</summary>
+    /// <summary>False when events must not be collected, such as when the player declined; they are then neither queued nor stored.</summary>
     bool IsEnabled { get; }
+
+    /// <summary>Raised when <see cref="IsEnabled"/> changes value.</summary>
+    event Action EnabledChanged;
 
     /// <summary>Returns true once the backend can accept events.</summary>
     UniTask<bool> InitializeAsync();

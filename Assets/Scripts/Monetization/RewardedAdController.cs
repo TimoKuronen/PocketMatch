@@ -226,7 +226,6 @@ public sealed class RewardedAdController : IDisposable
     private void LogSkipped(string reason)
     {
         log.Warn($"Rewarded ad unavailable: {reason}");
-        analytics.Skipped(AdFormat, PlacementName, reason);
     }
 
     private void Cleanup()

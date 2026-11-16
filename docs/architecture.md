@@ -55,7 +55,8 @@ Services register through VContainer with constructor / method injection.
 | `EconomyService` | Wallet ledger (`PlayerData.coins`), spend/add, save trigger, balance events |
 | `LevelEarningsService` | Per-attempt earnings from gameplay (power tiles, unused-move bonus) |
 | `LevelContinueService` | Lose-menu continue gate (once per attempt); applies `ShopOffer` rewards |
-| `AnalyticsService` | Maps level and economy events to analytics names; queues and delivers them through `IAnalyticsTransport` |
+| `AnalyticsService` | Maps level and economy events to analytics names; queues and delivers them through `IAnalyticsTransport` (`UgsAnalyticsTransport`, gated by `IAnalyticsConsent`) |
+| `UgsInitializer` | Initializes Unity Gaming Services once, with the development or production environment |
 | `AdsService` | `IAdsService` facade over per-format controllers (banner, interstitial, rewarded), SDK init, and a retry policy shared by the banner and rewarded controllers |
 | `AudioService` | Cue-based SFX |
 | `EffectService` | VFX pooling / playback |
@@ -119,7 +120,7 @@ Continue is once per attempt, paid with coins or by watching a rewarded ad.
 | Hook | Entry point |
 |------|-------------|
 | Level start / complete / fail | `LevelEvents` → `AnalyticsService` |
-| Coins earned | `LevelEvents.OnLevelCompleted` → `EconomyService.AddCoins`; `AnalyticsService` logs `coins_earned` from the same event |
+| Coins earned | `LevelEvents.OnLevelCompleted` → `EconomyService.AddCoins` |
 | Coins spent | `EconomyService.TrySpendCoins` → `OnCoinsSpent` → `coins_spent` |
 | Lose continue | `LosePresenter` → `LevelContinueService` → `EconomyService` or `AdsService.ShowRewardedAdAsync` → `LevelManager.GrantExtraMoves` |
 | Interstitial gate | `WinPresenter` → `Loader.ShowInterstitialThenContinue` |

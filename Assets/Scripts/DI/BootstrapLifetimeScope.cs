@@ -17,7 +17,9 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.Register<ILocalizationService, LocalizationService>(Lifetime.Singleton).
             As<IStartable>();
         builder.Register<ICloudSaveProvider, NullCloudSaveProvider>(Lifetime.Singleton);
-        builder.Register<IAnalyticsTransport, NullAnalyticsTransport>(Lifetime.Singleton);
+        builder.Register<IAnalyticsTransport, UgsAnalyticsTransport>(Lifetime.Singleton);
+        builder.Register<IAnalyticsConsent, AnalyticsConsent>(Lifetime.Singleton);
+        builder.Register<IUgsInitializer, UgsInitializer>(Lifetime.Singleton);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         builder.Register<IDebugToolsService, DebugToolsService>(Lifetime.Singleton).

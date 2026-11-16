@@ -10,18 +10,23 @@ using VContainer.Unity;
 
 /// <summary>
 /// Maps gameplay and economy events onto the analytics dictionary and delivers them through
-/// <see cref="IAnalyticsTransport"/>, holding events in a local queue until the transport is ready.
-/// With a disabled transport nothing is queued or stored; events are only logged in debug builds.
+/// <see cref="IAnalyticsTransport"/>. Events wait in a capped local queue until the transport is ready.
+/// While the transport is disabled nothing is queued or stored, and anything already queued is discarded;
+/// events are only logged in debug builds.
 /// </summary>
 public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
 {
     private const string CacheFile = "analytics_cache.json";
+    private const int MaxQueuedEvents = 200;
 
     private List<CachedEvent> eventQueue = new List<CachedEvent>();
     private bool transportReady;
+    private bool active;
     private ISaveService saveService;
     private IEconomyService economyService;
     private IAnalyticsTransport transport;
+
+    private static string CachePath => Path.Combine(Application.persistentDataPath, CacheFile);
 
     [Inject]
     public void Construct(ISaveService saveService, IEconomyService economyService, IAnalyticsTransport transport)
@@ -30,14 +35,9 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         this.economyService = economyService;
         this.transport = transport;
 
-        if (!transport.IsEnabled)
-            return;
-
-        LoadCache();
-        InitializeTransportAsync().Forget();
-
-        Application.focusChanged += OnAppFocusChanged;
-        Application.quitting += SaveCache;
+        transport.EnabledChanged += OnTransportEnabledChanged;
+        if (transport.IsEnabled)
+            Activate();
     }
 
     public void Start()
@@ -46,25 +46,20 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         LevelEvents.OnLevelCompleted += OnLevelCompleted;
         LevelEvents.OnLevelFailed += OnLevelFailed;
         economyService.OnCoinsSpent += OnCoinsSpent;
-
-        LogEvent(AnalyticsEvents.AppStarted);
-        LogEvent(AnalyticsEvents.SessionStarted, CreateSessionParameters());
     }
 
     public void Dispose()
     {
-        LogEvent(AnalyticsEvents.SessionEnded, CreateSessionParameters());
-
         LevelEvents.OnLevelStarted -= OnLevelStarted;
         LevelEvents.OnLevelCompleted -= OnLevelCompleted;
         LevelEvents.OnLevelFailed -= OnLevelFailed;
         economyService.OnCoinsSpent -= OnCoinsSpent;
+        transport.EnabledChanged -= OnTransportEnabledChanged;
 
-        if (!transport.IsEnabled)
+        if (!active)
             return;
 
-        Application.focusChanged -= OnAppFocusChanged;
-        Application.quitting -= SaveCache;
+        Deactivate();
         SaveCache();
     }
 
@@ -82,20 +77,60 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
             Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         };
 
-        eventQueue.Add(newEvent);
-        SaveCache();
-
         if (transportReady)
+        {
             TrySendEvent(newEvent);
+            return;
+        }
+
+        Enqueue(newEvent);
     }
 
-    private static Dictionary<string, object> CreateSessionParameters()
+    private void Activate()
     {
-        return new Dictionary<string, object>
+        if (active)
+            return;
+
+        active = true;
+        LoadCache();
+        InitializeTransportAsync().Forget();
+
+        Application.focusChanged += OnAppFocusChanged;
+        Application.quitting += SaveCache;
+    }
+
+    private void Deactivate()
+    {
+        active = false;
+        transportReady = false;
+
+        Application.focusChanged -= OnAppFocusChanged;
+        Application.quitting -= SaveCache;
+    }
+
+    private void OnTransportEnabledChanged()
+    {
+        if (transport.IsEnabled)
         {
-            { "device", SystemInfo.deviceModel },
-            { "app_version", Application.version }
-        };
+            Activate();
+            return;
+        }
+
+        if (!active)
+            return;
+
+        Deactivate();
+        eventQueue.Clear();
+        DeleteCache();
+    }
+
+    private void Enqueue(CachedEvent cachedEvent)
+    {
+        eventQueue.Add(cachedEvent);
+        if (eventQueue.Count > MaxQueuedEvents)
+            eventQueue.RemoveRange(0, eventQueue.Count - MaxQueuedEvents);
+
+        SaveCache();
     }
 
     private static void LogToConsole(string eventName, Dictionary<string, object> parameters)
@@ -149,17 +184,6 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
             { "total_score", e.TotalScore },
             { "match_duration_sec", e.GameTimeInSeconds }
         });
-
-        // Mirrors the EconomyService coin grant on level_complete wins.
-        if (e.TotalScore > 0)
-        {
-            LogEvent(AnalyticsEvents.CoinsEarned, new Dictionary<string, object>
-            {
-                { "amount", e.TotalScore },
-                { "source", "level_complete" },
-                { "level_name", e.LevelName }
-            });
-        }
     }
 
     private void OnLevelFailed(object sender, LevelFailedEventArgs e)
@@ -173,9 +197,10 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
 
     private async UniTaskVoid InitializeTransportAsync()
     {
+        bool ready;
         try
         {
-            transportReady = await transport.InitializeAsync();
+            ready = await transport.InitializeAsync();
         }
         catch (Exception e)
         {
@@ -183,8 +208,11 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
             return;
         }
 
-        if (transportReady)
-            FlushEvents();
+        if (!ready || !active)
+            return;
+
+        transportReady = true;
+        FlushEvents();
     }
 
     private void TrySendEvent(CachedEvent cachedEvent)
@@ -193,11 +221,12 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         {
             transport.Send(cachedEvent.EventName, cachedEvent.Parameters);
             eventQueue.Remove(cachedEvent);
-            SaveCache();
         }
         catch (Exception e)
         {
             Debug.LogWarning($"[Analytics] Failed to send event {cachedEvent.EventName}: {e.Message}");
+            if (!eventQueue.Contains(cachedEvent))
+                Enqueue(cachedEvent);
         }
     }
 
@@ -206,11 +235,13 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
         var eventsCopy = new List<CachedEvent>(eventQueue);
         foreach (var e in eventsCopy)
             TrySendEvent(e);
+
+        SaveCache();
     }
 
     private void LoadCache()
     {
-        string path = Path.Combine(Application.persistentDataPath, CacheFile);
+        string path = CachePath;
         if (!File.Exists(path))
             return;
 
@@ -228,15 +259,26 @@ public class AnalyticsService : IAnalyticsService, IStartable, IDisposable
 
     private void SaveCache()
     {
-        string path = Path.Combine(Application.persistentDataPath, CacheFile);
         try
         {
             string json = JsonConvert.SerializeObject(eventQueue, Formatting.Indented);
-            File.WriteAllText(path, json);
+            File.WriteAllText(CachePath, json);
         }
         catch (Exception e)
         {
             Debug.LogWarning($"[Analytics] Failed to save cache: {e.Message}");
+        }
+    }
+
+    private static void DeleteCache()
+    {
+        try
+        {
+            File.Delete(CachePath);
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[Analytics] Failed to delete cache: {e.Message}");
         }
     }
 

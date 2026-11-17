@@ -16,7 +16,7 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.Register<IAdsService, AdsService>(Lifetime.Singleton);
         builder.Register<ILocalizationService, LocalizationService>(Lifetime.Singleton).
             As<IStartable>();
-        builder.Register<ICloudSaveProvider, NullCloudSaveProvider>(Lifetime.Singleton);
+        builder.Register<ICloudSaveProvider, UgsCloudSaveProvider>(Lifetime.Singleton);
         builder.Register<IAnalyticsTransport, UgsAnalyticsTransport>(Lifetime.Singleton);
         builder.Register<IAnalyticsConsent, AnalyticsConsent>(Lifetime.Singleton);
         builder.Register<IUgsInitializer, UgsInitializer>(Lifetime.Singleton);

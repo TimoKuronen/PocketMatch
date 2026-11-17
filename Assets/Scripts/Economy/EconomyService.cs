@@ -21,6 +21,12 @@ public class EconomyService : IEconomyService, IStartable, IDisposable
     public void Start()
     {
         LevelEvents.OnLevelCompleted += OnLevelCompleted;
+        saveService.PlayerDataReplaced += OnPlayerDataReplaced;
+    }
+
+    private void OnPlayerDataReplaced()
+    {
+        OnBalanceChanged?.Invoke(Balance);
     }
 
     private void OnLevelCompleted(object sender, LevelCompletedEventArgs e)
@@ -75,5 +81,6 @@ public class EconomyService : IEconomyService, IStartable, IDisposable
     public void Dispose()
     {
         LevelEvents.OnLevelCompleted -= OnLevelCompleted;
+        saveService.PlayerDataReplaced -= OnPlayerDataReplaced;
     }
 }

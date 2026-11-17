@@ -196,6 +196,8 @@ public sealed class DebugToolsPanel : MonoBehaviour
         var scroll = scrollGo.AddComponent<ScrollRect>();
         scroll.horizontal = false;
         scroll.movementType = ScrollRect.MovementType.Clamped;
+        scroll.inertia = false;
+        scroll.scrollSensitivity = 40f;
 
         var viewport = CreateUiObject("Viewport", scrollGo.transform);
         Stretch(viewport.GetComponent<RectTransform>());
@@ -223,8 +225,37 @@ public sealed class DebugToolsPanel : MonoBehaviour
 
         scroll.viewport = viewport.GetComponent<RectTransform>();
         scroll.content = contentRect;
+        scroll.verticalScrollbar = CreateScrollbar(scrollGo.transform);
+        scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
 
         panelRoot.SetActive(false);
+    }
+
+    private static Scrollbar CreateScrollbar(Transform parent)
+    {
+        var barGo = CreateUiObject("Scrollbar", parent);
+        var barRect = barGo.GetComponent<RectTransform>();
+        barRect.anchorMin = new Vector2(1f, 0f);
+        barRect.anchorMax = new Vector2(1f, 1f);
+        barRect.pivot = new Vector2(1f, 0.5f);
+        barRect.sizeDelta = new Vector2(16f, 0f);
+        barRect.anchoredPosition = Vector2.zero;
+
+        var track = barGo.AddComponent<Image>();
+        track.color = new Color(1f, 1f, 1f, 0.08f);
+
+        var handleGo = CreateUiObject("Handle", barGo.transform);
+        var handleRect = handleGo.GetComponent<RectTransform>();
+        Stretch(handleRect);
+
+        var handle = handleGo.AddComponent<Image>();
+        handle.color = new Color(0.65f, 0.65f, 0.7f, 0.9f);
+
+        var scrollbar = barGo.AddComponent<Scrollbar>();
+        scrollbar.direction = Scrollbar.Direction.BottomToTop;
+        scrollbar.targetGraphic = handle;
+        scrollbar.handleRect = handleRect;
+        return scrollbar;
     }
 
     private void RebuildContent()

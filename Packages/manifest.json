@@ -10,6 +10,7 @@
     "com.unity.mobile.android-logcat": "1.4.7",
     "com.unity.render-pipelines.universal": "17.3.0",
     "com.unity.services.analytics": "6.3.0",
+    "com.unity.services.cloudsave": "3.4.2",
     "com.unity.services.core": "1.19.0",
     "com.unity.services.levelplay": "9.6.0",
     "com.unity.shadergraph": "17.3.0",

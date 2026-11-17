@@ -3,7 +3,8 @@ using System.Threading.Tasks;
 
 /// <summary>
 /// Local encrypted persistence for <see cref="PlayerData"/> with optional sync through <see cref="ICloudSaveProvider"/>.
-/// Conflict policy: no merge. When a cloud document exists on init download, it replaces local.
+/// Conflict policy: no merge. The copy with more levels unlocked wins; equal progress goes to the newer save
+/// (<see cref="SaveConflictResolver"/>).
 /// Upload failures never corrupt or roll back the local save.
 /// </summary>
 public interface ISaveService
@@ -13,6 +14,9 @@ public interface ISaveService
     CloudSyncStatus CloudSyncStatus { get; }
 
     event Action CloudSyncStatusChanged;
+
+    /// <summary>Raised when a cloud copy replaces the in-memory save, so views showing coins or progress can refresh.</summary>
+    event Action PlayerDataReplaced;
 
     void Load();
     void Save();

@@ -20,10 +20,10 @@ Mobile Match-3 prototype built in **Unity 6**: async board commands, VContainer 
 - VContainer scopes for bootstrap, menu, and gameplay lifetimes
 - Addressables level loading and pooled VFX
 - Analytics event dictionary on Unity Analytics with an opt-in consent gate, local queue, and pluggable transport
-- Encrypted local save with a pluggable cloud sync provider
+- Encrypted local save with atomic writes and Unity Cloud Save sync (anonymous sign-in, furthest-progress-wins conflict rule)
 - Unity LevelPlay banner and interstitial mediation, with a rewarded lose-continue path integrated
 - Unity Localization (`en` / `es`) with Localizer CSV interchange
-- Edit Mode tests for board rules, potential moves, shuffle, ad retry, rewarded continue, and localization keys
+- Edit Mode tests for board rules, potential moves, shuffle, ad retry, rewarded continue, save conflict resolution, atomic file writes, and localization keys
 - CI: Edit Mode tests on push/PR; Android build on master
 
 ## Architecture

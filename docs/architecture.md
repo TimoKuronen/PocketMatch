@@ -85,10 +85,10 @@ Editor builds and debug builds with simulation switched on simulate banner, inte
 
 ## Save
 
-- Local save is encrypted JSON at `Application.persistentDataPath/save.dat`
+- Local save is encrypted JSON at `Application.persistentDataPath/save.dat`. `AtomicFile` writes a temporary file and swaps it in, keeping the previous file as `save.dat.bak`; a load that cannot read `save.dat` falls back to the backup
 - `PlayerData.meta.saveVersion` is the schema version; `SaveService` runs `DataMigrator` when on-disk schema lags `SaveService.CurrentSaveVersion`
-- **Cloud sync:** `SaveService` talks to `ICloudSaveProvider`. `NullCloudSaveProvider` is registered, so saves stay on the device and the footer shows only the version
-- **Conflict policy (no merge):** with an enabled provider, a cloud document found on init replaces in-memory and local disk data. Upload and init failures leave the local save intact and set `ISaveService.CloudSyncStatus`
+- **Cloud sync:** `SaveService` talks to `ICloudSaveProvider`; `UgsCloudSaveProvider` stores the save as one JSON item in Unity Cloud Save after an anonymous Unity Authentication sign-in, in the same Unity Gaming Services environment as analytics. The sign-in persists per install
+- **Conflict policy (no merge):** `SaveConflictResolver` compares the first cloud download with the local save. The copy with more levels unlocked wins; equal progress goes to the newer `meta.lastSaveTime`. A winning cloud copy replaces the in-memory and on-disk save and raises `ISaveService.PlayerDataReplaced`, which `EconomyService` turns into a balance update; a winning local copy is uploaded. Saves upload only after that first comparison, so a fresh local save cannot overwrite a better cloud copy. Upload and init failures leave the local save intact and set `ISaveService.CloudSyncStatus`
 - `PlayerData.coins` is the wallet field; all mutations go through `EconomyService`
 
 ## Economy

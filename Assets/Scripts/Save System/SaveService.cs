@@ -24,12 +24,16 @@ public class SaveService : ISaveService, IStartable, IDisposable
 
     private ICloudSaveProvider cloud;
     private bool cloudInitialized;
+    private bool cloudSynced;
+    private bool syncing;
 
     public PlayerData PlayerData { get; private set; }
 
     public CloudSyncStatus CloudSyncStatus { get; private set; } = CloudSyncStatus.NotInitialized;
 
     public event Action CloudSyncStatusChanged;
+
+    public event Action PlayerDataReplaced;
 
     #endregion
 
@@ -128,12 +132,48 @@ public class SaveService : ISaveService, IStartable, IDisposable
         PlayerData.meta.lastSaveTime = DateTime.UtcNow.ToString("o");
 
         SaveLocalOnly();
+        await PushToCloudAsync(overwrite: false);
+    }
 
-        if (!cloudInitialized ||
-            Application.internetReachability == NetworkReachability.NotReachable)
+    public async void ResetToDefaults()
+    {
+        PlayerData = new PlayerData();
+        PlayerData.meta.saveVersion = CurrentSaveVersion;
+        SaveLocalOnly();
+
+        await PushToCloudAsync(overwrite: true);
+    }
+
+    private void SaveLocalOnly()
+    {
+        WriteFile(saveFile, PlayerData);
+    }
+
+    #endregion
+
+    #region Cloud Sync
+
+    /// <summary>
+    /// Uploads once the first download has been compared with local. Until then a save triggers that comparison
+    /// instead, so a fresh local save cannot overwrite a better cloud copy. <paramref name="overwrite"/> skips it.
+    /// </summary>
+    private async Task PushToCloudAsync(bool overwrite)
+    {
+        if (!cloudInitialized)
+            return;
+
+        if (Application.internetReachability == NetworkReachability.NotReachable)
         {
-            if (cloudInitialized)
-                SetCloudSyncStatus(CloudSyncStatus.Offline);
+            SetCloudSyncStatus(CloudSyncStatus.Offline);
+            return;
+        }
+
+        if (overwrite)
+            cloudSynced = true;
+
+        if (!cloudSynced)
+        {
+            await TryLoadFromCloud();
             return;
         }
 
@@ -150,78 +190,48 @@ public class SaveService : ISaveService, IStartable, IDisposable
         }
     }
 
-    public async void ResetToDefaults()
-    {
-        PlayerData = new PlayerData();
-        PlayerData.meta.saveVersion = CurrentSaveVersion;
-        SaveLocalOnly();
-
-        if (!cloudInitialized ||
-            Application.internetReachability == NetworkReachability.NotReachable)
-        {
-            if (cloudInitialized)
-                SetCloudSyncStatus(CloudSyncStatus.Offline);
-            return;
-        }
-
-        try
-        {
-            await cloud.UploadAsync(PlayerData);
-            SetCloudSyncStatus(CloudSyncStatus.Ready);
-            Debug.Log("[SaveService] Cloud save reset to defaults.");
-        }
-        catch (Exception e)
-        {
-            SetCloudSyncStatus(CloudSyncStatus.UploadFailed);
-            Debug.LogWarning("[SaveService] Cloud reset upload failed - local defaults still OK: " + e);
-        }
-    }
-
-    private void SaveLocalOnly()
-    {
-        WriteFile(saveFile, PlayerData);
-    }
-
-    #endregion
-
-    #region Cloud Sync
-
     private async Task TryLoadFromCloud()
     {
-        if (!cloudInitialized)
+        if (!cloudInitialized || syncing)
             return;
 
+        syncing = true;
         try
         {
             var cloudData = await cloud.DownloadAsync();
 
-            if (cloudData != null)
+            if (SaveConflictResolver.CloudWins(PlayerData, cloudData))
             {
                 ApplyCloudOverLocal(cloudData);
-                Debug.Log("[SaveService] Cloud save applied over local (no merge)");
+                Debug.Log("[SaveService] Cloud save is ahead - applied over local");
             }
             else
             {
+                await cloud.UploadAsync(PlayerData);
                 SetCloudSyncStatus(CloudSyncStatus.Ready);
-                Debug.Log("[SaveService] No cloud save found - using local save");
+                Debug.Log("[SaveService] Local save is ahead or equal - uploaded to cloud");
             }
+
+            cloudSynced = true;
         }
         catch (Exception e)
         {
             SetCloudSyncStatus(CloudSyncStatus.InitFailed);
-            Debug.LogWarning("[SaveService] Cloud load failed - keeping local save: " + e);
+            Debug.LogWarning("[SaveService] Cloud sync failed - keeping local save: " + e);
+        }
+        finally
+        {
+            syncing = false;
         }
     }
 
-    /// <summary>
-    /// Conflict rule: cloud document replaces local memory and disk. No field merge.
-    /// </summary>
     private void ApplyCloudOverLocal(PlayerData cloudData)
     {
         PlayerData = cloudData;
         EnsureSaveVersion();
         SaveLocalOnly();
         SetCloudSyncStatus(CloudSyncStatus.AppliedFromCloud);
+        PlayerDataReplaced?.Invoke();
     }
 
     #endregion
@@ -271,6 +281,19 @@ public class SaveService : ISaveService, IStartable, IDisposable
 
     private T LoadFile<T>(string path) where T : class
     {
+        var data = TryReadFile<T>(path);
+        if (data != null)
+            return data;
+
+        var backup = TryReadFile<T>(AtomicFile.BackupPath(path));
+        if (backup != null)
+            Debug.LogWarning($"[SaveService] {Path.GetFileName(path)} unreadable or missing - restored from backup");
+
+        return backup;
+    }
+
+    private T TryReadFile<T>(string path) where T : class
+    {
         try
         {
             if (!File.Exists(path))
@@ -293,7 +316,7 @@ public class SaveService : ISaveService, IStartable, IDisposable
         {
             string json = JsonUtility.ToJson(data, true);
             string encrypted = Encrypt(json, encryptionKey);
-            File.WriteAllText(path, encrypted);
+            AtomicFile.Write(path, encrypted);
         }
         catch (Exception e)
         {

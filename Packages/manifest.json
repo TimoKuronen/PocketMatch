@@ -8,6 +8,7 @@
     "com.unity.inputsystem": "1.20.1",
     "com.unity.localization": "1.5.13",
     "com.unity.mobile.android-logcat": "1.4.7",
+    "com.unity.remote-config": "4.3.0",
     "com.unity.render-pipelines.universal": "17.3.0",
     "com.unity.services.analytics": "6.3.0",
     "com.unity.services.cloudsave": "3.4.2",

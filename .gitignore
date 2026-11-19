@@ -90,3 +90,7 @@ build/
 
 # Downloaded by the LevelPlay Network Manager
 /Assets/LevelPlay/Editor/LevelPlayVersions.json
+
+# Remote Config editor window cache
+/Assets/Editor/RemoteConfig/
+/Assets/Editor/RemoteConfig.meta

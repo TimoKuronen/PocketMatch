@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Unity.Services.Authentication;
 using Unity.Services.CloudSave;
 using UnityEngine;
 
@@ -24,11 +23,8 @@ public sealed class UgsCloudSaveProvider : ICloudSaveProvider
 
     public async Task InitializeAsync()
     {
-        if (!await ugs.InitializeAsync())
-            throw new InvalidOperationException("Unity Gaming Services failed to initialize.");
-
-        if (!AuthenticationService.Instance.IsSignedIn)
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+        if (!await ugs.EnsureSignedInAsync())
+            throw new InvalidOperationException("Unity Gaming Services sign-in failed.");
     }
 
     public async Task UploadAsync(PlayerData data)

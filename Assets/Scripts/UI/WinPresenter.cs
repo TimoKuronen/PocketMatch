@@ -12,6 +12,7 @@ public class WinPresenter : IStartable, IDisposable
     private readonly ISaveService saveService;
     private readonly ConfirmationDialog confirmationDialog;
     private readonly ILocalizationService localization;
+    private readonly ITunables tunables;
 
     public WinPresenter(
         IWinView view,
@@ -22,7 +23,8 @@ public class WinPresenter : IStartable, IDisposable
         IGameSessionService gameSessionService,
         ISaveService saveService,
         ConfirmationDialog confirmationDialog,
-        ILocalizationService localization)
+        ILocalizationService localization,
+        ITunables tunables)
     {
         this.view = view;
         this.menuStackManager = menuStackManager;
@@ -33,6 +35,7 @@ public class WinPresenter : IStartable, IDisposable
         this.saveService = saveService;
         this.confirmationDialog = confirmationDialog;
         this.localization = localization;
+        this.tunables = tunables;
     }
 
     public void Start()
@@ -53,7 +56,7 @@ public class WinPresenter : IStartable, IDisposable
     {
         menuStackManager.PopMenu();
         GameSignals.SetPendingLevelIndex(GameSignals.ActiveLevelIndex + 1);
-        Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.PlayScene);
+        LoadScene(Loader.GameScene.PlayScene);
     }
 
     private void OnMainMenuClicked()
@@ -64,9 +67,17 @@ public class WinPresenter : IStartable, IDisposable
         confirmationDialog.Setup(localization.Get(LocalizationKeys.CommonConfirmMainMenu), () =>
         {
             menuStackManager.ClearStack();
-            Loader.ShowInterstitialThenContinue(adsService, Loader.GameScene.MainMenu);
+            LoadScene(Loader.GameScene.MainMenu);
         });
         menuStackManager.PushMenu(confirmationDialog);
+    }
+
+    private void LoadScene(Loader.GameScene scene)
+    {
+        if (tunables.InterstitialsEnabled)
+            Loader.ShowInterstitialThenContinue(adsService, scene);
+        else
+            Loader.Load(scene);
     }
 
     public void Dispose()

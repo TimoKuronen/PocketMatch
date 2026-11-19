@@ -20,6 +20,8 @@ public class BootstrapLifetimeScope : LifetimeScope
         builder.Register<IAnalyticsTransport, UgsAnalyticsTransport>(Lifetime.Singleton);
         builder.Register<IAnalyticsConsent, AnalyticsConsent>(Lifetime.Singleton);
         builder.Register<IUgsInitializer, UgsInitializer>(Lifetime.Singleton);
+        builder.Register<ITunables, UgsTunables>(Lifetime.Singleton).
+            As<IStartable>();
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         builder.Register<IDebugToolsService, DebugToolsService>(Lifetime.Singleton).

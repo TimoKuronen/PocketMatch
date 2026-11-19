@@ -123,8 +123,12 @@ Continue is once per attempt, paid with coins or by watching a rewarded ad.
 | Coins earned | `LevelEvents.OnLevelCompleted` → `EconomyService.AddCoins` |
 | Coins spent | `EconomyService.TrySpendCoins` → `OnCoinsSpent` → `coins_spent` |
 | Lose continue | `LosePresenter` → `LevelContinueService` → `EconomyService` or `AdsService.ShowRewardedAdAsync` → `LevelManager.GrantExtraMoves` |
-| Interstitial gate | `WinPresenter` → `Loader.ShowInterstitialThenContinue` |
+| Interstitial gate | `WinPresenter` → `ITunables.InterstitialsEnabled` → `Loader.ShowInterstitialThenContinue` |
 | Banner | `MainMenuPresenter` shows; `LevelSelectPresenter` and interstitial show hide |
+
+## Remote tunables
+
+`ITunables` exposes four values: continue coin cost, continue extra moves, an interstitial on/off flag, and the level 1 move limit. `UgsTunables` starts from the last cached payload (`tunables_cache.json`, atomic write) or the defaults in `TunableValues`, then fetches Unity Remote Config in the background once `UgsInitializer.EnsureSignedInAsync` completes. Each key is read independently: a missing, wrongly typed, or out-of-range value keeps its previous value. A fetch replaces the live values, which scoped consumers read when a level scene loads (`GameLifetimeScope` builds the continue offer from a copy of the offer asset, `LevelManager` applies the level 1 limit to its level data copy), so a level attempt never changes mid-play.
 
 ## Localization
 

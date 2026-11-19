@@ -27,6 +27,7 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
     private IGridController gridController;
     private ILevelEarningsService levelEarningsService;
     private IDebugToolsService debugToolsService;
+    private ITunables tunables;
     private readonly CancellationTokenSource cts = new();
 
     #endregion
@@ -38,12 +39,14 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         IGameSessionService gameSessionService,
         IGridController gridController,
         ILevelEarningsService levelEarningsService,
-        IDebugToolsService debugToolsService)
+        IDebugToolsService debugToolsService,
+        ITunables tunables)
     {
         this.gameSessionService = gameSessionService;
         this.gridController = gridController;
         this.levelEarningsService = levelEarningsService;
         this.debugToolsService = debugToolsService;
+        this.tunables = tunables;
     }
 
     public void Start()
@@ -100,6 +103,9 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
             Debug.LogError("MapData not assigned.");
             return;
         }
+
+        if (GameSignals.ActiveLevelIndex == 0)
+            LocalMapData.VictoryConditions.MoveLimit = tunables.Level1MoveLimit;
 
         MovesRemaining = LocalMapData.VictoryConditions.MoveLimit;
         IsLevelEnded = false;

@@ -15,6 +15,9 @@ public static class AdsDebugConfig
     /// <summary>Raised when a simulated banner should appear or disappear.</summary>
     public static event Action<bool> SimulatedBannerChanged;
 
+    /// <summary>Raised when a simulated interstitial is shown, so the debug canvas can stand in for the ad.</summary>
+    public static event Action SimulatedInterstitialShown;
+
     public static bool SkipInterstitials
     {
         get => DebugTools.IsEnabled && PlayerPrefs.GetInt(SkipPrefKey, 1) == 1;
@@ -52,4 +55,6 @@ public static class AdsDebugConfig
         SimulatedRewardedResult = (RewardedAdResult)(((int)SimulatedRewardedResult + 1) % 3);
 
     public static void RaiseSimulatedBanner(bool visible) => SimulatedBannerChanged?.Invoke(visible);
+
+    public static void RaiseSimulatedInterstitial() => SimulatedInterstitialShown?.Invoke();
 }

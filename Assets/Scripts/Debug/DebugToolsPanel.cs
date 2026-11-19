@@ -9,12 +9,16 @@ using UnityEngine.UI;
 
 public sealed class DebugToolsPanel : MonoBehaviour
 {
+    private const float SimulatedInterstitialSeconds = 2f;
+
     private IDebugToolsService debugTools;
     private DebugContext context;
     private GameObject panelRoot;
     private Transform contentRoot;
     private bool isOpen;
     private GameObject simulatedBanner;
+    private GameObject simulatedInterstitial;
+    private Coroutine interstitialHideRoutine;
     private GameObject debugEventSystem;
 
     public void Initialize(
@@ -28,6 +32,7 @@ public sealed class DebugToolsPanel : MonoBehaviour
         BuildUi();
         DebugToolsService.PanelRefreshRequested += RebuildContent;
         AdsDebugConfig.SimulatedBannerChanged += OnSimulatedBannerChanged;
+        AdsDebugConfig.SimulatedInterstitialShown += OnSimulatedInterstitialShown;
         SceneManager.sceneLoaded += OnSceneChanged;
         SceneManager.sceneUnloaded += OnSceneChanged;
     }
@@ -36,6 +41,7 @@ public sealed class DebugToolsPanel : MonoBehaviour
     {
         DebugToolsService.PanelRefreshRequested -= RebuildContent;
         AdsDebugConfig.SimulatedBannerChanged -= OnSimulatedBannerChanged;
+        AdsDebugConfig.SimulatedInterstitialShown -= OnSimulatedInterstitialShown;
         SceneManager.sceneLoaded -= OnSceneChanged;
         SceneManager.sceneUnloaded -= OnSceneChanged;
     }
@@ -58,6 +64,7 @@ public sealed class DebugToolsPanel : MonoBehaviour
         EnsureEventSystem();
 
         CreateSimulatedBanner(canvasGo.transform);
+        CreateSimulatedInterstitial(canvasGo.transform);
         CreateOpenButton(canvasGo.transform);
         CreatePanel(canvasGo.transform);
         RebuildContent();
@@ -86,6 +93,40 @@ public sealed class DebugToolsPanel : MonoBehaviour
 
         CreateLabel(simulatedBanner.transform, "SIMULATED BANNER", 26, TextAlignmentOptions.Center);
         simulatedBanner.SetActive(false);
+    }
+
+    private void OnSimulatedInterstitialShown()
+    {
+        if (simulatedInterstitial == null)
+            return;
+
+        if (interstitialHideRoutine != null)
+            StopCoroutine(interstitialHideRoutine);
+
+        simulatedInterstitial.SetActive(true);
+        interstitialHideRoutine = StartCoroutine(HideSimulatedInterstitialAfterDelay());
+    }
+
+    private System.Collections.IEnumerator HideSimulatedInterstitialAfterDelay()
+    {
+        yield return new WaitForSecondsRealtime(SimulatedInterstitialSeconds);
+        simulatedInterstitial.SetActive(false);
+        interstitialHideRoutine = null;
+    }
+
+    // Full-screen stand-in for the interstitial. It covers and blocks the screen, then hides itself; the
+    // Editor scene transition does not wait for a simulated ad, so the next scene loads underneath.
+    private void CreateSimulatedInterstitial(Transform parent)
+    {
+        simulatedInterstitial = CreateUiObject("SimulatedInterstitial", parent);
+        Stretch(simulatedInterstitial.GetComponent<RectTransform>());
+
+        var image = simulatedInterstitial.AddComponent<Image>();
+        image.color = new Color(0.1f, 0.35f, 0.75f, 1f);
+        image.raycastTarget = true;
+
+        CreateLabel(simulatedInterstitial.transform, "SIMULATED INTERSTITIAL", 48, TextAlignmentOptions.Center);
+        simulatedInterstitial.SetActive(false);
     }
 
     // Scenes bring their own EventSystem; the debug one is active only while no scene has one.

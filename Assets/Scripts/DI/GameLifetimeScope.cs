@@ -10,7 +10,7 @@ public class GameLifetimeScope : LifetimeScope
         builder.Register<ILevelManager, LevelManager>(Lifetime.Scoped).As<IStartable>();
         builder.Register<ILevelEarningsService, LevelEarningsService>(Lifetime.Scoped).As<IStartable>();
         builder.Register<ILevelContinueService, LevelContinueService>(Lifetime.Scoped);
-        builder.Register<ShopOffer>(resolver => CreateContinueOffer(), Lifetime.Scoped);
+        builder.Register<ShopOffer>(resolver => CreateContinueOffer(resolver.Resolve<ITunables>()), Lifetime.Scoped);
         builder.Register<IEffectService, EffectService>(Lifetime.Singleton).As<IStartable>();
         builder.Register<MenuStackManager>(Lifetime.Scoped);
 
@@ -40,18 +40,25 @@ public class GameLifetimeScope : LifetimeScope
         });
     }
 
-    private static ShopOffer CreateContinueOffer()
+    // The offer asset is shared, so tunables are applied to a copy.
+    private static ShopOffer CreateContinueOffer(ITunables tunables)
     {
         var loaded = Resources.Load<ShopOffer>("ContinueExtraMoves");
+        ShopOffer offer;
         if (loaded != null)
-            return loaded;
+        {
+            offer = Object.Instantiate(loaded);
+        }
+        else
+        {
+            offer = ScriptableObject.CreateInstance<ShopOffer>();
+            offer.offerId = "continue_extra_moves";
+            offer.rewardType = OfferRewardType.ExtraMoves;
+            offer.allowedPayments = new[] { OfferPaymentMethod.Coins, OfferPaymentMethod.RewardedAd };
+        }
 
-        var offer = ScriptableObject.CreateInstance<ShopOffer>();
-        offer.offerId = "continue_extra_moves";
-        offer.coinCost = 300;
-        offer.rewardType = OfferRewardType.ExtraMoves;
-        offer.rewardAmount = 3;
-        offer.allowedPayments = new[] { OfferPaymentMethod.Coins, OfferPaymentMethod.RewardedAd };
+        offer.coinCost = tunables.ContinueCoinCost;
+        offer.rewardAmount = tunables.ContinueExtraMoves;
         return offer;
     }
 }

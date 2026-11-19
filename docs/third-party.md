@@ -8,7 +8,7 @@ PocketMatch bundles third-party engines, SDKs, and Asset Store content. Their li
 |------------|--------------------|-------|
 | Unity engine and UPM packages | `Packages/`, ProjectSettings | Unity terms |
 | Unity LevelPlay (IronSource) | `Assets/LevelPlay/` | Unity LevelPlay terms |
-| Unity Gaming Services (Core, Analytics, Authentication, Cloud Save) | UPM / package cache | Unity terms |
+| Unity Gaming Services (Core, Analytics, Authentication, Cloud Save, Remote Config) | UPM / package cache | Unity terms |
 | DOTween | `Assets/Plugins/Demigiant/DOTween/` | Demigiant license |
 | Cartoon FX Remaster | `Assets/JMO Assets/Cartoon FX Remaster/` | Jean Moreno / Asset Store terms |
 | Polygonal Particles | `Assets/Polygonal Particles/` | Asset Store terms |

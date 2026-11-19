@@ -81,6 +81,7 @@ public sealed class InterstitialAdController : IDisposable
         if (AdsDebugConfig.IsSimulating)
         {
             log.Verbose("Simulating interstitial completion.");
+            AdsDebugConfig.RaiseSimulatedInterstitial();
             Completed = true;
             analytics.Watched(AdFormat, PlacementName, "simulated");
             Closed?.Invoke();

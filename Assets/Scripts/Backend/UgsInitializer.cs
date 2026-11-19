@@ -1,5 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Core.Environments;
 using UnityEngine;
@@ -14,6 +15,8 @@ public sealed class UgsInitializer : IUgsInitializer
 
     private UniTask<bool> pending;
     private bool started;
+    private UniTask<bool> pendingSignIn;
+    private bool signInStarted;
 
     public UniTask<bool> InitializeAsync()
     {
@@ -24,6 +27,40 @@ public sealed class UgsInitializer : IUgsInitializer
         }
 
         return pending;
+    }
+
+    public UniTask<bool> EnsureSignedInAsync()
+    {
+        if (!signInStarted)
+        {
+            signInStarted = true;
+            pendingSignIn = SignInAsync().Preserve();
+        }
+
+        return pendingSignIn;
+    }
+
+    private async UniTask<bool> SignInAsync()
+    {
+        try
+        {
+            if (!await InitializeAsync())
+            {
+                signInStarted = false;
+                return false;
+            }
+
+            if (!AuthenticationService.Instance.IsSignedIn)
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            signInStarted = false;
+            Debug.LogWarning($"[UGS] Anonymous sign-in failed: {e.Message}");
+            return false;
+        }
     }
 
     private async UniTask<bool> RunAsync()

@@ -4,13 +4,7 @@ using UnityEngine;
 
 public class GridContext
 {
-    #region Fields
-
     private Dictionary<Vector2Int, Vector3> cachedPositions = new Dictionary<Vector2Int, Vector3>();
-
-    #endregion
-
-    #region Properties
 
     public TileData[,] Data { get; }
     public TileView[,] Views { get; }
@@ -24,10 +18,6 @@ public class GridContext
     public IGridController GridController { get; set; }
     public IEffectService EffectService { get; set; }
     public PowerVfxSettings PowerVfxSettings { get; set; }
-
-    #endregion
-
-    #region Lifecycle
 
     public GridContext(
         TileData[,] data,
@@ -48,10 +38,6 @@ public class GridContext
         OnDestroy = onDestroy;
         OnDestroyBatch = onDestroyBatch;
     }
-
-    #endregion
-
-    #region Public API
 
     public bool IsInside(Vector2Int pos)
     {
@@ -210,6 +196,4 @@ public class GridContext
         
         return new Vector3(gridPos.x, gridPos.y, 0f);
     }
-
-    #endregion
 }

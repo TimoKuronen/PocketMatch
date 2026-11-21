@@ -7,8 +7,6 @@ using Cysharp.Threading.Tasks;
 
 public class GridController : MonoBehaviour, IGridController
 {
-    #region Fields
-
     [Header("Settings")]
     [SerializeField] private GridControllerSettings settings;
     [SerializeField] private PowerVfxSettings powerVfxSettings;
@@ -42,9 +40,6 @@ public class GridController : MonoBehaviour, IGridController
     public int GridHeightForValidation => height;
 #endif
 
-    #endregion
-
-    #region Events
     public event Action TileDrop;
     public event Action ActionTaken;
     public event Action TileMoved;
@@ -56,15 +51,16 @@ public class GridController : MonoBehaviour, IGridController
     public event Action<TileData> PowerTileCreated;
     public event Action OnBoardShuffle;
 
-    #endregion
-
-    #region Lifecycle
-
     [Inject]
     public void Construct(IGameSessionService gameSessionService, IEffectService effectService)
     {
         this.gameSessionService = gameSessionService;
         this.effectService = effectService;
+    }
+
+    private void RaiseTileDestroyed(TileData tile)
+    {
+        TileDestroyed?.Invoke(tile);
     }
 
     private void Start()
@@ -110,7 +106,7 @@ public class GridController : MonoBehaviour, IGridController
             height,
             tilePoolManager,
             commandInvoker,
-            TileDestroyed,
+            RaiseTileDestroyed,
             () => TilesDestroyed?.Invoke()
         );
         GridContext.GridController = this;
@@ -125,10 +121,6 @@ public class GridController : MonoBehaviour, IGridController
         BoardDebugHooks.NotifyBoardInitialized(this, gridData);
         IsBoardInitialized = true;
     }
-
-    #endregion
-
-    #region Public API
 
     public void TrySwapTiles(Vector2Int origin, Vector2Int dir)
     {
@@ -189,8 +181,45 @@ public class GridController : MonoBehaviour, IGridController
 
     public async UniTask MatchCycleAsync()
     {
-        var token = this.GetCancellationTokenOnDestroy();
         IsProcessingTiles = true;
+
+        try
+        {
+            await ResolveMatchesAsync();
+        }
+        finally
+        {
+            lastMovedTilePosition = null;
+            IsProcessingTiles = false;
+        }
+
+        BoardUpdated?.Invoke(gridData);
+        BoardDebugHooks.NotifyBoardUpdated(this, gridData);
+
+        var moves = boardStateEvaluator.CountPotentialMoves();
+        if (moves.TotalMoves == 0)
+        {
+            Debug.Log($"No moves left! (Swaps: {moves.SwapMoveCount}, Power: {moves.PowerTileMoveCount})");
+
+            // Input stays locked through the shuffle; the cycle it ends with releases the flag.
+            IsProcessingTiles = true;
+            try
+            {
+                OnBoardShuffle?.Invoke();
+                BoardDebugHooks.NotifyBoardShuffled(this, gridData);
+                boardStateEvaluator.ShuffleBoard();
+            }
+            catch
+            {
+                IsProcessingTiles = false;
+                throw;
+            }
+        }
+    }
+
+    private async UniTask ResolveMatchesAsync()
+    {
+        var token = this.GetCancellationTokenOnDestroy();
         int cycleCount = 0;
         bool changed;
         Vector2Int? movedTileForThisCycle = lastMovedTilePosition;
@@ -218,7 +247,7 @@ public class GridController : MonoBehaviour, IGridController
                 var destroyedNeighbours = AdjacentDamageProcessor.GetAdjacentDestroyables(matchGroups, gridData);
                 var powerTilePositions = new HashSet<Vector2Int>();
 
-                // Use moved tile only for the first cycle (player-initiated), not for cascading matches
+                // Only the first cycle is player-initiated; cascades have no moved tile.
                 Vector2Int? tileToUse = cycleCount == 0 ? movedTileForThisCycle : null;
 
                 var createPowerTileCommand = new CreatePowerTileCommand(
@@ -258,7 +287,7 @@ public class GridController : MonoBehaviour, IGridController
                 }
 
                 TileSwapped?.Invoke();
-                await new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext, onDestroyBatch: () => TilesDestroyed?.Invoke())
+                await new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, RaiseTileDestroyed, GridContext, onDestroyBatch: () => TilesDestroyed?.Invoke())
                     .ExecuteAsync();
 
                 // Powers inside the matched tiles queue their own destroy commands; resolve them before gravity.
@@ -268,21 +297,6 @@ public class GridController : MonoBehaviour, IGridController
             cycleCount++;
 
         } while (changed);
-
-        // Reset the last moved tile position after the match cycle completes
-        lastMovedTilePosition = null;
-
-        IsProcessingTiles = false;
-        BoardUpdated?.Invoke(gridData);
-        BoardDebugHooks.NotifyBoardUpdated(this, gridData);
-        var moves = boardStateEvaluator.CountPotentialMoves();
-        if (moves.TotalMoves == 0)
-        {
-            Debug.Log($"No moves left! (Swaps: {moves.SwapMoveCount}, Power: {moves.PowerTileMoveCount})");
-            OnBoardShuffle?.Invoke();
-            BoardDebugHooks.NotifyBoardShuffled(this, gridData);
-            boardStateEvaluator.ShuffleBoard();
-        }
     }
 
     public Vector2 GridToUIPos(Vector2Int gridPos)
@@ -306,15 +320,11 @@ public class GridController : MonoBehaviour, IGridController
 
         TileSwapped?.Invoke();
 
-        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, TileDestroyed, GridContext, onDestroyBatch: () => TilesDestroyed?.Invoke()));
+        commandInvoker.AddCommand(new DestroyCommand(flatMatches, gridViews, gridData, tilePoolManager, RaiseTileDestroyed, GridContext, onDestroyBatch: () => TilesDestroyed?.Invoke()));
         commandInvoker.ExecuteAll();
 
         MatchCycleAsync().Forget();
     }
-
-    #endregion
-
-    #region Private Helpers - Tile Operations
 
     private async UniTask CheckSwapMatchAsync(Vector2Int origin, Vector2Int target, TileData tileA, TileData tileB, TileView viewA, TileView viewB, Vector2 origPosA, Vector2 origPosB)
     {
@@ -348,7 +358,6 @@ public class GridController : MonoBehaviour, IGridController
         if (matches.Count > 0)
         {
             SwapTilesInData(origin, target, tileA, tileB);
-            // Track the position where the tile ended up (target is where tileA moved to)
             lastMovedTilePosition = target;
             MatchCycleAsync().Forget();
             ActionTaken?.Invoke();
@@ -371,13 +380,21 @@ public class GridController : MonoBehaviour, IGridController
         var token = this.GetCancellationTokenOnDestroy();
         IsProcessingTiles = true;
 
-        foreach (var (tile, matchedWith) in powers)
-            GridContext.TriggerTilePower(tile.GridPosition, matchedWith);
+        try
+        {
+            foreach (var (tile, matchedWith) in powers)
+                GridContext.TriggerTilePower(tile.GridPosition, matchedWith);
 
-        await DrainCommandsAsync(token);
+            await DrainCommandsAsync(token);
 
-        commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData, () => TileDrop?.Invoke()));
-        await DrainCommandsAsync(token);
+            commandInvoker.AddCommand(new GravityCommand(gridData, gridViews, width, height, GridToUIPos, CreateTileAt, mapData, () => TileDrop?.Invoke()));
+            await DrainCommandsAsync(token);
+        }
+        catch
+        {
+            IsProcessingTiles = false;
+            throw;
+        }
 
         await MatchCycleAsync();
     }
@@ -411,10 +428,6 @@ public class GridController : MonoBehaviour, IGridController
         return view;
     }
 
-    #endregion
-
-    #region Private Helpers - Grid State
-
     private bool HasEmptyNormalSlots()
     {
         for (int x = 0; x < width; x++)
@@ -443,10 +456,6 @@ public class GridController : MonoBehaviour, IGridController
         return false;
     }
 
-    #endregion
-
-    #region Private Helpers - Grid Generation
-
     private void GenerateGrid()
     {
         ClearBoard();
@@ -455,17 +464,6 @@ public class GridController : MonoBehaviour, IGridController
         gridViews = new TileView[gridData.GetLength(0), gridData.GetLength(1)];
         int w = gridData.GetLength(0);
         int h = gridData.GetLength(1);
-
-        for (int x = 0; x < w; x++)
-        {
-            for (int y = 0; y < h; y++)
-            {
-                var data = gridData[x, y];
-                if (data == null || data.State != TileState.Normal)
-                    continue;
-                data.Type = GridHelperMethods.GetRandomTileType(mapData);
-            }
-        }
 
         bool hasMatches = true;
         bool hasPotentialMoves = false;
@@ -531,6 +529,4 @@ public class GridController : MonoBehaviour, IGridController
         Camera.main.orthographic = true;
         Camera.main.orthographicSize = Mathf.Max(gridWidth, gridHeight) - 1;
     }
-
-    #endregion
 }

@@ -7,21 +7,15 @@ using Cysharp.Threading.Tasks;
 
 public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStartable
 {
-    #region Properties
-
     public int MovesRemaining { get; private set; }
     public bool IsLevelEnded { get; private set; }
     public MapData LocalMapData { get; private set; }
     public VictoryConditions VictoryConditions { get; private set; }
-    public Action OnVictoryConditionsUpdated { get; set; }
-    public Action OnLevelWon { get; set; }
-    public Action OnLevelLost { get; set; }
-    public Action OnLevelContinued { get; set; }
+    public event Action OnVictoryConditionsUpdated;
+    public event Action OnLevelWon;
+    public event Action OnLevelLost;
+    public event Action OnLevelContinued;
     public int GameTimeInSeconds { get; private set; }
-
-    #endregion
-
-    #region Fields
 
     private IGameSessionService gameSessionService;
     private IGridController gridController;
@@ -29,10 +23,6 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
     private IDebugToolsService debugToolsService;
     private ITunables tunables;
     private readonly CancellationTokenSource cts = new();
-
-    #endregion
-
-    #region Lifecycle
 
     [Inject]
     public void Construct(
@@ -67,10 +57,12 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
             gridController.ActionTaken -= OnActionTaken;
             gridController.BoardUpdated -= CheckVictoryConditions;
             gridController.TileDestroyed -= OnTileDestroyed;
-            gridController.GridContext.OnDestroy -= OnTileDestroyed;
         }
 
         debugToolsService?.UnregisterLevelTarget(this);
+
+        if (LocalMapData != null)
+            UnityEngine.Object.Destroy(LocalMapData);
 
         if (!cts.IsCancellationRequested)
             cts.Cancel();
@@ -90,19 +82,16 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         }
     }
 
-    #endregion
-
-    #region Session Setup
-
     private void OnSessionLoaded()
     {
-        LocalMapData = MonoBehaviour.Instantiate(gameSessionService.CurrentMapData);
-
-        if (LocalMapData == null)
+        var sourceMapData = gameSessionService.CurrentMapData;
+        if (sourceMapData == null)
         {
             Debug.LogError("MapData not assigned.");
             return;
         }
+
+        LocalMapData = MonoBehaviour.Instantiate(sourceMapData);
 
         if (GameSignals.ActiveLevelIndex == 0)
             LocalMapData.VictoryConditions.MoveLimit = tunables.Level1MoveLimit;
@@ -132,36 +121,13 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         gridController.ActionTaken += OnActionTaken;
         gridController.BoardUpdated += CheckVictoryConditions;
         gridController.TileDestroyed += OnTileDestroyed;
-        gridController.GridContext.OnDestroy += OnTileDestroyed;
 
         debugToolsService?.RegisterLevelTarget(this);
     }
 
-    #endregion
-
-    #region Victory Tracking
-
     private void OnTileDestroyed(TileData data)
     {
-        if (data.State == TileState.Destroyable)
-        {
-            VictoryConditions.DestroyableTileCount--;
-            Debug.Log("Destroyable tile destroyed, decrementing count to " + VictoryConditions.DestroyableTileCount);
-        }
-        else if (VictoryConditions.RequiredColorMatchCount != null && VictoryConditions.RequiredColorMatchCount.Length > 0)
-        {
-            foreach (var match in VictoryConditions.RequiredColorMatchCount)
-            {
-                if (data.Type == match.TileColor)
-                {
-                    match.TileCount--;
-
-                    if (match.TileCount < 0)
-                        match.TileCount = 0;
-                }
-            }
-        }
-
+        VictoryRules.RegisterTileDestroyed(VictoryConditions, data);
         OnVictoryConditionsUpdated?.Invoke();
     }
 
@@ -170,32 +136,15 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         if (IsLevelEnded)
             return;
 
-        if (!AreVictoryConditionsMet())
+        if (!VictoryRules.AreMet(VictoryConditions))
         {
             if (MovesRemaining <= 0)
-                ToggleLoseEvent();
+                HandleLoss();
         }
         else
         {
-            ToggleWinEvent();
+            HandleWin();
         }
-    }
-
-    private bool AreVictoryConditionsMet()
-    {
-        if (VictoryConditions.RequiredColorMatchCount != null && VictoryConditions.RequiredColorMatchCount.Length > 0)
-        {
-            foreach (var match in VictoryConditions.RequiredColorMatchCount)
-            {
-                if (match.TileCount > 0)
-                    return false;
-            }
-        }
-
-        if (VictoryConditions.DestroyableTileCount > 0)
-            return false;
-
-        return true;
     }
 
     private void OnActionTaken()
@@ -206,10 +155,6 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         MovesRemaining--;
         OnVictoryConditionsUpdated?.Invoke();
     }
-
-    #endregion
-
-    #region Win / Lose
 
     public void GrantExtraMoves(int count)
     {
@@ -224,15 +169,15 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
 
     public void ForceWin()
     {
-        ToggleWinEvent();
+        HandleWin();
     }
 
     public void ForceLose()
     {
-        ToggleLoseEvent();
+        HandleLoss();
     }
 
-    private void ToggleWinEvent()
+    private void HandleWin()
     {
         if (IsLevelEnded)
             return;
@@ -254,7 +199,7 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
         OnLevelWon?.Invoke();
     }
 
-    private void ToggleLoseEvent()
+    private void HandleLoss()
     {
         if (IsLevelEnded)
             return;
@@ -267,6 +212,4 @@ public class LevelManager : ILevelManager, IDebugLevelTarget, IDisposable, IStar
 
         OnLevelLost?.Invoke();
     }
-
-    #endregion
 }

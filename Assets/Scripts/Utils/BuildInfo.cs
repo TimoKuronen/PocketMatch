@@ -20,11 +20,6 @@ public static class BuildInfo
         }
     }
 
-    public static string FormatVersionLabel()
-    {
-        return $"v{Application.version} ({AndroidVersionCode})";
-    }
-
     private static int ResolveAndroidVersionCode()
     {
 #if UNITY_ANDROID && !UNITY_EDITOR

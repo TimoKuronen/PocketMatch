@@ -4,24 +4,14 @@ using UnityEngine;
 
 public class MatchFinder
 {
-    #region Fields
-
     private readonly int width;
     private readonly int height;
-
-    #endregion
-
-    #region Lifecycle
 
     public MatchFinder(int width, int height)
     {
         this.width = width;
         this.height = height;
     }
-
-    #endregion
-
-    #region Public API
 
     public List<List<Vector2Int>> GetMatchGroups(TileData[,] grid)
     {
@@ -140,10 +130,6 @@ public class MatchFinder
         return MatchShape.None;
     }
 
-    #endregion
-
-    #region Private Helpers
-
     private List<List<Vector2Int>> MergeIntersectingGroups(List<MatchGroup> groups)
     {
         var merged = new List<MatchGroup>();
@@ -206,6 +192,4 @@ public class MatchFinder
     {
         return tileData != null && tileData.State == TileState.Normal;
     }
-
-    #endregion
 }

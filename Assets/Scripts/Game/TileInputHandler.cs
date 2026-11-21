@@ -3,8 +3,6 @@ using UnityEngine.EventSystems;
 
 public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    #region Fields
-
     [Header("Tile View Reference")]
     [SerializeField] private TileView tileView;
 
@@ -17,19 +15,11 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     private int tapCount = 0;
     private float lastTapTime;
 
-    #endregion
-
-    #region Lifecycle
-
     void OnEnable()
     {
         isDragging = false;
         tapCount = 0;
     }
-
-    #endregion
-
-    #region Public API
 
     public void Construct(IGridController gridController)
     {
@@ -89,10 +79,6 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
         isDragging = false;
     }
 
-    #endregion
-
-    #region Private Helpers
-
     private void CheckDoubleTap()
     {
         float currentTime = Time.time;
@@ -122,6 +108,4 @@ public class TileInputHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     {
         return gridController != null && !gridController.IsProcessingTiles && tileView.Data.State == TileState.Normal;
     }
-
-    #endregion
 }

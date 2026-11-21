@@ -20,7 +20,7 @@ public static class AdsDebugConfig
 
     public static bool SkipInterstitials
     {
-        get => DebugTools.IsEnabled && PlayerPrefs.GetInt(SkipPrefKey, 1) == 1;
+        get => DebugTools.IsEnabled && PlayerPrefs.GetInt(SkipPrefKey, 0) == 1;
         set
         {
             PlayerPrefs.SetInt(SkipPrefKey, value ? 1 : 0);

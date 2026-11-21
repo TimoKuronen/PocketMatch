@@ -31,7 +31,7 @@ public class DamageAndLevelDataTest
     {
         var grid = new TileData[3, 2];
         FillNormal(grid);
-        var destroyable = new DestroyableTileData(new Vector2Int(1, 1), 3, false);
+        var destroyable = new DestroyableTileData(new Vector2Int(1, 1), 3);
         grid[1, 1] = destroyable;
 
         var group = new List<Vector2Int> { new(0, 0), new(1, 0), new(2, 0) };
@@ -45,7 +45,7 @@ public class DamageAndLevelDataTest
     {
         var grid = new TileData[3, 3];
         FillNormal(grid);
-        var destroyable = new DestroyableTileData(new Vector2Int(1, 1), 2, false);
+        var destroyable = new DestroyableTileData(new Vector2Int(1, 1), 2);
         grid[1, 1] = destroyable;
 
         var above = new List<Vector2Int> { new(0, 2), new(1, 2), new(2, 2) };

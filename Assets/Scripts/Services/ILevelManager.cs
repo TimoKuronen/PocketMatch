@@ -6,9 +6,9 @@ public interface ILevelManager
     bool IsLevelEnded { get; }
     MapData LocalMapData { get; }
     VictoryConditions VictoryConditions { get; }
-    Action OnVictoryConditionsUpdated { get; set; }
-    Action OnLevelWon { get; set; }
-    Action OnLevelLost { get; set; }
-    Action OnLevelContinued { get; set; }
+    event Action OnVictoryConditionsUpdated;
+    event Action OnLevelWon;
+    event Action OnLevelLost;
+    event Action OnLevelContinued;
     void GrantExtraMoves(int count);
 }

@@ -11,8 +11,6 @@ using VContainer;
 /// </summary>
 public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 {
-    #region Fields
-
     [SerializeField] private TileIconCollection tileIconCollection;
     [SerializeField] private VictoryConditionUI victoryConditionPrefab;
     [SerializeField] private Transform victoryConditionsContainer;
@@ -34,10 +32,6 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
 
     public event Action SettingsClicked;
 
-    #endregion
-
-    #region Lifecycle
-
     [Inject]
     public void Construct(ILocalizationService localization)
     {
@@ -56,10 +50,6 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
         if (localization != null)
             localization.LocaleChanged -= OnLocaleChanged;
     }
-
-    #endregion
-
-    #region Public API
 
     public void SetMoves(int moves)
     {
@@ -168,10 +158,6 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
             gameAreaRoot.SetActive(isVisible);
     }
 
-    #endregion
-
-    #region Private Helpers
-
     private void OnLocaleChanged()
     {
         if (hasMoves)
@@ -242,6 +228,4 @@ public class UIGameHUD : MonoBehaviour, IGameHudView, IDisposable
             ConditionType.DestroyableTiles);
         victoryConditions.Add(victoryCondition);
     }
-
-    #endregion
 }

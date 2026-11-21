@@ -129,8 +129,8 @@ public class BoardRulesTest
     public void IsCleared_OnlyNormalAndDestroyedDestroyableTiles()
     {
         var pos = new Vector2Int(0, 0);
-        var aliveDestroyable = new DestroyableTileData(pos, 2, false);
-        var deadDestroyable = new DestroyableTileData(pos, 1, false);
+        var aliveDestroyable = new DestroyableTileData(pos, 2);
+        var deadDestroyable = new DestroyableTileData(pos, 1);
         deadDestroyable.TakeDamage(1);
 
         Assert.IsTrue(GridHelperMethods.IsCleared(new TileData(TileType.Blue, pos, TilePower.None, TileState.Normal)));

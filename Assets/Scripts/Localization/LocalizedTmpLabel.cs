@@ -51,12 +51,6 @@ public sealed class LocalizedTmpLabel : MonoBehaviour
         ApplyText();
     }
 
-    public void SetKey(string key)
-    {
-        entryKey = key;
-        ApplyText();
-    }
-
     private void OnLocaleChanged()
     {
         ApplyText();

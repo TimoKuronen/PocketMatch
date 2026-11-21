@@ -23,7 +23,7 @@ public static class LevelBuilder
                 }
                 else if (tile.isDestroyable)
                 {
-                    grid[x, y] = new DestroyableTileData(new Vector2Int(x, y), Mathf.Max(1, tile.hitPoints), false);
+                    grid[x, y] = new DestroyableTileData(new Vector2Int(x, y), Mathf.Max(1, tile.hitPoints));
                     grid[x, y].State = TileState.Destroyable;
                     continue;
                 }

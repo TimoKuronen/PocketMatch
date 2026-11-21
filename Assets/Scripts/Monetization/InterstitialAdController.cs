@@ -8,8 +8,8 @@ public sealed class InterstitialAdController : IDisposable
 {
     private const string AdFormat = "interstitial";
     private const string PlacementName = "interstitial";
-    private const float ReloadDelaySeconds = 3f;
 
+    private readonly AdsRetryPolicy retryPolicy = new();
     private readonly string adUnitId;
     private readonly Func<bool> isSdkReady;
     private readonly Action hideBanner;
@@ -99,6 +99,7 @@ public sealed class InterstitialAdController : IDisposable
         if (!interstitialAd.IsAdReady())
         {
             log.Warn("Interstitial not ready; requesting load instead.");
+            retryPolicy.Reset();
             Load();
             return;
         }
@@ -122,6 +123,7 @@ public sealed class InterstitialAdController : IDisposable
 
     private void OnLoaded(LevelPlayAdInfo adInfo)
     {
+        retryPolicy.Reset();
         lastError = "none";
         log.Verbose($"Interstitial loaded. {adInfo}");
     }
@@ -142,14 +144,23 @@ public sealed class InterstitialAdController : IDisposable
         log.Verbose($"Interstitial closed. {adInfo}");
         analytics.Watched(AdFormat, PlacementName, "completed");
         Closed?.Invoke();
+        retryPolicy.Reset();
         Load();
     }
 
     private void OnLoadFailed(LevelPlayAdError error)
     {
         lastError = error.ToString();
-        log.Warn($"Interstitial load failed; retrying in {ReloadDelaySeconds:0}s. {error}");
-        ReloadAfterDelayAsync().Forget();
+        var kind = AdsRetryPolicy.Classify(lastError);
+        log.Warn($"Interstitial load failed ({kind}): {error}");
+
+        if (!retryPolicy.TryGetRetryDelay(kind, out float delay))
+        {
+            log.Warn("Interstitial load will not retry; the next show attempt requests a new load.");
+            return;
+        }
+
+        ReloadAfterDelayAsync(delay).Forget();
     }
 
     private void OnDisplayFailed(LevelPlayAdInfo adInfo, LevelPlayAdError error)
@@ -159,12 +170,12 @@ public sealed class InterstitialAdController : IDisposable
         Closed?.Invoke();
     }
 
-    private async UniTaskVoid ReloadAfterDelayAsync()
+    private async UniTaskVoid ReloadAfterDelayAsync(float delay)
     {
-        bool cancelled = await UniTask.Delay(TimeSpan.FromSeconds(ReloadDelaySeconds), cancellationToken: token)
+        bool cancelled = await UniTask.Delay(TimeSpan.FromSeconds(delay), DelayType.Realtime, cancellationToken: token)
             .SuppressCancellationThrow();
 
-        if (!cancelled)
+        if (!cancelled && interstitialAd != null && !interstitialAd.IsAdReady())
             Load();
     }
 

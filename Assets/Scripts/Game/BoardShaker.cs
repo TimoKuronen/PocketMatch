@@ -33,7 +33,6 @@ public class BoardShaker : MonoBehaviour
     {
         boardRoot.anchoredPosition = originalAnchoredPos;
 
-        // Apply shake offset
         Vector2 shakeOffset = GetShakeOffset();
         boardRoot.anchoredPosition += shakeOffset;
     }

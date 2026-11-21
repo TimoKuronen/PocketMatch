@@ -3,20 +3,11 @@ using UnityEngine;
 
 public class RainbowTile : ITilePowerBehavior
 {
-    private readonly TileType? overrideType;
-
-    public RainbowTile(TileType? forcedType = null)
-    {
-        overrideType = forcedType;
-    }
-
     public void Apply(Vector2Int origin, GridContext context, TileType matchedWithTile)
     {
-        TileType targetType;
-
-        if (matchedWithTile == TileType.None)
-            targetType = overrideType ?? GetMostCommonType(context.Data, context.Width, context.Height);
-        else targetType = matchedWithTile;
+        TileType targetType = matchedWithTile == TileType.None
+            ? GetMostCommonType(context.Data, context.Width, context.Height)
+            : matchedWithTile;
 
         Debug.Log($"RainbowTile activated, targeting {targetType}");
 

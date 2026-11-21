@@ -63,5 +63,4 @@ public class EventScoring
     public int pointsForBomb = 2;
     public int pointsForRainbow = 3;
     public int pointsPerUnusedMovement = 4;
-    public int pointsPerCombo = 2;
 }

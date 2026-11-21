@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "AudioCue", menuName = "ScriptableObjects/AudioCue", order = 1)]

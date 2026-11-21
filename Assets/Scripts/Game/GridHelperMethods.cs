@@ -4,8 +4,6 @@ using UnityEngine;
 
 public static class GridHelperMethods
 {
-    #region Bounds Checking
-
     public static bool IsInBounds(int width, int height, int x, int y)
     {
         return x >= 0 && x < width && y >= 0 && y < height;
@@ -17,10 +15,6 @@ public static class GridHelperMethods
     }
 
     public static bool IsInsideGrid(Vector2Int pos, int width, int height) => IsInBounds(width, height, pos);
-
-    #endregion
-
-    #region Tile State Checking
 
     public static bool IsCellEmpty(TileData[,] gridData, int x, int y, int width, int height)
     {
@@ -61,10 +55,6 @@ public static class GridHelperMethods
         return data.State == TileState.Destroyable && data is DestroyableTileData destroyable && destroyable.IsDestroyed;
     }
 
-    #endregion
-
-    #region Tile Creation
-
     public static TileData CreateEmptyTile(Vector2Int position)
     {
         return new TileData(TileType.Red, position, TilePower.None, TileState.Empty);
@@ -74,10 +64,6 @@ public static class GridHelperMethods
     {
         return mapData.AllowedTileColors[UnityEngine.Random.Range(0, mapData.AllowedTileColors.Length)];
     }
-
-    #endregion
-
-    #region Shuffle Logic
 
     /// <summary>
     /// Shuffles tile types in the grid until there are no matches and at least one potential move exists.
@@ -149,10 +135,6 @@ public static class GridHelperMethods
 
         return attempts < maxAttempts;
     }
-
-    #endregion
-
-    #region Potential Moves
 
     /// <summary>
     /// Returns true if the board has at least one possible move: any power tile present,
@@ -296,16 +278,10 @@ public static class GridHelperMethods
         return IsInBounds(w, h, x, y) && IsMatchable(grid[x, y], type);
     }
 
-    #endregion
-
-    #region Private Helpers
-
     public static void UpdateTilePosition(TileData data, TileView view, Vector2Int newPosition)
     {
         data.GridPosition = newPosition;
         if (view.Data != null)
             view.Data.GridPosition = newPosition;
     }
-
-    #endregion
 }

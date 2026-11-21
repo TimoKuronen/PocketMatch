@@ -1,7 +1,7 @@
 using System;
 
 /// <summary>
-/// Win payload; <see cref="TotalScore"/> becomes coin rewards unless <see cref="IsLevelCapReached"/> is set.
+/// Win payload; <see cref="TotalScore"/> becomes the coin reward. <see cref="IsLevelCapReached"/> only stops progress from advancing.
 /// </summary>
 public class LevelCompletedEventArgs : EventArgs
 {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
@@ -25,19 +26,33 @@ public class CommandInvoker
         return commandQueue.Count == 0 && !isProcessingQueue;
     }
 
+    /// <summary>
+    /// A failing command drops the rest of the queue so waiters on <see cref="IsEmpty"/> are released
+    /// instead of waiting on commands that will never run.
+    /// </summary>
     private async UniTaskVoid RunQueueAsync()
     {
         isProcessingQueue = true;
 
-        while (commandQueue.Count > 0)
+        try
         {
-            var command = commandQueue.Dequeue();
-            if (command != null)
+            while (commandQueue.Count > 0)
             {
-                await command.ExecuteAsync();
+                var command = commandQueue.Dequeue();
+                if (command != null)
+                {
+                    await command.ExecuteAsync();
+                }
             }
         }
-
-        isProcessingQueue = false;
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+            commandQueue.Clear();
+        }
+        finally
+        {
+            isProcessingQueue = false;
+        }
     }
 }

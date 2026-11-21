@@ -1,4 +1,4 @@
-﻿[System.Serializable]
+[System.Serializable]
 public class PlayerData
 {
     public MetaData meta = new MetaData();

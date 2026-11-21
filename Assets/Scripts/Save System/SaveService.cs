@@ -1,7 +1,5 @@
 using System;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using VContainer;
@@ -9,6 +7,7 @@ using VContainer.Unity;
 
 public class SaveService : ISaveService, IStartable, IDisposable
 {
+    private const string SaveFileName = "save.dat";
     private const string ConfigFileName = "save-config.json";
     private const string EditorFallbackEncryptionKey = "dev-only-pocketmatch-key-0000001";
 
@@ -17,12 +16,11 @@ public class SaveService : ISaveService, IStartable, IDisposable
     /// </summary>
     public const int CurrentSaveVersion = 1;
 
-    #region Fields
+    private readonly string saveFile;
+    private readonly string encryptionKey;
+    private readonly ICloudSaveProvider cloud;
+    private readonly Func<bool> isOnline;
 
-    private readonly string saveFile = Path.Combine(Application.persistentDataPath, "save.dat");
-    private string encryptionKey;
-
-    private ICloudSaveProvider cloud;
     private bool cloudInitialized;
     private bool cloudSynced;
     private bool syncing;
@@ -35,16 +33,22 @@ public class SaveService : ISaveService, IStartable, IDisposable
 
     public event Action PlayerDataReplaced;
 
-    #endregion
-
-    #region Lifecycle
-
     [Inject]
-    public void Construct(ICloudSaveProvider cloud)
+    public SaveService(ICloudSaveProvider cloud)
+        : this(
+            cloud,
+            Path.Combine(Application.persistentDataPath, SaveFileName),
+            ResolveEncryptionKey(),
+            () => Application.internetReachability != NetworkReachability.NotReachable)
     {
-        encryptionKey = ResolveEncryptionKey();
+    }
 
+    public SaveService(ICloudSaveProvider cloud, string saveFile, string encryptionKey, Func<bool> isOnline)
+    {
         this.cloud = cloud;
+        this.saveFile = saveFile;
+        this.encryptionKey = encryptionKey;
+        this.isOnline = isOnline;
 
         Load();
         Debug.Log("[SaveService] Local save loaded");
@@ -84,10 +88,6 @@ public class SaveService : ISaveService, IStartable, IDisposable
         Save();
     }
 
-    #endregion
-
-    #region Cloud API
-
     public async Task InitializeCloudAsync()
     {
         if (!cloud.IsEnabled)
@@ -99,7 +99,7 @@ public class SaveService : ISaveService, IStartable, IDisposable
             cloudInitialized = true;
             Debug.Log("[SaveService] Cloud initialized successfully");
 
-            if (Application.internetReachability != NetworkReachability.NotReachable)
+            if (isOnline())
             {
                 await TryLoadFromCloud();
             }
@@ -117,41 +117,39 @@ public class SaveService : ISaveService, IStartable, IDisposable
         }
     }
 
-    #endregion
-
-    #region Local Persistence
-
     public void Load()
     {
-        PlayerData = LoadFile<PlayerData>(saveFile) ?? new PlayerData();
+        PlayerData = LoadFile(saveFile) ?? new PlayerData();
         EnsureSaveVersion();
     }
 
-    public async void Save()
+    public void Save() => _ = SaveAsync();
+
+    public void ResetToDefaults() => _ = ResetToDefaultsAsync();
+
+    /// <summary>Writes the local save, then pushes it to the cloud when the sync rules allow.</summary>
+    public Task SaveAsync()
     {
         PlayerData.meta.lastSaveTime = DateTime.UtcNow.ToString("o");
 
         SaveLocalOnly();
-        await PushToCloudAsync(overwrite: false);
+        return PushToCloudAsync(overwrite: false);
     }
 
-    public async void ResetToDefaults()
+    /// <summary>Replaces the save with a fresh one locally and in the cloud, skipping the conflict rule.</summary>
+    public Task ResetToDefaultsAsync()
     {
         PlayerData = new PlayerData();
         PlayerData.meta.saveVersion = CurrentSaveVersion;
         SaveLocalOnly();
 
-        await PushToCloudAsync(overwrite: true);
+        return PushToCloudAsync(overwrite: true);
     }
 
     private void SaveLocalOnly()
     {
         WriteFile(saveFile, PlayerData);
     }
-
-    #endregion
-
-    #region Cloud Sync
 
     /// <summary>
     /// Uploads once the first download has been compared with local. Until then a save triggers that comparison
@@ -162,7 +160,7 @@ public class SaveService : ISaveService, IStartable, IDisposable
         if (!cloudInitialized)
             return;
 
-        if (Application.internetReachability == NetworkReachability.NotReachable)
+        if (!isOnline())
         {
             SetCloudSyncStatus(CloudSyncStatus.Offline);
             return;
@@ -234,10 +232,6 @@ public class SaveService : ISaveService, IStartable, IDisposable
         PlayerDataReplaced?.Invoke();
     }
 
-    #endregion
-
-    #region Private Helpers
-
     private void EnsureSaveVersion()
     {
         if (PlayerData?.meta == null)
@@ -279,20 +273,20 @@ public class SaveService : ISaveService, IStartable, IDisposable
         return EditorFallbackEncryptionKey;
     }
 
-    private T LoadFile<T>(string path) where T : class
+    private PlayerData LoadFile(string path)
     {
-        var data = TryReadFile<T>(path);
+        var data = TryReadFile(path);
         if (data != null)
             return data;
 
-        var backup = TryReadFile<T>(AtomicFile.BackupPath(path));
+        var backup = TryReadFile(AtomicFile.BackupPath(path));
         if (backup != null)
             Debug.LogWarning($"[SaveService] {Path.GetFileName(path)} unreadable or missing - restored from backup");
 
         return backup;
     }
 
-    private T TryReadFile<T>(string path) where T : class
+    private PlayerData TryReadFile(string path)
     {
         try
         {
@@ -300,8 +294,8 @@ public class SaveService : ISaveService, IStartable, IDisposable
                 return null;
 
             string encrypted = File.ReadAllText(path);
-            string json = Decrypt(encrypted, encryptionKey);
-            return JsonUtility.FromJson<T>(json);
+            string json = SaveCrypto.Decrypt(encrypted, encryptionKey);
+            return JsonUtility.FromJson<PlayerData>(json);
         }
         catch (Exception e)
         {
@@ -310,12 +304,12 @@ public class SaveService : ISaveService, IStartable, IDisposable
         }
     }
 
-    private void WriteFile<T>(string path, T data)
+    private void WriteFile(string path, PlayerData data)
     {
         try
         {
             string json = JsonUtility.ToJson(data, true);
-            string encrypted = Encrypt(json, encryptionKey);
+            string encrypted = SaveCrypto.Encrypt(json, encryptionKey);
             AtomicFile.Write(path, encrypted);
         }
         catch (Exception e)
@@ -323,44 +317,4 @@ public class SaveService : ISaveService, IStartable, IDisposable
             Debug.LogError($"Failed to save file {path}: {e}");
         }
     }
-
-    private string Encrypt(string plainText, string key)
-    {
-        byte[] keyBytes = Encoding.UTF8.GetBytes(key);
-        byte[] iv = new byte[16];
-
-        using var aes = Aes.Create();
-        aes.Key = keyBytes;
-        aes.IV = iv;
-
-        using var encryptor = aes.CreateEncryptor();
-        using var ms = new MemoryStream();
-        using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-        using (var sw = new StreamWriter(cs))
-        {
-            sw.Write(plainText);
-        }
-
-        return Convert.ToBase64String(ms.ToArray());
-    }
-
-    private string Decrypt(string cipherText, string key)
-    {
-        byte[] keyBytes = Encoding.UTF8.GetBytes(key);
-        byte[] iv = new byte[16];
-        byte[] buffer = Convert.FromBase64String(cipherText);
-
-        using var aes = Aes.Create();
-        aes.Key = keyBytes;
-        aes.IV = iv;
-
-        using var decryptor = aes.CreateDecryptor();
-        using var ms = new MemoryStream(buffer);
-        using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
-        using var sr = new StreamReader(cs);
-
-        return sr.ReadToEnd();
-    }
-
-    #endregion
 }

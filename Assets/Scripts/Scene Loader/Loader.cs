@@ -22,8 +22,6 @@ public static class Loader
     private static string editorStartingScene => EditorBootstrapper.CurrentSceneName;
 #endif
 
-    #region Public API
-
     public static void Load(GameScene nextScene, float delay = 0f)
     {
         if (isLoading)
@@ -53,10 +51,6 @@ public static class Loader
         pendingAdService = adsService;
         Load(nextScene);
     }
-
-    #endregion
-
-    #region Core Loading Logic
 
     private static async UniTask LoadSceneAsync(GameScene targetScene, float delay)
     {
@@ -177,10 +171,6 @@ public static class Loader
         await LoadSceneAsync(targetScene.Value, 0.5f);
     }
 
-    #endregion
-
-    #region Private Helpers
-
     public static GameScene GetCurrentScene()
     {
         if (Enum.TryParse(SceneManager.GetActiveScene().name, out GameScene result))
@@ -193,6 +183,4 @@ public static class Loader
 
     public static bool IsGameScene() =>
         GetCurrentScene() != GameScene.Empty && GetCurrentScene() > GameScene.Loader;
-
-    #endregion
 }

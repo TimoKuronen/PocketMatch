@@ -35,6 +35,8 @@ public class EffectService : IEffectService, IStartable, IDisposable
 
         if (locationsHandle.Status != AsyncOperationStatus.Succeeded)
         {
+            Debug.LogWarning($"[EffectService] Could not resolve effects for label '{label}'; effects will not play.");
+
             if (locationsHandle.IsValid())
                 Addressables.Release(locationsHandle);
             return;
@@ -64,7 +66,12 @@ public class EffectService : IEffectService, IStartable, IDisposable
         {
             handles[key] = handle;
             CreatePool(key, handle.Result);
+            return;
         }
+
+        Debug.LogWarning($"[EffectService] Failed to load effect '{key}'.");
+        if (handle.IsValid())
+            Addressables.Release(handle);
     }
 
     private void CreatePool(string key, GameObject prefab)

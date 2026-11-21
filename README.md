@@ -24,7 +24,7 @@ Mobile Match-3 prototype built in **Unity 6**: async board commands, VContainer 
 - Unity Remote Config tunables (continue cost and reward, interstitial flag, level 1 moves) with cached and baked-in offline defaults
 - Unity LevelPlay banner and interstitial mediation, with a rewarded lose-continue path integrated
 - Unity Localization (`en` / `es`) with Localizer CSV interchange
-- Edit Mode tests for board rules, potential moves, shuffle, ad retry, rewarded continue, save conflict resolution, atomic file writes, tunables parsing, and localization keys
+- Edit Mode tests for board rules, match detection, potential moves, shuffle, objective counting, ad retry, rewarded continue, economy rules, save orchestration with a fake cloud provider, save conflict resolution, save encryption, atomic file writes, tunables parsing, and localization keys
 - CI: Edit Mode tests on push/PR; Android build on master
 
 ## Architecture

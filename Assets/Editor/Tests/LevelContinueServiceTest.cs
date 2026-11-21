@@ -152,10 +152,10 @@ public class LevelContinueServiceTest
         public bool IsLevelEnded { get; set; }
         public MapData LocalMapData => null;
         public VictoryConditions VictoryConditions => null;
-        public Action OnVictoryConditionsUpdated { get; set; }
-        public Action OnLevelWon { get; set; }
-        public Action OnLevelLost { get; set; }
-        public Action OnLevelContinued { get; set; }
+        public event Action OnVictoryConditionsUpdated { add { } remove { } }
+        public event Action OnLevelWon { add { } remove { } }
+        public event Action OnLevelLost { add { } remove { } }
+        public event Action OnLevelContinued { add { } remove { } }
 
         public void GrantExtraMoves(int count)
         {

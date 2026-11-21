@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public static class AudioCuePlayer
 {
@@ -57,11 +57,6 @@ public static class AudioCuePlayer
 
         audioSource.loop = false;
         audioSource.Stop();
-    }
-
-    public static bool IsPlaying(AudioSource audioSource)
-    {
-        return audioSource != null && audioSource.isPlaying;
     }
 
     public static float GetPlayDuration(AudioCue cue, int clipIndex)

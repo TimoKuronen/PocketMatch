@@ -1,5 +1,4 @@
 using DG.Tweening;
-using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
@@ -7,17 +6,11 @@ using Cysharp.Threading.Tasks;
 
 public class BoardStateEvaluator
 {
-    #region Fields
-
     private TileData[,] gridData;
     private TileView[,] gridViews;
     private int width;
     private int height;
     private IGridController gridController;
-
-    #endregion
-
-    #region Nested Types
 
     private struct SwapKey : System.IEquatable<SwapKey>
     {
@@ -42,10 +35,6 @@ public class BoardStateEvaluator
         }
     }
 
-    #endregion
-
-    #region Lifecycle
-
     public BoardStateEvaluator(TileData[,] gridData, TileView[,] gridViews, int width, int height, IGridController controller)
     {
         this.gridData = gridData;
@@ -54,10 +43,6 @@ public class BoardStateEvaluator
         this.height = height;
         this.gridController = controller;
     }
-
-    #endregion
-
-    #region Public API
 
     public PotentialMovesResult CountPotentialMoves()
     {
@@ -143,10 +128,6 @@ public class BoardStateEvaluator
         AnimateShuffleAsync(tileViews, tilePositions).Forget();
     }
 
-    #endregion
-
-    #region Private Helpers
-
     private int CountPowerTiles()
     {
         int count = 0;
@@ -199,6 +180,4 @@ public class BoardStateEvaluator
         await UniTask.Delay(System.TimeSpan.FromSeconds(0.05f), cancellationToken: token);
         await gridController.MatchCycleAsync();
     }
-
-    #endregion
 }

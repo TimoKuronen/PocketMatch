@@ -51,13 +51,13 @@ Services register through VContainer with constructor / method injection.
 
 | Service | Responsibility |
 |---------|----------------|
-| `SaveService` | Encrypted local save (`save.dat`), progression updates, cloud sync through `ICloudSaveProvider` |
+| `SaveService` | Encrypted local save (`save.dat`, AES through `SaveCrypto`), progression updates, cloud sync through `ICloudSaveProvider` |
 | `EconomyService` | Wallet ledger (`PlayerData.coins`), spend/add, save trigger, balance events |
 | `LevelEarningsService` | Per-attempt earnings from gameplay (power tiles, unused-move bonus) |
 | `LevelContinueService` | Lose-menu continue gate (once per attempt); applies `ShopOffer` rewards |
 | `AnalyticsService` | Maps level and economy events to analytics names; queues and delivers them through `IAnalyticsTransport` (`UgsAnalyticsTransport`, gated by `IAnalyticsConsent`) |
 | `UgsInitializer` | Initializes Unity Gaming Services once, with the development or production environment |
-| `AdsService` | `IAdsService` facade over per-format controllers (banner, interstitial, rewarded), SDK init, and a retry policy shared by the banner and rewarded controllers |
+| `AdsService` | `IAdsService` facade over per-format controllers (banner, interstitial, rewarded), SDK init, and a retry policy shared by the banner, interstitial, and rewarded controllers |
 | `AudioService` | Cue-based SFX |
 | `EffectService` | VFX pooling / playback |
 
@@ -67,11 +67,11 @@ Optional SDK and save configuration load from gitignored files under `Assets/Str
 
 Board mutations run through an async command queue:
 
-- `ICommand` / `CommandInvoker` serialize `ExecuteAsync` work
+- `ICommand` / `CommandInvoker` serialize `ExecuteAsync` work; a failing command clears the queue so the board is released
 - Gameplay commands include `SwapCommand`, `DestroyCommand`, `GravityCommand`, `CreatePowerTileCommand`, and `StaggeredDestroyCommand`
 - `GridController` orchestrates match cycles, then asks `BoardStateEvaluator` for potential moves
 - Power tiles caught in a match queue their own destroy commands, which drain before gravity; a double tap or a power swap locks input, costs one move, and resolves the board once
-- Zero potential moves triggers shuffle-until-playable via `GridHelperMethods`
+- Zero potential moves triggers shuffle-until-playable via `GridHelperMethods`; input stays locked until the shuffle's match cycle ends
 
 ## Ads
 

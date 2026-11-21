@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 env:
-  UNITY_VERSION: 6000.3.28f1
+  UNITY_VERSION: 6000.3.29f1
 
 jobs:
   editModeTests:

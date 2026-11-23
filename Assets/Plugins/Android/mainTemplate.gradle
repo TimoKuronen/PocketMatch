@@ -7,7 +7,7 @@ dependencies {
 // Android Resolver Dependencies Start
     implementation 'com.google.android.gms:play-services-ads-identifier:18.1.0' // Assets/LevelPlay/Editor/IronSourceSDKDependencies.xml:12
     implementation 'com.unity3d.ads-mediation:mediation-sdk:9.8.0' // Assets/LevelPlay/Editor/IronSourceSDKDependencies.xml:5
-    implementation 'com.unity3d.ads-mediation:unityads-adapter:5.16.0' // Assets/LevelPlay/Editor/ISUnityAdsAdapterDependencies.xml:5
+    implementation 'com.unity3d.ads-mediation:unityads-adapter:5.17.0' // Assets/LevelPlay/Editor/ISUnityAdsAdapterDependencies.xml:5
 // Android Resolver Dependencies End
 **DEPS**}
 

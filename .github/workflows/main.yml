@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 env:
-  UNITY_VERSION: 6000.3.28f1
+  UNITY_VERSION: 6000.3.29f1
 
 jobs:
   editModeTests:
@@ -52,6 +52,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
+          containerRegistryImageVersion: '4'
           testMode: EditMode
           checkName: Edit Mode Tests
           githubToken: ${{ secrets.GITHUB_TOKEN }}
@@ -95,6 +96,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           unityVersion: ${{ env.UNITY_VERSION }}
+          containerRegistryImageVersion: '4'
           unityLicense: ${{ secrets.UNITY_LICENSE }}
           targetPlatform: Android
           buildMethod: CIResolveDependencies.Resolve
@@ -108,6 +110,7 @@ jobs:
         with:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
+          containerRegistryImageVersion: '4'
           unityLicense: ${{ secrets.UNITY_LICENSE }}
           androidExportType: androidPackage
           allowDirtyBuild: true

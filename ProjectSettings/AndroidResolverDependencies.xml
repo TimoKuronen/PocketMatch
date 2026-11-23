@@ -2,7 +2,7 @@
   <packages>
     <package>com.google.android.gms:play-services-ads-identifier:18.1.0</package>
     <package>com.unity3d.ads-mediation:mediation-sdk:9.8.0</package>
-    <package>com.unity3d.ads-mediation:unityads-adapter:5.16.0</package>
+    <package>com.unity3d.ads-mediation:unityads-adapter:5.17.0</package>
   </packages>
   <files />
   <settings>

@@ -152,7 +152,7 @@ public static class Loader
 
             bool canShow = adService.IsInitialized && adService.InterstitialAdReady;
 
-            // Also called when no ad can show, so AdsService records the ad_skipped reason.
+            // Also called when no ad can show, so AdsService logs the reason and requests a load.
             adService.ShowInterstitialAd();
 
             if (canShow)

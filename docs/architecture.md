@@ -41,7 +41,7 @@ flowchart LR
 
 | Scope | Lifetime | Responsibilities |
 |-------|----------|------------------|
-| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, economy, analytics, audio, ads, localization |
+| `BootstrapLifetimeScope` | `DontDestroyOnLoad` singleton | Save, economy, analytics and consent, audio, ads, localization, Unity Gaming Services, remote tunables |
 | `MenuLifetimeScope` | Main menu scene | Menu presenters and views |
 | `GameLifetimeScope` | Play scene | Session, level earnings, continue, HUD, grid presenters, board wiring |
 
@@ -81,7 +81,7 @@ Board mutations run through an async command queue:
 | Interstitial | Loader transitions | Tried when leaving the win screen, to the next level or the main menu |
 | Rewarded | Lose menu continue | Opt-in; extra moves granted only on a confirmed reward. One continue (coins or ad) per attempt; repeat taps while the ad is up are ignored |
 
-Editor builds and debug builds with simulation switched on simulate banner, interstitial, and rewarded outcomes without the network; the rewarded outcome is selectable. Debug builds also expose an ads report that checks the local configuration and lists per-format load state and the last load error. Device builds initialize LevelPlay when local ad configuration is present. The rewarded unit is optional there: without it the ad continue stays unavailable on device. Ad failure paths (including rewarded no-fill) log `ad_skipped` and continue scene flow, and the Loader waits for ads with timeouts so they never block loading; a failed rewarded show turns the ad option off for that lose screen.
+Editor builds and debug builds with simulation switched on simulate banner, interstitial, and rewarded outcomes without the network; the rewarded outcome is selectable. Debug builds also expose an ads report that checks the local configuration and lists per-format load state and the last load error. Device builds initialize LevelPlay when local ad configuration is present. The rewarded unit is optional there: without it the ad continue stays unavailable on device. Ad failure paths (including rewarded no-fill) log a warning and continue scene flow, and the Loader waits for ads with timeouts so they never block loading; a failed rewarded show turns the ad option off for that lose screen.
 
 ## Save
 

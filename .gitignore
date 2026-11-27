@@ -91,6 +91,16 @@ build/
 # Downloaded by the LevelPlay Network Manager
 /Assets/LevelPlay/Editor/LevelPlayVersions.json
 
+# Asset Store content under its own license
+/Assets/Audio/AudioFiles/
+/Assets/Audio/AudioFiles.meta
+/Assets/JMO Assets/
+/Assets/JMO Assets.meta
+/Assets/Polygonal Particles/
+/Assets/Polygonal Particles.meta
+/Assets/Prefabs/Tile VFX/
+/Assets/Prefabs/Tile VFX.meta
+
 # Remote Config editor window cache
 /Assets/Editor/RemoteConfig/
 /Assets/Editor/RemoteConfig.meta

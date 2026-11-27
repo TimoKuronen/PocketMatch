@@ -1,8 +1,8 @@
 # Third-party attribution
 
-PocketMatch bundles third-party engines, SDKs, and Asset Store content. Their licenses and terms remain in force and supersede the repository MIT license for those files.
+PocketMatch uses third-party engines, SDKs, and Asset Store content. Their licenses and terms remain in force and supersede the repository MIT license for those files. Cartoon FX Remaster, Polygonal Particles, Universal Sound FX, and the effect prefabs derived from them are not part of the repository.
 
-## Notable bundled dependencies
+## Notable dependencies
 
 | Dependency | Location (typical) | Notes |
 |------------|--------------------|-------|
@@ -12,6 +12,7 @@ PocketMatch bundles third-party engines, SDKs, and Asset Store content. Their li
 | DOTween | `Assets/Plugins/Demigiant/DOTween/` | Demigiant license |
 | Cartoon FX Remaster | `Assets/JMO Assets/Cartoon FX Remaster/` | Jean Moreno / Asset Store terms |
 | Polygonal Particles | `Assets/Polygonal Particles/` | Asset Store terms |
+| Universal Sound FX | `Assets/Audio/AudioFiles/` | Asset Store terms |
 | TextMesh Pro | `Assets/TextMesh Pro/` | Unity / TMP terms |
 | External Dependency Manager | `Assets/ExternalDependencyManager/` | Google EDM4U license |
 | VContainer | UPM / package cache | VContainer license |

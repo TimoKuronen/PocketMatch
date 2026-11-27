@@ -1,6 +1,6 @@
 # PocketMatch
 
-Mobile Match-3 prototype built in **Unity 6**: async board commands, VContainer service boundaries, Addressables content, and LevelPlay ad mediation.
+Mobile Match-3 prototype built in **Unity 6**: async board commands, VContainer service boundaries, Addressables content, and LevelPlay ad mediation. The in-game title is **Rune Match**.
 
 [![Unity 6000.3.29f1](https://img.shields.io/badge/Unity-6000.3.29f1-black.svg)](ProjectSettings/ProjectVersion.txt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -25,13 +25,13 @@ Mobile Match-3 prototype built in **Unity 6**: async board commands, VContainer 
 - Unity LevelPlay banner and interstitial mediation, with a rewarded lose-continue path integrated
 - Unity Localization (`en` / `es`) with Localizer CSV interchange
 - Edit Mode tests for board rules, match detection, potential moves, shuffle, objective counting, ad retry, rewarded continue, economy rules, save orchestration with a fake cloud provider, save conflict resolution, save encryption, atomic file writes, tunables parsing, and localization keys
-- CI: Edit Mode tests on push/PR; Android build on master
+- CI: Edit Mode tests on pushes to master and on pull requests that touch project files; Android build on master
 
 ## Architecture
 
 ```text
 BootstrapLifetimeScope (DontDestroyOnLoad)
-  Save / Analytics / Ads / Audio / Input
+  Save / Economy / Analytics / Ads / Audio / Localization / Backend
         |
         v
 Loader -> MainMenu (MenuLifetimeScope)
@@ -54,6 +54,8 @@ Details: [docs/architecture.md](docs/architecture.md)
 | Content | Addressables (levels, VFX) |
 | Ads | Unity LevelPlay (IronSource mediation) |
 | Localization | Unity Localization (`en` source, `es`); CSV bridge to Localizer |
+| Backend | Unity Gaming Services (Analytics, Authentication, Cloud Save, Remote Config) |
+| Tests and CI | Unity Test Framework (Edit Mode); GitHub Actions with GameCI |
 
 ## Docs
 
